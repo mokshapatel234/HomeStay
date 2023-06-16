@@ -1,0 +1,144 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Profile {% endblock title %}
+
+{% block content %}
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+<div class="header pb-6 d-flex align-items-center" 
+     style="min-height: 500px; background-image: url(/static/assets/img/theme/profile-cover.jpg); background-size: cover; background-position: center top;">
+  <!-- Mask -->
+  <span class="mask bg-gradient-default opacity-8"></span>
+  <!-- Header container -->
+  <div class="container-fluid d-flex align-items-center">
+    <div class="row">
+      <div class="col-lg-7 col-md-10">
+        <h1 class="display-2 text-white"> 
+          Hello {{ request.user.username }}
+        </h1>
+        <p class="text-white mt-0 mb-5">Add Property</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Page content -->
+    <div class="col-xl-8 order-xl-1">
+      <div class="card">
+        <div class="card-header">
+          <div class="row align-items-center">
+            <div class="col-8">
+              <h3 class="mb-0">Add Property </h3>
+            </div>
+           
+          </div>
+        </div>
+        <div class="card-body">
+          <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% if msg %}
+               <div>
+                <h1 class="msg">{{msg}}</h1>
+              </div>
+             {% endif %}
+            <h6 class="heading-small text-muted mb-4">Property information</h6>
+            <div class="pl-lg-4">
+                <div class="row">
+                 
+                </div>
+                              
+                <div class="row">
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label" for="input-first-name"> Property Name</label>
+                      <input type="text" id="input-first-name" class="form-control" placeholder="Property Name" name="property_name">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label" for="input-images">Root Image</label>
+                      <input type="file" multiple id="input-images" class="form-control" placeholder="Images" name="root_image">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label" for="input-images"> Images</label>
+                      <input type="file" multiple id="input-images" class="form-control" placeholder="Images" name="images">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label" for="input-videos">Videos</label>
+                      <input type="file" multiple id="input-videos" class="form-control" placeholder="Videos" name="videos">
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label" for="input-price">Price</label>
+                      <input type="number"  id="input-price" class="form-control" placeholder="Price" name="price">
+                    </div>
+                  </div>
+                  
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label">Description</label>
+                      <textarea class="form-control" id="input_description" name="description" rows="4" cols="40"></textarea>
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label">Owner</label>
+                      <select name="owner" class="form-control">
+                        {% if owner is clien %}
+                          {% for client in clients %}
+                            <option value="{{ client.id }}">{{ client.first_name }} {{ client.last_name }}</option>
+                          {% endfor %}
+                        {% else %}
+                          {% for admin in User %}
+                            <option value="{{ admin.id }}">{{ admin.username }}</option>
+                          {% endfor %}
+                        {% endif %}
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label" >Address</label>
+                      <textarea class="form-control" name="address" rows="4" cols="40"></textarea>
+
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label" >Status</label>
+                      <select id="input-status" name="status" class="form-control">
+                        <option value="active">Active</option>
+                        <option value="deactive">Deactive</option>
+                      </select>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+              <center>
+              <button class="btn btn-sm btn-primary" type='submit' value='submit' >Submit</button>
+              </center>
+            </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+ 
+
+</div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}{% endblock javascripts %}
