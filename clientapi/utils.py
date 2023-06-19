@@ -6,7 +6,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 def generate_token(id):
     payload = {
-        'user_id': id,
+        'user_id': str(id),
         'exp': datetime.utcnow() + timedelta(days=1)  
     }
 

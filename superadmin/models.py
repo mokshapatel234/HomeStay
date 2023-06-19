@@ -37,7 +37,11 @@ class Client(models.Model):
         else:
             self.deleted_at = now()
             self.save()
+    def is_authenticated(self):
+        return True  
 
+    def is_anonymous(self):
+        return False 
 
 class Properties(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -45,7 +49,7 @@ class Properties(models.Model):
     root_image = models.ImageField(blank=True, upload_to="property", validators=[FileExtensionValidator(['jpg','jpeg','png'])], height_field=None, width_field=None, max_length=None)
     price = models.PositiveBigIntegerField()
     description = models.TextField()
-    owner = models.ForeignKey(Client, on_delete=models.CASCADE, null=True, blank=True) 
+    owner = models.ForeignKey(Client, on_delete=models.CASCADE, null=True, blank=True, related_name="properties") 
     address = models.TextField()
     CHOICES = (('0','deactive'),('1','active'))
     status = models.CharField(("status"),choices=CHOICES, max_length=50,default='0')

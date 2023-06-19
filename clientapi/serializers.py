@@ -1,5 +1,5 @@
 from rest_framework import serializers 
-from superadmin.models import Client, Properties
+from superadmin.models import Client, Properties, PropertyImage, PropertyVideo
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,3 +39,31 @@ class LoginSerializer(serializers.Serializer):
 class ResetPasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
     confirm_password = serializers.CharField(required=True)
+
+
+
+
+class PropertyImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PropertyImage
+        fields = ('id', 'image')
+
+class PropertyVideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PropertyVideo
+        fields = ('id', 'video')
+
+class PropertiesSerializer(serializers.ModelSerializer):
+    images = PropertyImageSerializer(many=True)
+    videos = PropertyVideoSerializer(many=True)
+
+    class Meta:
+        model = Properties
+        fields = ('id', 'name', 'root_image', 'price', 'description', 'address', 'status', 'created_at', 'updated_at', 'deleted_at', 'images', 'videos')
+
+
+class ClientProfileSerializer(serializers.ModelSerializer):
+   
+    class Meta:
+        model = Client
+        fields = ('username', 'first_name', 'last_name', 'profile_image', 'contact_no')

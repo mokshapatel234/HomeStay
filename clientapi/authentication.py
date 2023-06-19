@@ -1,24 +1,30 @@
 from rest_framework.authentication import BaseAuthentication
 from rest_framework import exceptions
+from superadmin.models import *
 import jwt
-from rest_framework_jwt.authentication import BaseJSONWebTokenAuthentication
+from rest_framework_jwt.authentication import BaseJSONWebTokenAuthentication,jwt_decode_handler
 
-class JWTAuthentication(BaseJSONWebTokenAuthentication):
+class JWTAuthentication(BaseAuthentication):
     def authenticate(self, request):
-        auth = request.headers.get('Authorization')
+        jwt_token = request.headers.get('Authorization', None)
+        
+        if jwt_token:
+            try:
+                payload = jwt.decode(jwt_token, 'secret', algorithm='HS256')
+            except (jwt.DecodeError, jwt.ExpiredSignatureError) as e:
+                print(e)
+                raise exceptions.AuthenticationFailed('Token is invalid')
+        else:
+            raise exceptions.AuthenticationFailed('Token is required')
+        
+    
 
-        if not auth:
-            return None
-
-        token = auth.strip()
-
-        return self.authenticate_credentials(token)
-
-    def authenticate_credentials(self, token):
         try:
-            payload = self.decode_token(token)
-            client = self.authenticate_payload(payload)
-        except Exception:
-            raise exceptions.AuthenticationFailed('Invalid token.')
+            request.user = Client.objects.get(id=payload['user_id'])
+        except Client.DoesNotExist:
+            raise exceptions.AuthenticationFailed('Client not found.')
 
-        return (client, token)
+        return (request.user, jwt_token)
+
+
+    

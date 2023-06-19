@@ -11,14 +11,15 @@ from django.urls import reverse
 from superadmin.models import *
 from rest_framework.views import APIView
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.core.mail import send_mail
-from clientapi.serializers import RegisterSerializer, LoginSerializer, ResetPasswordSerializer
+from clientapi.serializers import RegisterSerializer, LoginSerializer, ResetPasswordSerializer, ClientProfileSerializer, PropertiesSerializer
 from .utils import generate_token
 from rest_framework.exceptions import AuthenticationFailed
 from django.views.decorators.csrf import csrf_exempt
+from .authentication import JWTAuthentication
 
-
+# Register Client
 class RegisterApi(generics.GenericAPIView):
     serializer_class = RegisterSerializer
     permission_classes = (permissions.AllowAny,)
@@ -33,8 +34,8 @@ class RegisterApi(generics.GenericAPIView):
         response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return response
 
-
-class LoginAPIView(generics.GenericAPIView):
+# Login client and get JWT token for further authentication
+class LoginApi(generics.GenericAPIView):
     serializer_class = LoginSerializer
     authentication_classes = (JSONWebTokenAuthentication,)
     permission_classes = (AllowAny,)
@@ -54,14 +55,15 @@ class LoginAPIView(generics.GenericAPIView):
                 raise serializers.ValidationError(serializer.errors)
         except Exception as e:
             print(e)
-            return Response({'detail': 'An error occurred.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
     def get(self, request):
         return Response({'detail': 'Method not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-class ForgotPassword(generics.GenericAPIView):
+# Forgot Password
+class ForgotPasswordApi(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self,request):
@@ -84,8 +86,8 @@ class ForgotPassword(generics.GenericAPIView):
             print(e)
             return Response({'detail':str(e)},status=status.HTTP_400_BAD_REQUEST)
         
-
-class OtpVerification(generics.GenericAPIView):
+# OTP Verification
+class OtpVerificationApi(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self,request):
@@ -105,8 +107,8 @@ class OtpVerification(generics.GenericAPIView):
             return Response({'detail':'Error To Verify Otp'},status=status.HTTP_404_NOT_FOUND)
 
 
-
-class ResetPassword(generics.GenericAPIView):
+# Reset Password
+class ResetPasswordApi(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)
     authentication_classes = (JSONWebTokenAuthentication,)
     serializer_class = ResetPasswordSerializer
@@ -132,3 +134,60 @@ class ResetPassword(generics.GenericAPIView):
         except Exception as e:
            
             return Response({'detail':str(e)},status=status.HTTP_404_NOT_FOUND)
+
+# Clinet's property management
+
+class ClientProfileApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication,)
+   
+    
+    def get(self,request):
+        try:
+            serializer = ClientProfileSerializer(request.user)
+    
+            return Response(serializer.data, status=status.HTTP_200_OK)
+                   
+        except Exception as e:
+            return Response({"detail":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def put(self, request):
+        try: 
+            serializer = ClientProfileSerializer(request.user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'detail':'Profile Updated'},status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+       
+        except Exception as e:
+            return Response({"detail":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+# Property Management
+class PropertyApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication, )
+    def get(self, request):
+        try:
+            serializer = PropertiesSerializer(request.user.properties, many=True)
+    
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+           
+        except Exception as e:
+            return Response({"detail":str(e)}, status=status.HTTP_400_BAD_REQUEST)  
+    
+    
+    def post(self, request):
+        try: 
+            serializer = PropertiesSerializer(data=request.data, many=True, context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data,status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+       
+        except Exception as e:
+            return Response({"detail":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+            
+
+
+
