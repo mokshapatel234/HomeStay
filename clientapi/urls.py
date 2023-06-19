@@ -9,5 +9,7 @@ urlpatterns = [
     path('otpverify/', OtpVerificationApi.as_view(), name="otpverify"),
     path('resetpassword/', ResetPasswordApi.as_view(), name="reset_password"),
     path('clientprofile/', ClientProfileApi.as_view(), name="client_profile"),
-    path('clientproperty/', PropertyApi.as_view(), name="client_property")
+    path('clientproperty/', PropertyApi.as_view(), name="client_property"),
+    path('clientproperty/<property_id>', PropertyApi.as_view(), name="client_property_update"),
+    path('clientporpertyfiles/<id>', PropertyFilesApi.as_view(), name="client_property_files"),
 ]

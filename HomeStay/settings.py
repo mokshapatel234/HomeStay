@@ -96,6 +96,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "HomeStay.wsgi.application"
 
+# For add fields in built in User model
+# AUTH_USER_MODEL = 'superadmin.User'
+
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases

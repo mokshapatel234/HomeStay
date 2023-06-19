@@ -7,6 +7,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.timezone import now
 import uuid
+from django.contrib.auth.models import AbstractUser
+
 
 
 
@@ -66,15 +68,17 @@ class Properties(models.Model):
         else:
             self.deleted_at = now()
             self.save()
+            self.images.all().delete()
+            self.videos.all().delete()
 
     
 class PropertyImage(models.Model):
     property = models.ForeignKey(Properties, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to="property", validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
+    image = models.ImageField(upload_to="property", validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])], verbose_name="images")
 
 class PropertyVideo(models.Model):
     property = models.ForeignKey(Properties, on_delete=models.CASCADE, related_name='videos')
-    video = models.FileField(upload_to="property", validators=[FileExtensionValidator(['mp4', 'mpeg4'])])
+    video = models.FileField(upload_to="property", validators=[FileExtensionValidator(['mp4', 'mpeg4'])], verbose_name="videos" )
 
 class Customer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -136,3 +140,5 @@ class Notification(models.Model):
                     [customer.email],
                     fail_silently=False
                 )
+
+

@@ -54,13 +54,21 @@ class PropertyVideoSerializer(serializers.ModelSerializer):
         fields = ('id', 'video')
 
 class PropertiesSerializer(serializers.ModelSerializer):
-    images = PropertyImageSerializer(many=True)
-    videos = PropertyVideoSerializer(many=True)
+
 
     class Meta:
         model = Properties
-        fields = ('id', 'name', 'root_image', 'price', 'description', 'address', 'status', 'created_at', 'updated_at', 'deleted_at', 'images', 'videos')
+        fields = ('id', 'name', 'root_image', 'price', 'description', 'address', 'status', 'created_at', 'updated_at')
 
+   
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.root_image = validated_data.get('root_image', instance.root_image)
+        instance.save()
+
+        return instance
+     
+       
 
 class ClientProfileSerializer(serializers.ModelSerializer):
    
