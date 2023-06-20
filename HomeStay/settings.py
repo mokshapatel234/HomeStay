@@ -80,7 +80,8 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            BASE_DIR / "superadmin/templates"
+            BASE_DIR / "superadmin/templates",
+            BASE_DIR / "clientapi/templates"
             ],
         "APP_DIRS": True,
         "OPTIONS": {

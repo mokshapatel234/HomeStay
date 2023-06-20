@@ -1,22 +1,20 @@
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework import status, generics
-from rest_framework.request import Request
+from django.template.loader import render_to_string
 from rest_framework.response import Response
-from rest_framework.settings import api_settings
 from rest_framework import serializers
 from django.http import JsonResponse
 import random
+from django.core.mail import EmailMultiAlternatives
 from django.urls import reverse
 from superadmin.models import *
-from rest_framework.views import APIView
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from clientapi.serializers import RegisterSerializer, LoginSerializer,\
       ResetPasswordSerializer, ClientProfileSerializer, PropertiesSerializer, PropertyImageSerializer
 from .utils import generate_token
-from rest_framework.exceptions import AuthenticationFailed
 from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication
 from rest_framework.parsers import JSONParser, MultiPartParser
@@ -36,11 +34,61 @@ class RegisterApi(generics.GenericAPIView):
         response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return response
 
+
+# Client verification
+class EmailVerificationApi(generics.GenericAPIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        try:
+            email = request.POST['email']
+            client_obj = Client.objects.get(email=email)
+            generated_otp = random.randint(1111, 9999)
+            request.session['client'] = str(client_obj.id)
+            request.session['otp'] = generated_otp
+            subject = 'Verify Client'
+
+            template_data = {'otp':generated_otp}  
+            html_message = render_to_string('verify_client.html', template_data)
+
+            subject = 'Account Recovery'
+            from_email = settings.DEFAULT_FROM_EMAIL
+            to_email = [email]
+
+            email = EmailMultiAlternatives(subject, body=None, from_email=from_email, to=to_email)
+            email.attach_alternative(html_message, "text/html")
+            email.send()
+            return Response({'detail': 'Email sent successfully.'}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class EmailOTPVerifyApi(generics.GenericAPIView):
+    permission_classes = (AllowAny, )
+    def post(self, request):
+        try:
+            client_otp = request.POST['otp']
+            try:
+                if client_otp == str(request.session.get('otp')):
+                    del request.session['otp']
+                    reset_password_link = request.build_absolute_uri(reverse('login_client'))
+                    request.session['client_verified'] = True
+
+                    return Response({'detail':'Otp Verified', "link":reset_password_link},status=status.HTTP_200_OK)
+                else:
+                    return Response({'detail':'Wrong Otp'},status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({'detail':'Error To Verify Otp'},status=status.HTTP_404_NOT_FOUND)
+
+
+
 # Login client and get JWT token for further authentication
 class LoginApi(generics.GenericAPIView):
     serializer_class = LoginSerializer
     authentication_classes = (JSONWebTokenAuthentication,)
-    permission_classes = (AllowAny,)
+    permission_classes = (AllowAny, )
     @csrf_exempt
         
     def post(self, request):
@@ -152,6 +200,7 @@ class ClientProfileApi(generics.GenericAPIView):
         except Exception as e:
             return Response({"detail":str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
+
     def put(self, request):
         try: 
             serializer = ClientProfileSerializer(request.user, data=request.data, partial=True)
@@ -167,6 +216,9 @@ class ClientProfileApi(generics.GenericAPIView):
 # Property Management
 class PropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
+    parser_classes = (MultiPartParser, )
+
+
     def get(self, request):
         try:
             properties = request.user.properties.all()
@@ -178,23 +230,52 @@ class PropertyApi(generics.GenericAPIView):
     
     def post(self, request):
         try: 
+            images = request.FILES.getlist('images')
+            videos = request.FILES.getlist('videos')
+            
             serializer = PropertiesSerializer(data=request.data, context={'request': request})
+            request.data.pop('images')
+            request.data.pop('videos')
             if serializer.is_valid():
-                serializer.save(owner=request.user)  
+                property_instance = serializer.save(owner=request.user)
+                
+                for image in images:
+                    PropertyImage.objects.create(property=property_instance, image=image)
+
+                for video in videos:
+                    PropertyVideo.objects.create(property=property_instance, video=video)
+
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
     def put(self, request, property_id):
         try:
-            property_instance = request.user.properties.get(id=property_id)
-            serializer = PropertiesSerializer(property_instance, data=request.data)
+            property_obj = request.user.properties.get(id=property_id)
+            serializer = PropertiesSerializer(property_obj, data=request.data)
+            print(property_obj.images)
+            request.data.pop('images')
+            request.data.pop('videos')
             if serializer.is_valid():
-                serializer.save()
+                property_instance = serializer.save()
+
+
+                property_obj.images.all().delete()
+                property_obj.videos.all().delete()
+
+
+                images = request.FILES.getlist('images')
+                for image in images:
+                    PropertyImage.objects.create(property=property_obj, image=image)
+
+
+                videos = request.FILES.getlist('videos')
+                for video in videos:
+                    PropertyVideo.objects.create(property=property_obj, video=video)
+
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -204,8 +285,9 @@ class PropertyApi(generics.GenericAPIView):
     
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
     
+
+
     def delete(self, request, property_id):
         try:
             property_instance = request.user.properties.get(id=property_id)
@@ -215,54 +297,7 @@ class PropertyApi(generics.GenericAPIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-     
-class PropertyFilesApi(generics.GenericAPIView):
-    authentication_classes = (JWTAuthentication,)
-    parser_classes = (MultiPartParser,)
-
-    def post(self, request, id):
-        try:
-            property_obj = Properties.objects.get(id=id)
-
-            images = request.FILES.getlist('images')
-            for image in images:
-                PropertyImage.objects.create(property=property_obj, image=image)
-            videos = request.FILES.getlist('videos')
-            for video in videos:
-                PropertyVideo.objects.create(property=property_obj, video=video)
-            return Response({"detail":"Images and videos uploaded successfully."}, status=status.HTTP_201_CREATED)
-
-        except Properties.DoesNotExist:
-            return Response({"detail": "Property not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
-    
-    def put(self, request, id):
-        try:
-            property_obj = Properties.objects.get(id=id)
-
-            property_obj.images.all().delete()
-            property_obj.videos.all().delete()
-
-            images = request.FILES.getlist('images')
-            for image in images:
-                PropertyImage.objects.create(property=property_obj, image=image)
-
-            videos = request.FILES.getlist('videos')
-            for video in videos:
-                PropertyVideo.objects.create(property=property_obj, video=video)
-
-            return Response({"detail": "Images and videos updated successfully."}, status=status.HTTP_200_OK)
-
-        except Properties.DoesNotExist:
-            return Response({"detail": "Property not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 

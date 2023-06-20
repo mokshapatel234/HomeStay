@@ -4,7 +4,7 @@ from superadmin.models import Client, Properties, PropertyImage, PropertyVideo
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'password', 'profile_image', 'contact_no')
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'password', 'profile_image', 'contact_no']
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -46,32 +46,27 @@ class ResetPasswordSerializer(serializers.Serializer):
 class PropertyImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyImage
-        fields = ('id', 'image')
+        fields = ['id', 'image']
 
 class PropertyVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyVideo
-        fields = ('id', 'video')
+        fields = ['id', 'video']
 
 class PropertiesSerializer(serializers.ModelSerializer):
-
+   
 
     class Meta:
         model = Properties
-        fields = ('id', 'name', 'root_image', 'price', 'description', 'address', 'status', 'created_at', 'updated_at')
+        fields = ['id', 'name', 'root_image', 'price', 'description', 'address', 'status', 'created_at', 'updated_at', 'images', 'videos']
 
-   
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.root_image = validated_data.get('root_image', instance.root_image)
-        instance.save()
 
-        return instance
-     
-       
+    
+    
+    
 
 class ClientProfileSerializer(serializers.ModelSerializer):
    
     class Meta:
         model = Client
-        fields = ('username', 'first_name', 'last_name', 'profile_image', 'contact_no')
+        fields = ['username', 'first_name', 'last_name', 'profile_image', 'contact_no']
