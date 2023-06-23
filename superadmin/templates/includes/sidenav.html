@@ -2,8 +2,8 @@
   <div class="scrollbar-inner">
     <!-- Brand -->
     <div class="sidenav-header  align-items-center">
-      <a class="navbar-brand" href="/">
-        <img src="/static/assets/img/brand/blue.png" class="navbar-brand-img" alt="Argon Design - Jinja Template Logo.">
+      <a class="navbar-brand" href="/superadmin/index">
+        <img src="/static/assets/img/brand/homestay.png" class="navbar-brand-img" alt="Homestay">
       </a>
     </div>
     <div class="navbar-inner">
@@ -25,16 +25,11 @@
           <span class="docs-normal" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">Customer</span>
         </h6>
         <ul class="navbar-nav mb-md-3" >
+         
           <li class="nav-item" id="collapseOne">
-            <a class="nav-link {% if 'add_customer' in segment %} active {% endif %}" href="/superadmin/add_customer">
+            <a class="nav-link {% if 'add_customer' in segment %} active {% endif %}" href="/superadmin/allCustomers">
               <i class="ni ni-bullet-list-67 text-default"></i>
-              <span class="nav-link-text">Add Customer</span>
-            </a>
-          </li>
-          <li class="nav-item" id="collapseOne">
-            <a class="nav-link {% if 'add_customer' in segment %} active {% endif %}" href="/superadmin/all_customers">
-              <i class="ni ni-bullet-list-67 text-default"></i>
-              <span class="nav-link-text">All Cusetomers</span>
+              <span class="nav-link-text">Customer Management</span>
             </a>
           </li>
           
@@ -46,16 +41,11 @@
           <span class="docs-normal" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">Client</span>
         </h6>
         <ul class="navbar-nav mb-md-3">
+        
         <li class="nav-item" id="collapseTwo">
-          <a class="nav-link {% if 'add_client' in segment %} active {% endif %}" href="/superadmin/add_client">
+          <a class="nav-link {% if 'add_client' in segment %} active {% endif %}" href="/superadmin/allClients">
             <i class="ni ni-bullet-list-67 text-default"></i>
-            <span class="nav-link-text">Add Client</span>
-          </a>
-        </li>
-        <li class="nav-item" id="collapseTwo">
-          <a class="nav-link {% if 'add_client' in segment %} active {% endif %}" href="/superadmin/all_clients">
-            <i class="ni ni-bullet-list-67 text-default"></i>
-            <span class="nav-link-text">All Client</span>
+            <span class="nav-link-text">Client Management</span>
           </a>
         </li>
       </ul>
@@ -66,19 +56,31 @@
         <span class="docs-normal" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">Property</span>
       </h6>
       <ul class="navbar-nav mb-md-3">
+       
         <li class="nav-item" id="collapseThree">
-          <a class="nav-link {% if 'add_property' in segment %} active {% endif %}" href="/superadmin/add_property">
+          <a class="nav-link {% if 'all_properties' in segment %} active {% endif %}" href="/superadmin/allProperties">
             <i class="ni ni-bullet-list-67 text-default"></i>
-            <span class="nav-link-text">Add Propery</span>
-          </a>
-        </li>
-        <li class="nav-item" id="collapseThree">
-          <a class="nav-link {% if 'all_properties' in segment %} active {% endif %}" href="/superadmin/all_properties">
-            <i class="ni ni-bullet-list-67 text-default"></i>
-            <span class="nav-link-text">All Properties</span>
+            <span class="nav-link-text">Property Management</span>
           </a>
         </li>
       </ul>
+
+
+      <hr class="my-3">
+      <!-- Heading -->
+      <h6 class="navbar-heading p-0 text-muted">
+        <span class="docs-normal" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">Terms and Policies</span>
+      </h6>
+      <ul class="navbar-nav mb-md-3">
+        <li class="nav-item" id="collapseThree">
+          <a class="nav-link {% if 'add_terms_policy' in segment %} active {% endif %}" href="/superadmin/addTermsPolicy">
+            <i class="ni ni-bullet-list-67 text-default"></i>
+            <span class="nav-link-text">Terms and Policies Management</span>
+          </a>
+        </li>
+       
+      </ul>
+
 
       </div>
     </div>

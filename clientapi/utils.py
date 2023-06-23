@@ -1,7 +1,5 @@
 import jwt
 from datetime import datetime, timedelta
-import json
-from django.core.serializers.json import DjangoJSONEncoder
 
 
 def generate_token(id):

@@ -1,10 +1,4 @@
 from django import forms
-from django.forms import fields
-from django.forms.widgets import FileInput
-from string import Template
-from django.utils.safestring import mark_safe
-from django.forms import ImageField
-from django.conf import settings
 from .models import *
 
 
@@ -31,8 +25,19 @@ class Add_clientForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email', 'password', 'profile_image', 'contact_no']
 
 
-# class Add_propertyForm(forms.ModelForm):
-    
-#     class Meta:
-#         model = Properties
-#         fields = ['name', 'images', 'videos', 'price', 'description', 'address', 'status']
+class AdminUserForm(forms.ModelForm):
+    class Meta:
+        model = AdminUser
+        fields = ['terms_and_condition', 'privacy_policy']
+        widgets = {
+            'terms_and_condition': forms.Textarea(attrs={'class': 'ckeditor'}),
+            'privacy_policy': forms.Textarea(attrs={'class': 'ckeditor'}),
+        }
+
+class PropertyTermsForm(forms.ModelForm):
+    class Meta:
+        model = PropertyTerms
+        fields = ['property', 'terms']
+        widgets = {
+            'terms_and_condition': forms.Textarea(attrs={'class': 'ckeditor'}),
+        }

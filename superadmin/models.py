@@ -1,17 +1,21 @@
 from django.db import models
 from djongo import models
 from django.core.validators import FileExtensionValidator, RegexValidator
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.timezone import now
 import uuid
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User
+from ckeditor.fields import RichTextField
 
 
 
+class AdminUser(models.Model):
+    user = models.OneToOneField(User,on_delete=models.CASCADE )
+    terms_and_condition = RichTextField()
+    privacy_policy = RichTextField()
 
+    
 class ParanoidModelManager(models.Manager):
     def get_queryset(self):
         return super(ParanoidModelManager, self).get_queryset().filter(deleted_at__isnull=True)
@@ -53,7 +57,7 @@ class Properties(models.Model):
     description = models.TextField()
     owner = models.ForeignKey(Client, on_delete=models.CASCADE, null=True, blank=True, related_name="properties") 
     address = models.TextField()
-    CHOICES = (('0','deactive'),('1','active'))
+    CHOICES = (('deactive','deactive'),('active','active'))
     status = models.CharField(("status"),choices=CHOICES, max_length=50,default='0')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -79,6 +83,10 @@ class PropertyImage(models.Model):
 class PropertyVideo(models.Model):
     property = models.ForeignKey(Properties, on_delete=models.CASCADE, related_name='videos')
     video = models.FileField(upload_to="property", validators=[FileExtensionValidator(['mp4', 'mpeg4'])], verbose_name="videos" )
+
+class PropertyTerms(models.Model):
+    property = models.ForeignKey(Properties, on_delete=models.CASCADE, related_name='terms')
+    terms = RichTextField()
 
 class Customer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -140,5 +148,6 @@ class Notification(models.Model):
                     [customer.email],
                     fail_silently=False
                 )
+
 
 

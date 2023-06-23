@@ -388,6 +388,8 @@ hr {
   border: 0;
   border-top: 1px solid rgba(0, 0, 0, 0.1); }
 
+
+  
 small,
 .small {
   font-size: 80%;
@@ -6697,9 +6699,7 @@ button.bg-darker:focus {
 .px-6 {
   padding-right: 4.5rem !important; }
 
-.pb-6,
-.py-6 {
-  padding-bottom: 4.5rem !important; }
+
 
 .pl-6,
 .px-6 {

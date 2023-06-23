@@ -1,0 +1,16 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Privacy Policy{% endblock  %}
+{% block content %}
+    <title>Terms And Policy Management</title>
+    {{ form.media }}
+    <div class="col-xl-8 order-xl-1">
+        <br>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+           <center>
+            <button class="btn btn-sm btn-primary" type='submit' value='submit' >Submit</button>
+           </center><br>
+        </form>
+    </div>
+{% endblock %}

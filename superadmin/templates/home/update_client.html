@@ -3,36 +3,15 @@
 {% block title %} Profile {% endblock title %}
 
 {% block content %}
-{% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-<div class="header pb-6 d-flex align-items-center" 
-     style="min-height: 500px; background-image: url(/static/assets/img/theme/profile-cover.jpg); background-size: cover; background-position: center top;">
-  <!-- Mask -->
-  <span class="mask bg-gradient-default opacity-8"></span>
-  <!-- Header container -->
-  <div class="container-fluid d-flex align-items-center">
-    <div class="row">
-      <div class="col-lg-7 col-md-10">
-        <h1 class="display-2 text-white"> 
-          Hello {{ request.user.username }}
-        </h1>
-        <p class="text-white mt-0 mb-5">Update Client</p>
-      </div>
-    </div>
-  </div>
-</div>
+
+
 <!-- Page content -->
     <div class="col-xl-8 order-xl-1">
       <div class="card">
         <div class="card-header">
           <div class="row align-items-center">
             <div class="col-8">
-              <h3 class="mb-0">Update Client </h3>
+              <h3 class="mb-0">Client Management</h3>
             </div>
            
           </div>
@@ -85,7 +64,7 @@
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label" >contact_no</label>
-                      <input type="number" class="form-control" placeholder="Contact No" name="contact_no" value="{{client.contact_no}}">
+                      <input type="text" class="form-control" placeholder="Contact No" name="contact_no" value="{{client.contact_no}}">
                     </div>
                   </div>
                 </div>

@@ -2,7 +2,7 @@ from rest_framework.authentication import BaseAuthentication
 from rest_framework import exceptions
 from superadmin.models import *
 import jwt
-from rest_framework_jwt.authentication import BaseJSONWebTokenAuthentication,jwt_decode_handler
+from rest_framework import permissions
 
 class JWTAuthentication(BaseAuthentication):
     def authenticate(self, request):
@@ -27,4 +27,8 @@ class JWTAuthentication(BaseAuthentication):
         return (request.user, jwt_token)
 
 
-    
+class IsClientVerified(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            return request.session.get('client_verified', False)
+        return False

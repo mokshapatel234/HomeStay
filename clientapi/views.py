@@ -13,11 +13,12 @@ from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from clientapi.serializers import RegisterSerializer, LoginSerializer,\
-      ResetPasswordSerializer, ClientProfileSerializer, PropertiesSerializer, PropertyImageSerializer
+      ResetPasswordSerializer, ClientProfileSerializer, PropertiesSerializer
 from .utils import generate_token
 from django.views.decorators.csrf import csrf_exempt
-from .authentication import JWTAuthentication
-from rest_framework.parsers import JSONParser, MultiPartParser
+from .authentication import JWTAuthentication, IsClientVerified
+from rest_framework.parsers import MultiPartParser
+
 
 # Register Client
 class RegisterApi(generics.GenericAPIView):
@@ -87,7 +88,6 @@ class EmailOTPVerifyApi(generics.GenericAPIView):
 # Login client and get JWT token for further authentication
 class LoginApi(generics.GenericAPIView):
     serializer_class = LoginSerializer
-    authentication_classes = (JSONWebTokenAuthentication,)
     permission_classes = (AllowAny, )
     @csrf_exempt
         
@@ -189,6 +189,7 @@ class ResetPasswordApi(generics.GenericAPIView):
 
 class ClientProfileApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication,)
+    permission_classes = (IsClientVerified, )
    
     
     def get(self,request):
@@ -216,6 +217,7 @@ class ClientProfileApi(generics.GenericAPIView):
 # Property Management
 class PropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
+    permission_classes = (IsClientVerified, )
     parser_classes = (MultiPartParser, )
 
 

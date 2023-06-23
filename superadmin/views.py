@@ -1,15 +1,29 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .forms import LoginForm, Add_clientForm
+from .forms import LoginForm, AdminUserForm, PropertyTermsForm
 from django.urls import reverse
 from django.contrib.auth.models import User
 from .models import *
-from bson.objectid import ObjectId
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import login
-from django.contrib.auth.mixins import LoginRequiredMixin
+
 
 # Create your views here.
+
+
+
+def add_terms_policy(request):
+    admin_user = AdminUser.objects.first() 
+
+    if request.method == 'POST':
+        form = AdminUserForm(request.POST, instance=admin_user)
+        if form.is_valid():
+            form.save()
+            return redirect('index')
+    else:
+        form = AdminUserForm(instance=admin_user)
+    
+    return render(request, 'home/add_terms_policy.html', {'form': form})
+
 
 
 class LoginView(View):
@@ -81,7 +95,7 @@ def add_client(request):
 def all_clients(request):
     clients = Client.objects.all()
     
-    return render(request, 'home/all_clients.html', {"clients":clients})
+    return render(request, 'home/list_clients.html', {"clients":clients})
 
 def update_client(request, id):
     client = Client.objects.get(id=id)
@@ -105,7 +119,6 @@ def update_client(request, id):
 def delete_client(request, id):
     cli = Client.objects.get(id=id)
     cli.delete()
-    msg = (request, "Client deleted successfully")
     return redirect('all_clients')
 
 
@@ -144,7 +157,7 @@ def add_customer(request):
 
 def all_customers(request):
     customers = Customer.objects.all()
-    return render(request, 'home/all_customers.html', {"customers":customers, "segment":'customer'})
+    return render(request, 'home/list_customers.html', {"customers":customers, "segment":'customer'})
 
 
 def update_customer(request, id):
@@ -169,7 +182,6 @@ def update_customer(request, id):
 def delete_customer(request, id):
     customer = Customer.objects.get(id=id)
     customer.delete()
-    msg = (request, "Customer deleted successfully")
     return redirect('all_customers')
 
 
@@ -178,9 +190,9 @@ def delete_customer(request, id):
 
 def add_property(request):
     try:
+        form = PropertyTermsForm(request.POST)
         clients = Client.objects.all()
         try:
-            clients = Client.objects.all()
             if request.method == 'POST':
                 owner_id = request.POST.get('owner')
                 owner = Client.objects.get(id=owner_id)
@@ -192,10 +204,13 @@ def add_property(request):
                     description=request.POST.get('description'),
                     owner=owner,
                     address=request.POST.get('address'),
-                    status=request.POST.get('status')
+                    status=request.POST.get('status'),
+                    terms_and_condition=request.POST.get('terms_and_condition')
+
                 )
                 property.save()
-                
+                if form.is_valid():
+                    form.save()
                 images = request.FILES.getlist('images')
                 for image in images:
                     PropertyImage.objects.create(property=property, image=image)
@@ -210,13 +225,13 @@ def add_property(request):
     except Exception as e:
         print(e)
 
-    return render(request, 'home/add_property.html', {'clients': clients, 'segment':'property'})
+    return render(request, 'home/add_property.html', {'clients': clients, 'segment':'property', 'form':form})
 
 
 def all_properties(request):
     properties = Properties.objects.all()
     
-    return render(request, 'home/all_properties.html', {"properties":properties, "segment":'property'})
+    return render(request, 'home/list_properties.html', {"properties":properties, "segment":'property'})
 
 
 def update_property(request,id):
