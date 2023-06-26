@@ -3851,12 +3851,12 @@ input[type="button"].btn-block {
 
 .page-item:first-child .page-link {
   margin-left: 0;
-  border-top-left-radius: 0.375rem;
-  border-bottom-left-radius: 0.375rem; }
+  border-top-left-radius: 0rem;
+  border-bottom-left-radius: 0rem; }
 
 .page-item:last-child .page-link {
-  border-top-right-radius: 0.375rem;
-  border-bottom-right-radius: 0.375rem; }
+  border-top-right-radius: 0rem;
+  border-bottom-right-radius: 0rem; }
 
 .page-item.active .page-link {
   z-index: 3;
@@ -3865,11 +3865,15 @@ input[type="button"].btn-block {
   border-color: #5e72e4; }
 
 .page-item.disabled .page-link {
+  width: 5rem;
   color: #8898aa;
   pointer-events: none;
   cursor: auto;
   background-color: #fff;
-  border-color: #dee2e6; }
+  border-color: #dee2e6; 
+  border-radius: 0;
+  border: 2px solid black;
+}
 
 .pagination-lg .page-link {
   padding: 0.75rem 1.5rem;
@@ -3877,12 +3881,12 @@ input[type="button"].btn-block {
   line-height: 1.5; }
 
 .pagination-lg .page-item:first-child .page-link {
-  border-top-left-radius: 0.4375rem;
-  border-bottom-left-radius: 0.4375rem; }
+  border-top-left-radius: 0rem;
+  border-bottom-left-radius: 0rem; }
 
 .pagination-lg .page-item:last-child .page-link {
-  border-top-right-radius: 0.4375rem;
-  border-bottom-right-radius: 0.4375rem; }
+  border-top-right-radius: 0rem;
+  border-bottom-right-radius: 0rem; }
 
 .pagination-sm .page-link {
   padding: 0.25rem 0.5rem;

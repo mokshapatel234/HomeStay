@@ -4,12 +4,12 @@ from django.contrib.auth.admin import UserAdmin
 
 
 # Register your models here.
-class AdminInline(admin.StackedInline):
-    model= AdminUser
+class TermsInline(admin.StackedInline):
+    model= TermsandPolicy
 
 
 class CustomizeUser(UserAdmin):
-    inlines = (AdminInline, )
+    inlines = (TermsInline, )
 
 admin.site.unregister(User)
 admin.site.register(User, CustomizeUser)

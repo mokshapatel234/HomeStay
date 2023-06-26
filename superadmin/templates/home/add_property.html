@@ -6,7 +6,7 @@
 
 
 <!-- Page content -->
-    <div class="col-xl-8 order-xl-1">
+    <div class="col-xl-12">
       <div class="card">
         <div class="card-header">
           <div class="row align-items-center">
@@ -54,11 +54,11 @@
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label" for="input-price">Price*</label>
-                      <input type="number"  id="input-price" class="form-control" placeholder="Price" name="price" required>
+                      <input type="text"  id="input-price" class="form-control" placeholder="Price" name="price" maxlength="5"required>
                     </div>
                   </div>
                   
-                  </div>
+                  
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label">Description*</label>
@@ -84,19 +84,12 @@
 
                     </div>
                   </div>
-                  <div class="col-lg-6">
-                    <div class="form-group">
-                      <label class="form-control-label" >Status</label>
-                      <select id="input-status" name="status" class="form-control">
-                        <option value="active">Active</option>
-                        <option value="deactive">Deactive</option>
-                      </select>
-                    </div>
-                  </div>
+
                   <div class="col-lg-6">
                     <div class="form-group">
                     {{form.media}}
-                      {{form.as_p}}
+                    <label class="form-control-label" >Terms:</label>
+                    {{form.terms}}
                     </div>
                   </div>
                 </div>

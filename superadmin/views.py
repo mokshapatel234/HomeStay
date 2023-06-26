@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .forms import LoginForm, AdminUserForm, PropertyTermsForm
+from .forms import LoginForm, AdminTermsAndpolicyForm, PropertyTermsForm
 from django.urls import reverse
 from django.contrib.auth.models import User
 from .models import *
@@ -12,15 +12,15 @@ from django.contrib.auth import login
 
 
 def add_terms_policy(request):
-    admin_user = AdminUser.objects.first() 
+    admin_user = TermsandPolicy.objects.first() 
 
     if request.method == 'POST':
-        form = AdminUserForm(request.POST, instance=admin_user)
+        form = AdminTermsAndpolicyForm(request.POST, instance=admin_user)
         if form.is_valid():
             form.save()
             return redirect('index')
     else:
-        form = AdminUserForm(instance=admin_user)
+        form = AdminTermsAndpolicyForm(instance=admin_user)
     
     return render(request, 'home/add_terms_policy.html', {'form': form})
 
@@ -194,9 +194,12 @@ def add_property(request):
         clients = Client.objects.all()
         try:
             if request.method == 'POST':
+                form = PropertyTermsForm(request.POST)
+                print(form)
                 owner_id = request.POST.get('owner')
                 owner = Client.objects.get(id=owner_id)
                 
+                # Add Property fields
                 property = Properties(
                     name=request.POST.get('property_name'),
                     price=request.POST.get('price'),
@@ -204,20 +207,31 @@ def add_property(request):
                     description=request.POST.get('description'),
                     owner=owner,
                     address=request.POST.get('address'),
-                    status=request.POST.get('status'),
-                    terms_and_condition=request.POST.get('terms_and_condition')
+                    status='active',
 
                 )
                 property.save()
-                if form.is_valid():
-                    form.save()
+                
+                # Add Property images
                 images = request.FILES.getlist('images')
                 for image in images:
                     PropertyImage.objects.create(property=property, image=image)
                 
+                # Add Property Videos
                 videos = request.FILES.getlist('videos')
                 for video in videos:
                     PropertyVideo.objects.create(property=property, video=video)
+
+
+                try:
+                    if form.is_valid():
+                        property_terms = form.save(commit=False)
+                        property_terms.property = property  
+                        property_terms.save()
+                    else:
+                        print("Error")
+                except Exception as e:
+                    print(e)
                 
                 return redirect('all_properties')
         except Exception as e:
@@ -236,13 +250,19 @@ def all_properties(request):
 
 def update_property(request,id):
     try:
+        
+        form = PropertyTermsForm(request.POST)
         property_obj = Properties.objects.get(id=id)
         clients = Client.objects.all()
         property_images = PropertyImage.objects.filter(property=property_obj)
         property_videos = PropertyVideo.objects.filter(property=property_obj)
         num_images = property_images.count()
         num_videos = property_videos.count()
+        
+
         if request.method == 'POST':
+            form = PropertyTermsForm(request.POST)
+
             owner_id = request.POST.get('owner')
             owner = Client.objects.get(id=owner_id)
             
@@ -269,7 +289,20 @@ def update_property(request,id):
             for video in videos:
                 PropertyVideo.objects.create(property=property_obj, video=video)
 
+
+            try:
+                if form.is_valid():
+                    property_terms = form.save(commit=False)
+                    property_terms.property = property_obj  
+                    property_terms.save()
+                else:
+                    print("Error")
+            except Exception as e:
+                print(e)
+
             return redirect('all_properties')
+        else:
+            form = PropertyTermsForm(request.POST, instance=property_terms)
     except Exception as e:
         print(e)
 
@@ -280,7 +313,9 @@ def update_property(request,id):
                      'clients': clients, 
                      'segment': 'property', 
                      'num_images': num_images,
-                     'num_videos': num_videos})
+                     'num_videos': num_videos,
+                     'form':form,
+                     })
 
 
 

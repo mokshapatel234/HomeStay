@@ -10,7 +10,7 @@
          "lengthChange": true,
          "searching": true,
          "columnDefs": [
-         { "searchable": false, "targets": 0 }
+         { "searchable": true, "targets": 0 }
          ],
          "order":[[ 0,"desc" ]],
          // "columnDefs" : [{"targets":, "type":"date-eu"}], 
@@ -61,7 +61,9 @@
                   <th scope="col" class="sort" data-sort="budget">Last Name</th>
                   <th scope="col" class="sort" data-sort="status">Email</th>                  
                   <th scope="col" class="sort" data-sort="completion">Conatct No</th>
-                  <th scope="col"></th>
+                  <th scope="col" class="sort" data-sort="completion">Edit</th>
+                  <th scope="col" class="sort" data-sort="completion">Delete</th>
+
                 </tr>
               </thead>
               <tbody class="list">
@@ -115,18 +117,16 @@
                        <div class="modal-dialog modal-confirm">
                           <div class="modal-content">
                              <div class="modal-header flex-column">
-                                <div class="icon-box">
-                                   <i class="fas fa-check"></i>
-                                </div>						
+                               						
                                 <h4 class="modal-title w-100">Are you sure?</h4>	
                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                              </div>
                              <div class="modal-body">
-                                <p>Do you really want to delete category? This process cannot be undone.</p>
+                                <p>Do you really want to delete category?</p>
                              </div>
                              <div class="modal-footer justify-content-center">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                <a class="completion mr-2" href="{% url 'delete_customer' id=customer.id %}">Delete</a>
+                                <button type="button" class="btn btn-outline-success" data-dismiss="modal">Cancel</button>
+                                <a class="btn btn-outline-danger" href="{% url 'delete_customer' id=customer.id %}">Delete</a>
                               </div>
                           </div>
                        </div>

@@ -25,10 +25,10 @@ class Add_clientForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email', 'password', 'profile_image', 'contact_no']
 
 
-class AdminUserForm(forms.ModelForm):
+class AdminTermsAndpolicyForm(forms.ModelForm):
     class Meta:
-        model = AdminUser
-        fields = ['terms_and_condition', 'privacy_policy']
+        model = TermsandPolicy
+        fields = ['user','terms_and_condition', 'privacy_policy']
         widgets = {
             'terms_and_condition': forms.Textarea(attrs={'class': 'ckeditor'}),
             'privacy_policy': forms.Textarea(attrs={'class': 'ckeditor'}),
@@ -37,7 +37,7 @@ class AdminUserForm(forms.ModelForm):
 class PropertyTermsForm(forms.ModelForm):
     class Meta:
         model = PropertyTerms
-        fields = ['property', 'terms']
+        fields = ['terms']
         widgets = {
-            'terms_and_condition': forms.Textarea(attrs={'class': 'ckeditor'}),
+            'terms': forms.Textarea(attrs={'class': 'ckeditor'}),
         }

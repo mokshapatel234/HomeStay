@@ -10,7 +10,7 @@ from ckeditor.fields import RichTextField
 
 
 
-class AdminUser(models.Model):
+class TermsandPolicy(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE )
     terms_and_condition = RichTextField()
     privacy_policy = RichTextField()
