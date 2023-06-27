@@ -23,7 +23,7 @@ from superadmin.views import password_reset_request
 
 
 urlpatterns = [
-    path("superadmin/", include('superadmin.urls')),
+    path("", include('superadmin.urls')),
     path("client/", include("clientapi.urls")),
     path("user/", include("userapi.urls")),
     
