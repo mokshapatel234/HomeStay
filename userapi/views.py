@@ -18,7 +18,6 @@ from .utils import generate_token
 from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication
 from rest_framework.parsers import MultiPartParser
-from django_filters.rest_framework import DjangoFilterBackend
 
 
 
