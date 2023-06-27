@@ -27,7 +27,7 @@
         <ul class="navbar-nav mb-md-3" >
          
           <li class="nav-item" id="collapseOne">
-            <a class="nav-link {% if 'add_customer' in segment %} active {% endif %}" href="/superadmin/allCustomers">
+            <a class="nav-link {% if 'add_customer' in segment %} active {% endif %}" href="/superadmin/listCustomers">
               <i class="ni ni-bullet-list-67 text-default"></i>
               <span class="nav-link-text">Customer Management</span>
             </a>
@@ -43,7 +43,7 @@
         <ul class="navbar-nav mb-md-3">
         
         <li class="nav-item" id="collapseTwo">
-          <a class="nav-link {% if 'add_client' in segment %} active {% endif %}" href="/superadmin/allClients">
+          <a class="nav-link {% if 'add_client' in segment %} active {% endif %}" href="/superadmin/listClients">
             <i class="ni ni-bullet-list-67 text-default"></i>
             <span class="nav-link-text">Client Management</span>
           </a>
@@ -58,9 +58,54 @@
       <ul class="navbar-nav mb-md-3">
        
         <li class="nav-item" id="collapseThree">
-          <a class="nav-link {% if 'all_properties' in segment %} active {% endif %}" href="/superadmin/allProperties">
+          <a class="nav-link {% if 'all_properties' in segment %} active {% endif %}" href="/superadmin/listProperties">
             <i class="ni ni-bullet-list-67 text-default"></i>
             <span class="nav-link-text">Property Management</span>
+          </a>
+        </li>
+      </ul>
+
+      <hr class="my-3">
+      <!-- Heading -->
+      <h6 class="navbar-heading p-0 text-muted">
+        <span class="docs-normal" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">State</span>
+      </h6>
+      <ul class="navbar-nav mb-md-3">
+       
+        <li class="nav-item" id="collapseThree">
+          <a class="nav-link {% if 'all_properties' in segment %} active {% endif %}" href="/superadmin/listState">
+            <i class="ni ni-bullet-list-67 text-default"></i>
+            <span class="nav-link-text">State Management</span>
+          </a>
+        </li>
+      </ul>
+
+      <hr class="my-3">
+      <!-- Heading -->
+      <h6 class="navbar-heading p-0 text-muted">
+        <span class="docs-normal" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">City</span>
+      </h6>
+      <ul class="navbar-nav mb-md-3">
+       
+        <li class="nav-item" id="collapseThree">
+          <a class="nav-link {% if 'all_properties' in segment %} active {% endif %}" href="/superadmin/listCities">
+            <i class="ni ni-bullet-list-67 text-default"></i>
+            <span class="nav-link-text">City Management</span>
+          </a>
+        </li>
+      </ul>
+
+      <hr class="my-3">
+      <!-- Heading -->
+      <h6 class="navbar-heading p-0 text-muted">
+        <span class="docs-normal" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">Area</span>
+      </h6>
+      <ul class="navbar-nav mb-md-3">
+       
+        <li class="nav-item" id="collapseThree">
+          <a class="nav-link {% if 'all_properties' in segment %} active {% endif %}" href="/superadmin/listAreas">
+            <i class="ni ni-bullet-list-67 text-default"></i>
+            <span class="nav-link-text">Area Management</span>
           </a>
         </li>
       </ul>

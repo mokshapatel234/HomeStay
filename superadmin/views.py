@@ -5,9 +5,68 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from .models import *
 from django.contrib.auth import login
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.models import User
+from django.db.models.query_utils import Q
+from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail,BadHeaderError
+from django.utils.encoding import force_bytes
+from django.template.loader import render_to_string
+from django.http.response import HttpResponse
+from django.contrib import messages
+
 
 
 # Create your views here.
+
+
+
+class password_reset_request(View):
+
+    def get(self,request):
+         password_reset_form = PasswordResetForm()
+         return render(request=request, template_name="home/password_reset.html", context={"form":password_reset_form})
+   
+    def post(self,request):
+        if request.method == "POST":
+            password_reset_form = PasswordResetForm(request.POST)
+            if password_reset_form.is_valid():
+                data = password_reset_form.cleaned_data['email']
+                associated_users = User.objects.filter(Q(email=data))
+                if associated_users.exists():
+                    for user in associated_users:
+                        subject = "Password Reset Requested"
+                        email_template_name = "password_reset_email.txt"
+                        c = {
+                        "email":user.email,
+                        'domain':'shopfreeapp.herokuapp.com',
+                        'site_name': 'Website',
+                        "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                        "user": user,
+                        'token': default_token_generator.make_token(user),
+                        'protocol': 'http',
+                        }
+                        email = render_to_string(email_template_name, c)
+                        try:
+                            send_mail(subject, email, 'admin@example.com' , [user.email], fail_silently=False)
+                        except BadHeaderError:
+                            return HttpResponse('Invalid header found.')
+                        return redirect ("/password_reset/done/")
+        
+                else:
+                    messages.error(request,'Sorry User Not Found')        
+                    password_reset_form = PasswordResetForm()
+                    return render(request=request, template_name="password_reset.html", context={"form":password_reset_form})
+
+
+
+
+def is_authenticate(request):
+    if request.session.get('enterprise_key'):
+         return True
+    return False
+
 
 
 
@@ -60,6 +119,151 @@ class Index(View):
       num_property = properties.count()
       return render(request,'home/index.html', {"num_client":num_client, "num_customer":num_customer, "num_property":num_property})
     
+# State
+
+def add_state(request):
+    try:
+        if request.method == 'POST':
+            name = request.POST.get('name')
+            state = State(
+                name=name,
+            )
+            state.save()
+            return redirect('list_state')
+        
+    except Exception as e:
+        print(e)
+    return render(request, 'home/add_state.html')
+
+
+def list_state(request):
+    states  = State.objects.all()
+    return render(request, 'home/list_state.html', {'states':states})
+
+
+def update_state(request, id):
+    try:
+        state = State.objects.get(id=id)
+
+        if request.method == 'POST':
+            state.name = request.POST.get('name')
+            state.status = request.POST.get('status')
+            
+            state.save()
+            return redirect('list_state')
+        
+    except Exception as e:
+        print(e)
+    return render(request, 'home/update_state.html')
+
+
+def delete_state(request, id):
+    state = State.objects.get(id=id)
+    state.delete()
+    return redirect('list_state')
+
+#City
+
+def add_city(request):
+    try:
+        states = State.objects.all()
+        if request.method == 'POST':
+            name = request.POST.get('name')
+            state_id = request.POST.get('state')
+            state = State.objects.get(id=state_id)
+            city = City(
+                name=name,
+                state=state,
+            )
+            city.save()
+            return redirect('list_cities')
+        
+    except Exception as e:
+        print(e)
+    return render(request, 'home/add_city.html', {'states':states})
+
+
+def list_cities(request):
+    cities  = City.objects.all()
+    return render(request, 'home/list_cities.html', {'cities':cities})
+
+
+def update_city(request, id):
+    try:
+        city = City.objects.get(id=id)
+        state = State.objects.all()
+        if request.method == 'POST':
+            state_id = request.POST.get('state')
+            state = State.objects.get(id=state_id)
+            city.name = request.POST.get('name')
+            city.status = request.POST.get('status')
+            city.state = state
+            
+            city.save()
+            return redirect('list_cities')
+        
+    except Exception as e:
+        print(e)
+    return render(request, 'home/update_city.html', {"states":state})
+
+
+def delete_city(request, id):
+    city = City.objects.get(id=id)
+    city.delete()
+    return redirect('list_city')
+
+
+# Area
+
+def add_area(request):
+    try:
+        cities = City.objects.all()
+
+        if request.method == 'POST':
+            name = request.POST.get('name')
+            city_id = request.POST.get('city')
+            city = City.objects.get(id=city_id)
+            area = Area(
+                name=name,
+                city=city,
+            )
+            area.save()
+            return redirect('list_areas')
+        
+    except Exception as e:
+        print(e)
+    return render(request, 'home/add_area.html', {'cities':cities})
+
+
+def list_areas(request):
+    areas  = Area.objects.all()
+    return render(request, 'home/list_areas.html', {'areas':areas})
+
+
+def update_area(request, id):
+    try:
+        area = Area.objects.get(id=id)
+        city = City.objects.all()
+        if request.method == 'POST':
+            city_id = request.POST.get('city')
+            city = City.objects.get(id=city_id)
+            area.name = request.POST.get('name')
+            area.status = request.POST.get('status')
+            area.city = city
+            
+            area.save()
+            return redirect('list_areas')
+        
+    except Exception as e:
+        print(e)
+    return render(request, 'home/update_area.html', {"cities":city})
+
+
+def delete_area(request, id):
+    area = Area.objects.get(id=id)
+    area.delete()
+    return redirect('list_area')
+
 
 # Client 
 
@@ -86,13 +290,13 @@ def add_client(request):
             client.save()
         
 
-            return redirect('all_clients')  
+            return redirect('list_clients')  
     except Exception as e:
         print(e)
 
     return render(request, 'home/add_client.html', {'segment':'index'})
 
-def all_clients(request):
+def list_clients(request):
     clients = Client.objects.all()
     
     return render(request, 'home/list_clients.html', {"clients":clients})
@@ -113,13 +317,13 @@ def update_client(request, id):
 
         client.save()
 
-        return redirect('all_clients') 
+        return redirect('list_clients') 
     return render(request, 'home/update_client.html', {'client':client,'segment':'index'})
 
 def delete_client(request, id):
     cli = Client.objects.get(id=id)
     cli.delete()
-    return redirect('all_clients')
+    return redirect('list_clients')
 
 
 #Customer
@@ -148,14 +352,14 @@ def add_customer(request):
             customer.save()
         
 
-            return redirect('all_customers')  
+            return redirect('list_customers')  
     except Exception as e:
         print(e)
 
     return render(request, 'home/add_customer.html', {'segment':'customer'})
 
 
-def all_customers(request):
+def list_customers(request):
     customers = Customer.objects.all()
     return render(request, 'home/list_customers.html', {"customers":customers, "segment":'customer'})
 
@@ -176,13 +380,13 @@ def update_customer(request, id):
 
         customer.save()
 
-        return redirect('all_customers') 
+        return redirect('list_customers') 
     return render(request, 'home/update_customer.html', {'customer':customer, 'segment':'customer'})
 
 def delete_customer(request, id):
     customer = Customer.objects.get(id=id)
     customer.delete()
-    return redirect('all_customers')
+    return redirect('list_customers')
 
 
 #Property
@@ -197,6 +401,7 @@ def add_property(request):
                 form = PropertyTermsForm(request.POST)
                 print(form)
                 owner_id = request.POST.get('owner')
+                print(owner_id)
                 owner = Client.objects.get(id=owner_id)
                 
                 # Add Property fields
@@ -233,7 +438,7 @@ def add_property(request):
                 except Exception as e:
                     print(e)
                 
-                return redirect('all_properties')
+                return redirect('list_properties')
         except Exception as e:
             print(e)
     except Exception as e:
@@ -242,7 +447,7 @@ def add_property(request):
     return render(request, 'home/add_property.html', {'clients': clients, 'segment':'property', 'form':form})
 
 
-def all_properties(request):
+def list_properties(request):
     properties = Properties.objects.all()
     
     return render(request, 'home/list_properties.html', {"properties":properties, "segment":'property'})
@@ -250,7 +455,6 @@ def all_properties(request):
 
 def update_property(request,id):
     try:
-        
         form = PropertyTermsForm(request.POST)
         property_obj = Properties.objects.get(id=id)
         clients = Client.objects.all()
@@ -258,10 +462,12 @@ def update_property(request,id):
         property_videos = PropertyVideo.objects.filter(property=property_obj)
         num_images = property_images.count()
         num_videos = property_videos.count()
-        
+        property_terms = PropertyTerms.objects.filter(property=property_obj)
+        print(property_terms)
+
 
         if request.method == 'POST':
-            form = PropertyTermsForm(request.POST)
+            form = PropertyTermsForm(request.POST, instance=property_terms)
 
             owner_id = request.POST.get('owner')
             owner = Client.objects.get(id=owner_id)
@@ -300,9 +506,9 @@ def update_property(request,id):
             except Exception as e:
                 print(e)
 
-            return redirect('all_properties')
+            return redirect('list_properties')
         else:
-            form = PropertyTermsForm(request.POST, instance=property_terms)
+            form = PropertyTermsForm(instance=property_terms)
     except Exception as e:
         print(e)
 
@@ -323,4 +529,4 @@ def delete_property(request, id):
     property = Properties.objects.get(id=id)
     property.delete()
     msg = (request, "Property deleted successfully")
-    return redirect('all_properties')
+    return redirect('list_properties')

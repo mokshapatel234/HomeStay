@@ -49,6 +49,61 @@ class Client(models.Model):
     def is_anonymous(self):
         return False 
 
+
+class State(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(("State"), max_length=50,unique=True)
+    status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(blank=True,null=True ,default=None)
+    objects = ParanoidModelManager()   
+
+
+    def delete(self, hard=False, **kwargs):
+        if hard:
+            super(State, self).delete()
+        else:
+            self.deleted_at = now()
+            self.save()
+
+
+class City(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(("City"), max_length=50,unique=True)
+    state = models.ForeignKey(State, on_delete=models.CASCADE, related_name="state")
+    status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(blank=True,null=True ,default=None)
+    objects = ParanoidModelManager()   
+
+
+    def delete(self, hard=False, **kwargs):
+        if hard:
+            super(City, self).delete()
+        else:
+            self.deleted_at = now()
+            self.save()
+
+
+class Area(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(("Area"), max_length=50,unique=True)
+    city = models.ForeignKey(City, on_delete=models.CASCADE, related_name="city")
+    status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(blank=True,null=True ,default=None)
+    objects = ParanoidModelManager()   
+
+
+    def delete(self, hard=False, **kwargs):
+        if hard:
+            super(Area, self).delete()
+        else:
+            self.deleted_at = now()
+            self.save()
 class Properties(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=40, null=True)
@@ -56,6 +111,7 @@ class Properties(models.Model):
     price = models.PositiveBigIntegerField()
     description = models.TextField()
     owner = models.ForeignKey(Client, on_delete=models.CASCADE, null=True, blank=True, related_name="properties") 
+    area_id = models.ForeignKey(Area, on_delete=models.CASCADE, related_name="area")
     address = models.TextField()
     CHOICES = (('deactive','deactive'),('active','active'))
     status = models.CharField(("status"),choices=CHOICES, max_length=50,default='0')
@@ -148,6 +204,5 @@ class Notification(models.Model):
                     [customer.email],
                     fail_silently=False
                 )
-
 
 

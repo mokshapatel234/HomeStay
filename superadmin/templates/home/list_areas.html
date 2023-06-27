@@ -21,7 +21,7 @@
 </script>
 {% endblock head %}
 
-{% block title %} Client Management {% endblock title %}
+{% block title %} Area Management {% endblock title %}
 
 {% block content %}
 
@@ -36,7 +36,7 @@
             </nav>
           </div>
           <div class="col-lg-6 col-5 text-right">
-            <a href="{% url 'add_client' %}" class="btn btn-sm btn-neutral">Add Client</a>
+            <a href="{% url 'add_area' %}" class="btn btn-sm btn-neutral">Add Area</a>
           </div>
         </div>
       </div>
@@ -48,69 +48,54 @@
   
    <section class="container-fluid mt-3">
       <div class="container page-header">
-        <h3 class="mb-0">Client Management</h3><br>
+        <h3 class="mb-0">Area Management</h3><br>
       </div>
       <div class="list-products">
          <table cellpadding="15px" id="dtBasicExample" class="table table-striped table-bordered">
             <thead>
                 <tr>
-                    <th scope="col"class="sort" data-sort="status">Profile Image</th>
-                    <th scope="col" class="sort" data-sort="name">Username</th>
-                    <th scope="col" class="sort" data-sort="name">First Name</th>
-                    <th scope="col" class="sort" data-sort="budget">Last Name</th>
-                    <th scope="col" class="sort" data-sort="status">Email</th>
-                    <th scope="col" class="sort" data-sort="completion">Conatct No</th>
-                    <th scope="col" class="sort" data-sort="completion">Edit</th>
-                    <th scope="col" class="sort" data-sort="completion">Delete</th>
+                    <th scope="col"class="sort" data-sort="status">Name</th>
+                    <th scope="col"class="sort" data-sort="status">Status</th>
+                    <th scope="col"class="sort" data-sort="status">City</th>
+                    <th scope="col"class="sort" data-sort="status">Update</th>
+                    <th scope="col"class="sort" data-sort="status">Delete</th>
+
+
 
                   </tr>
                 </thead>
            
                 <tbody class="list">
-                    {% for client in clients %}
+                    {% for area in areas %}
                     
                     <tr>
-                      <td>
-                        <div class="avatar-group">
-                            <img class="avatar avatar-sm rounded-circle" src="{{client.profile_image.url}}" alt="{{ client.first_name }}">                    
-                        </div>
-                      </td>
                       <th scope="row">
                         <div class="media align-items-center">
                           <div class="media-body">
-                            <span class="name mb-0 text-sm">{{client.username}}</span>
+                            <span class="name mb-0 text-sm">{{area.name}}</span>
                           </div>
                         </div>
                       </th>
                       <th scope="row">
                         <div class="media align-items-center">
                           <div class="media-body">
-                            <span class="name mb-0 text-sm">{{client.first_name}}</span>
+                            <span class="name mb-0 text-sm">{{area.status}}</span>
                           </div>
                         </div>
                       </th>
-                      <td class="budget">
-                        {{client.last_name}}
-                      </td>
-                      <td>
-                        <span class="badge badge-dot mr-4">
-                          <i class="bg-warning"></i>
-                          <span class="status">{{client.email}}</span>
-                        </span>
-                      </td>
-                      
-                    
-                      <td>
+                      <th scope="row">
+                        <div class="media align-items-center">
+                          <div class="media-body">
+                            <span class="name mb-0 text-sm">{{area.city.name}}, {{area.city.state.name}}</span>
+                          </div>
+                        </div>
+                      </th>
+                       <td>
                         <div class="d-flex align-items-center">
-                          <span class="completion mr-2">{{client.contact_no}}</span>
+                          <a class="completion mr-2" href="{% url 'update_area' id=area.id %}">Update</a>
                         </div>
                       </td>
-                      <td>
-                        <div class="d-flex align-items-center">
-                          <a class="completion mr-2" href="{% url 'update_client' id=client.id %}">Update</a>
-                        </div>
-                      </td>
-                      <td class="text-center pointer">
+                       <td class="text pointer">
                         <a href="#mymodal{{forloop.counter}}" data-toggle="modal">Delete
                         </a>
                          <div class="modal fade" id="mymodal{{forloop.counter}}">
@@ -122,16 +107,16 @@
                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                                  </div>
                                  <div class="modal-body">
-                                    <p>Do you really want to delete client? </p>
+                                    <p>Do you really want to delete State? </p>
                                  </div>
                                  <div class="modal-footer justify-content-center">
                                     <button type="button" class="btn btn-outline-success" data-dismiss="modal">Cancel</button>
-                                    <a class="btn btn-outline-danger" href="{% url 'delete_client' id=client.id %}">Delete</a>
+                                    <a class="btn btn-outline-danger" href="{% url 'delete_area' id=area.id %}">Delete</a>
                                   </div>
                               </div>
                            </div>
                         </div>               
-                     </td>
+                     </td> 
                     </tr>
                     {% endfor %}
             </tbody>
