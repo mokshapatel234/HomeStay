@@ -5,7 +5,7 @@ boto==2.49.0
 brotlipy==0.7.0
 celery==5.2.7
 Django==3.2.8
-django-ckeditor==6.5.1
+django-ckeditor
 django-cors-headers==3.14.0
 django-multiselectfield==0.1.12
 django-multiupload==0.6.1
