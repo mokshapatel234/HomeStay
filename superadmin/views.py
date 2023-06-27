@@ -210,7 +210,7 @@ def update_city(request, id):
 def delete_city(request, id):
     city = City.objects.get(id=id)
     city.delete()
-    return redirect('list_city')
+    return redirect('list_cities')
 
 
 # Area
@@ -262,7 +262,7 @@ def update_area(request, id):
 def delete_area(request, id):
     area = Area.objects.get(id=id)
     area.delete()
-    return redirect('list_area')
+    return redirect('list_areas')
 
 
 # Client 
@@ -305,7 +305,6 @@ def update_client(request, id):
     client = Client.objects.get(id=id)
 
     if request.method == 'POST':
-        client.username = request.POST.get('username')
         client.first_name = request.POST.get('first_name')
         client.last_name = request.POST.get('last_name')
         client.email = request.POST.get('email')
@@ -336,7 +335,6 @@ def add_customer(request):
             
             data.pop('csrfmiddlewaretoken')
 
-            # username = request.POST.get('username')
             # first_name = request.POST.get('first_name')
             # last_name = request.POST.get('last_name')
             # email = request.POST.get('email')
@@ -368,7 +366,6 @@ def update_customer(request, id):
     customer = Customer.objects.get(id=id)
 
     if request.method == 'POST':
-        customer.username = request.POST.get('username')
         customer.first_name = request.POST.get('first_name')
         customer.last_name = request.POST.get('last_name')
         customer.email = request.POST.get('email')
@@ -396,13 +393,14 @@ def add_property(request):
     try:
         form = PropertyTermsForm(request.POST)
         clients = Client.objects.all()
+        areas = Area.objects.all()
         try:
             if request.method == 'POST':
                 form = PropertyTermsForm(request.POST)
-                print(form)
                 owner_id = request.POST.get('owner')
-                print(owner_id)
                 owner = Client.objects.get(id=owner_id)
+                area_id = request.POST.get('area')
+                area = Area.objects.get(id=area_id)
                 
                 # Add Property fields
                 property = Properties(
@@ -411,6 +409,7 @@ def add_property(request):
                     root_image = request.FILES.get('root_image'),
                     description=request.POST.get('description'),
                     owner=owner,
+                    area_id=area,
                     address=request.POST.get('address'),
                     status='active',
 
@@ -444,7 +443,7 @@ def add_property(request):
     except Exception as e:
         print(e)
 
-    return render(request, 'home/add_property.html', {'clients': clients, 'segment':'property', 'form':form})
+    return render(request, 'home/add_property.html', {'clients': clients,'areas':areas, 'segment':'property', 'form':form})
 
 
 def list_properties(request):

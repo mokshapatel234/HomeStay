@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'djongo',
     "superadmin.apps.SuperadminConfig",
     'clientapi',
+    'userapi',
     'rest_framework',
     'rest_auth',
     'ckeditor',
@@ -111,7 +112,7 @@ DATABASES = {
         "NAME":  "HomeStay",
         'ENFORCE_SCHEMA': False,
         "CLIENT":{
-            "host": "mongodb://localhost:27017/HomeStay",
+            "host": os.getenv('DATABASE'),
         }
     }
 }
@@ -151,9 +152,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -167,11 +168,28 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = os.getenv("EMAIL_PORT")
 
 
+
+
+
+
+DEFAULT_FILE_STORAGE = 'main.storage_backends.MediaStorage'
+AWS_DEFAULT_ACL = None
+
+
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
 
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+AWS_STATIC_LOCATION = 'static'
+AWS_LOCATION = 'static'
+
 DEFAULT_FILE_STORAGE = 'HomeStay.storage.MediaStorage'
 AWS_DEFAULT_ACL = None
 MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
+
+STATICFILES_STORAGE = 'HomeStay.storage.StaticStorage'
+STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)

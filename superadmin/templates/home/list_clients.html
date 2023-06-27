@@ -55,7 +55,6 @@
             <thead>
                 <tr>
                     <th scope="col"class="sort" data-sort="status">Profile Image</th>
-                    <th scope="col" class="sort" data-sort="name">Username</th>
                     <th scope="col" class="sort" data-sort="name">First Name</th>
                     <th scope="col" class="sort" data-sort="budget">Last Name</th>
                     <th scope="col" class="sort" data-sort="status">Email</th>
@@ -72,16 +71,13 @@
                     <tr>
                       <td>
                         <div class="avatar-group">
-                            <img class="avatar avatar-sm rounded-circle" src="{{client.profile_image.url}}" alt="{{ client.first_name }}">                    
+                          {% if client.profile_image %}
+                            <img class="avatar avatar-sm rounded-circle" src="{{ client.profile_image.url }}" alt="{{ client.first_name }}">
+                           {% else %} 
+                            <img class="avatar avatar-sm rounded-circle" src="/static/assets/img/theme/persons.png" alt="{{ client.first_name }}">
+                            {% endif %}
                         </div>
                       </td>
-                      <th scope="row">
-                        <div class="media align-items-center">
-                          <div class="media-body">
-                            <span class="name mb-0 text-sm">{{client.username}}</span>
-                          </div>
-                        </div>
-                      </th>
                       <th scope="row">
                         <div class="media align-items-center">
                           <div class="media-body">
@@ -89,12 +85,16 @@
                           </div>
                         </div>
                       </th>
-                      <td class="budget">
-                        {{client.last_name}}
-                      </td>
+                      <th scope="row">
+                        <div class="media align-items-center">
+                          <div class="media-body">
+                            <span class="name mb-0 text-sm">{{client.last_name}}</span>
+                          </div>
+                        </div>
+                      </th>
                       <td>
-                        <span class="badge badge-dot mr-4">
-                          <i class="bg-warning"></i>
+                        <span class="media align-items-center">
+                          <i class="media-body""></i>
                           <span class="status">{{client.email}}</span>
                         </span>
                       </td>

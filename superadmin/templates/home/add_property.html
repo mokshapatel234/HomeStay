@@ -77,6 +77,18 @@
                       </select>
                     </div>
                   </div>
+
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label">Area*</label>
+                      <select name="area" class="form-control">
+                          {% for area in areas %}
+                            <option value="{{ area.id }}">{{ area.name }} </option>
+                          {% endfor %}
+                        
+                      </select>
+                    </div>
+                  </div>
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label" >Address*</label>
@@ -84,7 +96,7 @@
 
                     </div>
                   </div>
-
+                </div>
                   <div class="col-lg-6">
                     <div class="form-group">
                     {{form.media}}

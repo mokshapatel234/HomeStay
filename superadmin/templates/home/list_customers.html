@@ -56,7 +56,6 @@
              <thead>
                 <tr>
                   <th scope="col"class="sort" data-sort="status">Profile Image</th>
-                  <th scope="col" class="sort" data-sort="name">Username</th>
                   <th scope="col" class="sort" data-sort="name">First Name</th>
                   <th scope="col" class="sort" data-sort="budget">Last Name</th>
                   <th scope="col" class="sort" data-sort="status">Email</th>                  
@@ -68,21 +67,17 @@
               </thead>
               <tbody class="list">
                 {% for customer in customers %}
-                
+              
                 <tr>
                   <td>
                     <div class="avatar-group">
+                      {% if customer.profile_image %}
                         <img class="avatar avatar-sm rounded-circle" src="{{ customer.profile_image.url }}" alt="{{ customer.first_name }}">
-
+                       {% else %} 
+                        <img class="avatar avatar-sm rounded-circle" src="/static/assets/img/theme/persons.png" alt="{{ customer.first_name }}">
+                        {% endif %}
                     </div>
                   </td>
-                    <th scope="row">
-                        <div class="media align-items-center">
-                          <div class="media-body">
-                            <span class="name mb-0 text-sm">{{customer.username}}</span>
-                          </div>
-                        </div>
-                      </th>
                   <th scope="row">
                     <div class="media align-items-center">
                       <div class="media-body">

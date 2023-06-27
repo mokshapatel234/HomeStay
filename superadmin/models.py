@@ -22,7 +22,6 @@ class ParanoidModelManager(models.Manager):
 
 class Client(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    username = models.CharField(max_length=40, null=True)
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=20)
     email = models.EmailField()
@@ -146,13 +145,13 @@ class PropertyTerms(models.Model):
 
 class Customer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    username = models.CharField(max_length=40, null=True)
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=20)
     password = models.CharField(max_length=40, null=True)
     email = models.EmailField(default=None, max_length=250)
-    profile_image = models.ImageField(blank=True, upload_to="customer", validators=[FileExtensionValidator(['jpg','jpeg','png'])], max_length=None)
+    profile_image = models.ImageField(blank=True, upload_to="customer", validators=[FileExtensionValidator(['jpg','jpeg','png'])], max_length=None, null=True)
     contact_no = models.CharField(validators=[RegexValidator(regex=r"^\+?1?\d{10}$")], max_length=10, unique=True)
+    area = models.ForeignKey(Area, on_delete=models.CASCADE, related_name='user_are')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(blank=True,null=True ,default=None)
@@ -167,6 +166,13 @@ class Customer(models.Model):
         else:
             self.deleted_at = now()
             self.save()
+
+    def is_authenticated(self):
+        return True  
+
+    def is_anonymous(self):
+        return False 
+
     
 class Notification(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
