@@ -2,6 +2,7 @@ amqp==5.1.1
 appdirs==1.4.4
 asgiref==3.6.0
 boto==2.49.0
+boto3
 brotlipy==0.7.0
 celery==5.2.7
 Django==3.2.8
