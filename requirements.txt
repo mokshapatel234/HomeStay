@@ -12,7 +12,6 @@ django-multiupload==0.6.1
 django-rest-auth==0.9.5
 django-rest-authtoken==2.1.4
 django-storages==1.13.2
-django-upgrade==1.13.0
 djangorestframework==3.13.1
 djangorestframework-jwt==1.11.0
 djangorestframework-simplejwt==5.2.2
