@@ -13,12 +13,12 @@ from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from userapi.serializers import RegisterSerializer, LoginSerializer, ResetPasswordSerializer, AreaSerializer, CitySerializer, \
-    StateSerializer, PropertiesSerializer
+    StateSerializer, DashboardPropertiesSerializer, CustomerProfileSerializer, PropertiesDetailSerializer, BookPropertySerializer
 from .utils import generate_token
 from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication
 from rest_framework.parsers import MultiPartParser
-import json
+from datetime import datetime
 
 
 # Create your views here.
@@ -31,18 +31,23 @@ class RegisterApi(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
-        serializer = self.serializer_class(data = request.data, context={'request': request})
-        if serializer.is_valid():
-            user = serializer.save()
-            token = generate_token(str(user.id))
-            response_data = {'token': str(token.decode("utf-8"))}  
-            response = Response({"data":serializer.data,
-                                 "user_token":response_data,
-                                 "message": "Customer created successfully",}, status=status.HTTP_201_CREATED)
+        try:
+            serializer = self.serializer_class(data = request.data, context={'request': request})
+        
+            if serializer.is_valid():
+                user = serializer.save()
+                response = Response({"result":True,
+                                    "data":serializer.data,
+                                    "message": "Customer created successfully",}, status=status.HTTP_201_CREATED)
+                return response
+            response = Response({"result":False,
+                                "message": "Email or Contact_no already exists"}, status=status.HTTP_400_BAD_REQUEST)
             return response
-        response = Response({"message":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        return response
-
+        except:
+            response = Response({"result":False,
+                                "message": "Invalid data input. Please provide appropriate credentials"}, status=status.HTTP_400_BAD_REQUEST)
+            return response
+    
 class LoginApi(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = (AllowAny, )
@@ -53,6 +58,9 @@ class LoginApi(generics.GenericAPIView):
             serializer = self.serializer_class(data=request.data)
             if serializer.is_valid():
                 customer = serializer.validated_data['customer']
+                
+                token = generate_token(str(customer.id))
+                
                 user_data = {
                     "id": customer.id,
                     "first_name": customer.first_name,
@@ -61,22 +69,19 @@ class LoginApi(generics.GenericAPIView):
                     "password":customer.password,
                     "area":customer.area.name,
                     "contact_no":customer.contact_no,
+                    'token': str(token.decode("utf-8"))
                 }
-                token = generate_token(str(customer.id))
-                response_data = {'token': str(token.decode("utf-8"))}  
-                return JsonResponse({"data":user_data,
-                                    "user_token":response_data,
+                return JsonResponse({"result":True, 
+                                    "data":user_data,
                                     "message":"Login successfull!!",         
                                      })
-            else:
-                raise serializers.ValidationError(serializer.errors)
-        except Exception as e:
-            print(e)
-            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-    def get(self, request):
-        return Response({'message': 'Method not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            response = Response({"result":False,
+                                "message": "Invalid data input. Please provide appropriate credentials"}, status=status.HTTP_400_BAD_REQUEST)
+            return response
+        except:
+            response = Response({"result":False,
+                                "message": "Invalid data input. Please provide appropriate credentials"}, status=status.HTTP_400_BAD_REQUEST)
+            return response
 
 
 class ForgotPasswordApi(generics.GenericAPIView):
@@ -105,10 +110,11 @@ class ForgotPasswordApi(generics.GenericAPIView):
             email = EmailMultiAlternatives(subject, body=None, from_email=from_email, to=to_email)
             email.attach_alternative(html_message, "text/html")
             email.send()
-            return Response({'message': 'Email sent successfully.'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            print(e)
-            return Response({'message':str(e)},status=status.HTTP_400_BAD_REQUEST)
+            return Response({'result':True,
+                             'message': 'Email sent successfully'}, status=status.HTTP_200_OK)
+        except:
+            return Response({'result':False,
+                            'message':'Please provide valid email address'},status=status.HTTP_400_BAD_REQUEST)
 
 
 class OtpVerificationApi(generics.GenericAPIView):
@@ -122,13 +128,17 @@ class OtpVerificationApi(generics.GenericAPIView):
                     del request.session['otp']
                     reset_password_link = request.build_absolute_uri(reverse('reset_password'))
 
-                    return Response({'message':'Otp Verified', "link":reset_password_link},status=status.HTTP_200_OK)
+                    return Response({'result':True,
+                                    'message':'Otp Verified'},status=status.HTTP_200_OK)
                 else:
-                    return Response({'message':'Wrong Otp'},status=status.HTTP_400_BAD_REQUEST)
-            except Exception as e:
-                return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'result':False,
+                                    'message':'Wrong Otp'},status=status.HTTP_400_BAD_REQUEST)
+            except:
+                return Response({'result':False,
+                                "message": 'Error To Verify Otp'}, status=status.HTTP_400_BAD_REQUEST)
         except:
-            return Response({'message':'Error To Verify Otp'},status=status.HTTP_404_NOT_FOUND)
+            return Response({'result':False,
+                            'message':'Please provide valid Otp'},status=status.HTTP_404_NOT_FOUND)
      
 
 class ResetPasswordApi(generics.GenericAPIView):
@@ -149,17 +159,21 @@ class ResetPasswordApi(generics.GenericAPIView):
                     customer_obj.password = new_password
                     customer_obj.save()
                     del request.session['customer']
-                    return Response({'message':'Password Changed Successfully'},status=status.HTTP_200_OK)
+                    return Response({'result':True,
+                                    'message':'Password Changed Successfully'},status=status.HTTP_200_OK)
                 else:
-                    return Response({'message':'Password Not Matched'},status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'result':False,
+                                    'message':'Password Not Matched'},status=status.HTTP_400_BAD_REQUEST)
             else:
-                    return Response({'message':'Cannot Change Password Without otp verification '},status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-           
-            return Response({'message':str(e)},status=status.HTTP_404_NOT_FOUND)
+                return Response({'result':False,
+                                'message':'Cannot Change Password Without otp verification '},status=status.HTTP_400_BAD_REQUEST)
+        except:
+
+            return Response({'result':False,
+                            'message':'Cannot Change Password Without otp verification'},status=status.HTTP_404_NOT_FOUND)
 
 
-class AreaListAPIView(generics.GenericAPIView):
+class AreaListApi(generics.GenericAPIView):
 
     permission_classes = (permissions.AllowAny,)
     authentication_classes = (JSONWebTokenAuthentication,)
@@ -169,17 +183,29 @@ class AreaListAPIView(generics.GenericAPIView):
             
             if city:
                 areas = Area.objects.filter(city=city)
-                print(areas)
+                if not areas:
+                    return Response({"result": False,
+                                     "message": "No areas found for the provided city ID."},
+                                    status=status.HTTP_404_NOT_FOUND)
             else:
                 areas = Area.objects.all()
             
             serializer = AreaSerializer(areas, many=True)
-            return Response({"data":serializer.data}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"message": str(e)}, status=status.HTTP_404_NOT_FOUND)
+            area_data = []
+            for area in serializer.data:
+                area_data.append({
+                    "id": area["id"],
+                    "name": area["name"]
+                })
+            return Response({"result":True,
+                            "data":area_data, 
+                            'message':'Data found successfully'}, status=status.HTTP_200_OK)
+        except:
+            return Response({"result":False,
+                            "message": "Error in getting data"}, status=status.HTTP_404_NOT_FOUND)
 
 
-class CityListAPIView(generics.GenericAPIView):
+class CityListApi(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)
     authentication_classes = (JSONWebTokenAuthentication,)
 
@@ -189,30 +215,46 @@ class CityListAPIView(generics.GenericAPIView):
             
             if state:
                 city = City.objects.filter(state=state)
+                if not city:
+                    return Response({"result": False,
+                                     "message": "No cities found for the provided state ID."},
+                                    status=status.HTTP_404_NOT_FOUND)
             else:
                 city = City.objects.all()
             
             serializer = CitySerializer(city, many=True)
-            return Response({"data":serializer.data}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"message": str(e)}, status=status.HTTP_404_NOT_FOUND)
+            city_data = []
+            for city in serializer.data:
+                city_data.append({
+                    "id": city["id"],
+                    "name": city["name"]
+                })
+            return Response({"result":True,
+                            "data":city_data,
+                            "message":"Data found successfully"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"result":False,
+                            "message": "Error in getting data"}, status=status.HTTP_404_NOT_FOUND)
 
 
-class StateListAPIView(generics.GenericAPIView):
+class StateListApi(generics.GenericAPIView):
 
     permission_classes = (permissions.AllowAny,)
     authentication_classes = (JSONWebTokenAuthentication,)
     def get(self, request):
         try:
             state = State.objects.all()
-            print(state)
+            
             serializer = StateSerializer(state, many=True)
-            return Response({"data":serializer.data}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"message":str(e)}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"result":True,
+                            "data":serializer.data,
+                            "message":"Data found successfully"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"result":False,
+                            "message": "Error in getting data"}, status=status.HTTP_404_NOT_FOUND)
         
 
-class DashboardPropertyView(generics.GenericAPIView):
+class DashboardPropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
     
@@ -221,23 +263,159 @@ class DashboardPropertyView(generics.GenericAPIView):
             state = request.query_params.get('state', None)
             city = request.query_params.get('city', None)
             area = request.query_params.get('area', None)
-
+            
     
             
             if area:
-                properties = Properties.objects.filter(area_id__id=area)
+                try:
+                    area_obj = Area.objects.get(id=area)
+                    properties = Properties.objects.filter(area_id=area_obj)
+                except Area.DoesNotExist:
+                    return Response({"result": False,
+                                     "message": "No area found"},
+                                    status=status.HTTP_404_NOT_FOUND)
             
             elif city:
-                properties = Properties.objects.filter(area_id__city__id=city)
+                try:
+                    city_obj = City.objects.get(id=city)
+                    properties = Properties.objects.filter(area_id__city=city_obj)
+                except City.DoesNotExist:
+                    return Response({"result": False,
+                                     "message": "No city found"},
+                                    status=status.HTTP_404_NOT_FOUND)
 
             elif state:
-                properties = Properties.objects.filter(area_id__city__state__id=state)
+                try:
+                    state_obj = State.objects.get(id=state)
+                    properties = Properties.objects.filter(area_id__city__state=state_obj)
+                except State.DoesNotExist:
+                    return Response({"result": False,
+                                     "message": "No state found"},
+                                    status=status.HTTP_404_NOT_FOUND)
             else:
                 properties = Properties.objects.all()
             
-            serializer = PropertiesSerializer(properties, many=True)
-            return Response({"data":serializer.data}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"message": str(e)}, status=status.HTTP_404_NOT_FOUND)
+            serializer = DashboardPropertiesSerializer(properties, many=True)
+            return Response({"result":True,
+                            "data":serializer.data,
+                            "message":"Property found successfully"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"result":False,
+                            "message": "Error in getting data"}, status=status.HTTP_404_NOT_FOUND)
 
 
+
+class CustomerProfileApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (permissions.IsAuthenticated, )
+   
+    
+    def get(self,request):
+        try:
+            serializer = CustomerProfileSerializer(request.user)
+    
+            return Response({"result":True,
+                            "data":serializer.data,
+                            "message":"Customer found successfully"}, status=status.HTTP_200_OK)
+                   
+        except:
+            return Response({"result":False,
+                            "message": "Error in getting data"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+    def put(self, request):
+        try: 
+            serializer = CustomerProfileSerializer(request.user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"result":True,
+                                "data":serializer.data,
+                                'message':'Profile Updated'},status=status.HTTP_201_CREATED)
+            else:
+                return Response({"result":False,
+                                "message": "Error in updating profile"}, status=status.HTTP_400_BAD_REQUEST)
+       
+        except:
+            return Response({"result":False,
+                            "message": "Error in updating profile"}, status=status.HTTP_400_BAD_REQUEST)
+ 
+
+class PropertyDetailApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
+   
+    def get(self, request, id):
+        try:
+            properties = Properties.objects.get(id=id)
+            serializer = PropertiesDetailSerializer(properties)
+            return Response({'result':True,
+                            'data':serializer.data,
+                            "message":"property found successfully"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"result":False,
+                            "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
+    
+from django.utils import timezone
+
+class BookPropertyApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
+
+
+    def get(self, request):
+        try:
+            user = request.user
+
+            bookings = Bookings.objects.filter(customer=user)
+
+            serializer = BookPropertySerializer(bookings, many=True)
+            
+            return Response({'result': True,
+                             'data': serializer.data,
+                             'message': 'Booking history'},
+                            status=status.HTTP_200_OK)
+        except:
+            return Response({'result': False,
+                             'message': 'History not available'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+
+    def post(self, request,id):
+        try:
+
+            user = request.user
+
+            data = request.data.copy()
+            data['customer'] = user.id
+
+            serializer = BookPropertySerializer(data=data)
+            if serializer.is_valid():
+
+                try:
+                    property = Properties.objects.get(id=id)
+                except Properties.DoesNotExist:
+                    return Response({'result': False,
+                                     'message': 'Invalid property ID'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+  
+                serializer.validated_data['start_date'] = data.get('start_date')
+                serializer.validated_data['end_date'] = data.get('end_date')
+                serializer.validated_data['property'] = property
+
+                serializer.save()
+                return Response({'result': True,
+                                 'data': serializer.data,
+                                 'message': 'Property is booked'},
+                                status=status.HTTP_200_OK)
+            else:
+                return Response({'result': False,
+                                 'message': 'Property is not booked yet',
+                                 'errors': serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        except:
+            return Response({'result': False,
+                             'message': 'Error in property booking'},
+                            status=status.HTTP_400_BAD_REQUEST)
+      

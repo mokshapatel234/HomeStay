@@ -204,7 +204,7 @@ def update_city(request, id):
         
     except Exception as e:
         print(e)
-    return render(request, 'home/update_city.html', {"states":state})
+    return render(request, 'home/update_city.html', {"states":state, "city":city})
 
 
 def delete_city(request, id):
@@ -256,7 +256,7 @@ def update_area(request, id):
         
     except Exception as e:
         print(e)
-    return render(request, 'home/update_area.html', {"cities":city})
+    return render(request, 'home/update_area.html', {"cities":city, "area":area})
 
 
 def delete_area(request, id):
@@ -298,8 +298,21 @@ def add_client(request):
 
 def list_clients(request):
     clients = Client.objects.all()
-    
-    return render(request, 'home/list_clients.html', {"clients":clients})
+    states = State.objects.all()
+    cities = City.objects.all()
+    areas  = Area.objects.all()
+
+
+    state_id = request.GET.get('state')
+    city_id = request.GET.get('city')
+    area_id = request.GET.get('area')
+
+    if area_id:
+        clients = clients.filter(area_id=area_id)
+
+    else:
+        clients = Client.objects.all()
+    return render(request, 'home/list_clients.html', {"clients":clients, "states":states, 'cities':cities, 'areas':areas})
 
 def update_client(request, id):
     client = Client.objects.get(id=id)
@@ -359,7 +372,21 @@ def add_customer(request):
 
 def list_customers(request):
     customers = Customer.objects.all()
-    return render(request, 'home/list_customers.html', {"customers":customers, "segment":'customer'})
+    states = State.objects.all()
+    cities = City.objects.all()
+    areas  = Area.objects.all()
+
+
+    state_id = request.GET.get('state')
+    city_id = request.GET.get('city')
+    area_id = request.GET.get('area')
+
+    if area_id:
+        customers = customers.filter(area_id=area_id)
+
+    else:
+        customers = Customer.objects.all()
+    return render(request, 'home/list_customers.html', {"customers":customers, "segment":'customer', "states":states, 'cities':cities, 'areas':areas})
 
 
 def update_customer(request, id):
@@ -454,15 +481,13 @@ def list_properties(request):
 
 def update_property(request,id):
     try:
-        form = PropertyTermsForm(request.POST)
         property_obj = Properties.objects.get(id=id)
         clients = Client.objects.all()
         property_images = PropertyImage.objects.filter(property=property_obj)
         property_videos = PropertyVideo.objects.filter(property=property_obj)
         num_images = property_images.count()
         num_videos = property_videos.count()
-        property_terms = PropertyTerms.objects.filter(property=property_obj)
-        print(property_terms)
+        property_terms = PropertyTerms.objects.filter(property=property_obj).first()        
 
 
         if request.method == 'POST':
@@ -529,3 +554,78 @@ def delete_property(request, id):
     property.delete()
     msg = (request, "Property deleted successfully")
     return redirect('list_properties')
+
+
+def add_commission(request):
+    try:
+        clients = Client.objects.all()
+        if request.method == 'POST':
+            client_id = request.POST.get('client')
+            client = Client.objects.get(id=client_id)
+            existing_commission = Commission.objects.filter(client=client).exists()
+
+            if existing_commission:
+                commission.commission_percent = request.POST.get('commission_percent')
+                commission.save()
+            else:
+                commission = Commission(
+                    client=client,
+                    commission_percent = request.POST.get('commission_percent')
+                )
+                commission.save()
+            return redirect('list_commission')
+    except Exception as e:
+        print(e)
+
+    return render(request, 'home/add_commission.html', {'clients':clients, 'segment':'commission'})
+
+
+def list_commission(request):
+    commissions = Commission.objects.all()
+    states = State.objects.all()
+    cities = City.objects.all()
+    areas  = Area.objects.all()
+
+
+    state_id = request.GET.get('state')
+    city_id = request.GET.get('city')
+    area_id = request.GET.get('area')
+
+    # if state_id:
+    #     commissions = commissions.filter(client__area__city__state_id=state_id)
+    # elif city_id:
+    #     commissions = commissions.filter(client__area__city_id=city_id)
+    if area_id:
+        commissions = commissions.filter(client__area_id=area_id)
+
+    else:
+        commissions = Commission.objects.all()
+
+    return render(request, 'home/list_commission.html', {"commissions":commissions, "segment":'commission', "states":states, 'cities':cities, 'areas':areas})
+    
+
+def update_commission(request, id):
+    try:
+        clients = Client.objects.all()
+        commission = Commission.objects.get(id=id)
+        if request.method == 'POST':
+            client_id = request.POST.get('client')
+            client = Client.objects.get(id=client_id)
+           
+           
+            commission.client=client,
+            commission.commission_percent = request.POST.get('commission_percent')
+            
+            commission.save()
+            return redirect('list_commission')
+    except Exception as e:
+        print(e)
+
+    return render(request, 'home/update_commission.html', {'clients':clients, "commission":commission, 'segment':'commission'})
+
+
+def delete_commission(request, id):
+    commission = Commission.objects.get(id=id)
+    commission.delete()
+    msg = (request, "Commission deleted successfully")
+    return redirect('list_commission')

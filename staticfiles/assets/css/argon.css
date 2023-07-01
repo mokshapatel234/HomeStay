@@ -1556,6 +1556,8 @@ select.form-control:focus::-ms-value {
   display: block;
   width: 100%; }
 
+
+  
 .col-form-label {
   padding-top: calc(0.625rem + 1px);
   padding-bottom: calc(0.625rem + 1px);

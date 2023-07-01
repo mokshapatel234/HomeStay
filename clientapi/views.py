@@ -26,62 +26,23 @@ class RegisterApi(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
-        serializer = self.serializer_class(data = request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            response = Response({"client":serializer.data,
-                                 "message": "Client created successfully",}, status=status.HTTP_201_CREATED)
+        try:
+            serializer = self.serializer_class(data = request.data, context={'request': request})
+        
+            if serializer.is_valid():
+                user = serializer.save()
+                response = Response({"result":True,
+                                    "data":serializer.data,
+                                    "message": "Customer created successfully",}, status=status.HTTP_201_CREATED)
+                return response
+            response = Response({"result":False,
+                                "message": "Email or Contact_no already exists"}, status=status.HTTP_400_BAD_REQUEST)
             return response
-        response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return response
-
-
-# Client verification
-class EmailVerificationApi(generics.GenericAPIView):
-    permission_classes = (permissions.AllowAny,)
-
-    def post(self, request):
-        try:
-            email = request.POST['email']
-            client_obj = Client.objects.get(email=email)
-            generated_otp = random.randint(1111, 9999)
-            request.session['client'] = str(client_obj.id)
-            request.session['otp'] = generated_otp
-            subject = 'Verify Client'
-
-            template_data = {'otp':generated_otp}  
-            html_message = render_to_string('verify_client.html', template_data)
-
-            subject = 'Account Recovery'
-            from_email = settings.DEFAULT_FROM_EMAIL
-            to_email = [email]
-
-            email = EmailMultiAlternatives(subject, body=None, from_email=from_email, to=to_email)
-            email.attach_alternative(html_message, "text/html")
-            email.send()
-            return Response({'detail': 'Email sent successfully.'}, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-class EmailOTPVerifyApi(generics.GenericAPIView):
-    permission_classes = (AllowAny, )
-    def post(self, request):
-        try:
-            client_otp = request.POST['otp']
-            try:
-                if client_otp == str(request.session.get('otp')):
-                    del request.session['otp']
-                    reset_password_link = request.build_absolute_uri(reverse('login_client'))
-                    request.session['client_verified'] = True
-
-                    return Response({'detail':'Otp Verified', "link":reset_password_link},status=status.HTTP_200_OK)
-                else:
-                    return Response({'detail':'Wrong Otp'},status=status.HTTP_400_BAD_REQUEST)
-            except Exception as e:
-                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except:
-            return Response({'detail':'Error To Verify Otp'},status=status.HTTP_404_NOT_FOUND)
+            response = Response({"result":False,
+                                "message": "Invalid data input. Please provide appropriate credentials"}, status=status.HTTP_400_BAD_REQUEST)
+            return response
+    
 
 
 
@@ -96,46 +57,67 @@ class LoginApi(generics.GenericAPIView):
             serializer = self.serializer_class(data=request.data)
             if serializer.is_valid():
                 client = serializer.validated_data['client']
+                
                 token = generate_token(str(client.id))
-                response_data = {'token': str(token.decode("utf-8"))}  
-                return JsonResponse({"msg":"Login successfull!!",
-                                     "data":response_data
+                
+                user_data = {
+                    "id": client.id,
+                    "first_name": client.first_name,
+                    "last_name":client.last_name,
+                    "email":client.email,
+                    "password":client.password,
+                    "contact_no":client.contact_no,
+                    'token': str(token.decode("utf-8"))
+                }
+                return JsonResponse({"result":True, 
+                                    "data":user_data,
+                                    "message":"Login successfull!!",         
                                      })
-            else:
-                raise serializers.ValidationError(serializer.errors)
-        except Exception as e:
-            print(e)
-            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-    def get(self, request):
-        return Response({'detail': 'Method not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            response = Response({"result":False,
+                                "message": "Invalid data input. Please provide appropriate credentials"}, status=status.HTTP_400_BAD_REQUEST)
+            return response
+        except:
+            response = Response({"result":False,
+                                "message": "Invalid data input. Please provide appropriate credentials"}, status=status.HTTP_400_BAD_REQUEST)
+            return response
 
 
 # Forgot Password
+
 class ForgotPasswordApi(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self,request):
         try:
             email = request.POST['email']
+            if email:
+                print(email)
+            else:
+                print("error")
             client_obj = Client.objects.get(email=email)
             generated_otp = random.randint(1111, 9999)
-            otp_verification_link = request.build_absolute_uri(reverse('otpverify'))
+            # otp_verification_link = request.build_absolute_uri(reverse('otpverify'))
             request.session['client'] = str(client_obj.id)
             request.session['otp'] = generated_otp
             subject = 'Acount Recovery'
-            message = f'''your otp for account recovery is {generated_otp}
-                        Please click on the below link to verify your otp
-                        {otp_verification_link}'''
-            email_from = settings.EMAIL_HOST_USER
-            recepient = [client_obj.email, ]
-            send_mail(subject, message, email_from, recepient)
-            return Response({'detail':'Otp Sent To Email'},status=status.HTTP_200_OK)
-        except Exception as e:
-            print(e)
-            return Response({'detail':str(e)},status=status.HTTP_400_BAD_REQUEST)
-        
+
+            template_data = {'otp':generated_otp}
+            html_message = render_to_string('verify_otp.html', template_data)
+
+            from_email = settings.DEFAULT_FROM_EMAIL
+            to_email = [email]
+
+            email = EmailMultiAlternatives(subject, body=None, from_email=from_email, to=to_email)
+            email.attach_alternative(html_message, "text/html")
+            email.send()
+            return Response({'result':True,
+                             'message': 'Email sent successfully'}, status=status.HTTP_200_OK)
+        except:
+            return Response({'result':False,
+                            'message':'Please provide valid email address'},status=status.HTTP_400_BAD_REQUEST)
+
+
+
 # OTP Verification
 class OtpVerificationApi(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)
@@ -146,15 +128,19 @@ class OtpVerificationApi(generics.GenericAPIView):
             try:
                 if client_otp == str(request.session.get('otp')):
                     del request.session['otp']
-                    reset_password_link = request.build_absolute_uri(reverse('reset_password'))
 
-                    return Response({'detail':'Otp Verified', "link":reset_password_link},status=status.HTTP_200_OK)
+                    return Response({'result':True,
+                                    'message':'Otp Verified'},status=status.HTTP_200_OK)
                 else:
-                    return Response({'detail':'Wrong Otp'},status=status.HTTP_400_BAD_REQUEST)
-            except Exception as e:
-                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'result':False,
+                                    'message':'Wrong Otp'},status=status.HTTP_400_BAD_REQUEST)
+            except:
+                return Response({'result':False,
+                                "message": 'Error To Verify Otp'}, status=status.HTTP_400_BAD_REQUEST)
         except:
-            return Response({'detail':'Error To Verify Otp'},status=status.HTTP_404_NOT_FOUND)
+            return Response({'result':False,
+                            'message':'Please provide valid Otp'},status=status.HTTP_404_NOT_FOUND)
+     
 
 
 # Reset Password
@@ -176,48 +162,60 @@ class ResetPasswordApi(generics.GenericAPIView):
                     client_obj.password = new_password
                     client_obj.save()
                     del request.session['client']
-                    return Response({'detail':'Password Changed Successfully'},status=status.HTTP_200_OK)
+                    return Response({'result':True,
+                                    'message':'Password Changed Successfully'},status=status.HTTP_200_OK)
                 else:
-                    return Response({'detail':'Password Not Matched'},status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'result':False,
+                                    'message':'Password Not Matched'},status=status.HTTP_400_BAD_REQUEST)
             else:
-                    return Response({'detail':'Cannot Change Password Without otp verification '},status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-           
-            return Response({'detail':str(e)},status=status.HTTP_404_NOT_FOUND)
+                return Response({'result':False,
+                                'message':'Cannot Change Password Without otp verification '},status=status.HTTP_400_BAD_REQUEST)
+        except:
+
+            return Response({'result':False,
+                            'message':'Cannot Change Password Without otp verification'},status=status.HTTP_404_NOT_FOUND)
+
 
 # Clinet's property management
 
 class ClientProfileApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication,)
-    permission_classes = (IsClientVerified, )
+    permission_classes = (permissions.IsAuthenticated, )
    
     
     def get(self,request):
         try:
             serializer = ClientProfileSerializer(request.user)
     
-            return Response(serializer.data, status=status.HTTP_200_OK)
-                   
-        except Exception as e:
-            return Response({"detail":str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"result":True,
+                            "data":serializer.data,
+                            "message":"Client found successfully"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"result":False,
+                            "message": "Error in getting data"}, status=status.HTTP_400_BAD_REQUEST)
         
+
 
     def put(self, request):
         try: 
             serializer = ClientProfileSerializer(request.user, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response({'detail':'Profile Updated'},status=status.HTTP_201_CREATED)
+                return Response({"result":True,
+                                "data":serializer.data,
+                                'message':'Profile Updated'},status=status.HTTP_201_CREATED)
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"result":False,
+                                "message": "Error in updating profile"}, status=status.HTTP_400_BAD_REQUEST)
        
-        except Exception as e:
-            return Response({"detail":str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+        except:
+            return Response({"result":False,
+                            "message": "Error in updating profile"}, status=status.HTTP_400_BAD_REQUEST)
+ 
 # Property Management
 class PropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
-    permission_classes = (IsClientVerified, )
+    permission_classes = (permissions.IsAuthenticated, )
     parser_classes = (MultiPartParser, )
 
 
@@ -225,10 +223,13 @@ class PropertyApi(generics.GenericAPIView):
         try:
             properties = request.user.properties.all()
             serializer = PropertiesSerializer(properties, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"detail":str(e)}, status=status.HTTP_400_BAD_REQUEST)  
-    
+            return Response({'result':True,
+                            'data':serializer.data,
+                            "message":"property found successfully"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"result":False,
+                            "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
+
     
     def post(self, request):
         try: 
@@ -247,13 +248,17 @@ class PropertyApi(generics.GenericAPIView):
                 for video in videos:
                     PropertyVideo.objects.create(property=property_instance, video=video)
 
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response({"result":True,
+                                "data":serializer.data,
+                                'message':'Property added successfully'},status=status.HTTP_201_CREATED)
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
+                return Response({"result":False,
+                                "message": "Error in property insertion"}, status=status.HTTP_400_BAD_REQUEST)
+       
+        except:
+            return Response({"result":False,
+                            "message": "Error in property insertion"}, status=status.HTTP_400_BAD_REQUEST)
+ 
     def put(self, request, property_id):
         try:
             property_obj = request.user.properties.get(id=property_id)
@@ -278,26 +283,29 @@ class PropertyApi(generics.GenericAPIView):
                 for video in videos:
                     PropertyVideo.objects.create(property=property_obj, video=video)
 
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response({"result":True,
+                                "data":serializer.data,
+                                'message':'Property Updated'},status=status.HTTP_201_CREATED)
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-        except Properties.DoesNotExist:
-            return Response({"detail": "Property not found."}, status=status.HTTP_404_NOT_FOUND)
-    
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
+                return Response({"result":False,
+                                "message": "Error in updating property"}, status=status.HTTP_400_BAD_REQUEST)
+       
+        except:
+            return Response({"result":False,
+                            "message": "Error in updating property"}, status=status.HTTP_400_BAD_REQUEST)
+ 
 
 
     def delete(self, request, property_id):
         try:
             property_instance = request.user.properties.get(id=property_id)
             property_instance.delete()
-            return Response({"detail":"Proeprty deleted successfully!"})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({'result':True,
+                            "message":"property deleted successfully"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"result":False,
+                            "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
+    
 
     
 

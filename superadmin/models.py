@@ -20,35 +20,6 @@ class ParanoidModelManager(models.Manager):
     def get_queryset(self):
         return super(ParanoidModelManager, self).get_queryset().filter(deleted_at__isnull=True)
 
-class Client(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    first_name = models.CharField(max_length=20)
-    last_name = models.CharField(max_length=20)
-    email = models.EmailField()
-    password = models.CharField(max_length=40)
-    profile_image = models.ImageField(blank=True, upload_to="client", validators=[FileExtensionValidator(['jpg','jpeg','png'])], height_field=None, width_field=None, max_length=None)
-    contact_no = models.CharField(validators=[RegexValidator(regex=r"^\+?1?\d{10}$")], max_length=10, unique=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    deleted_at = models.DateTimeField(blank=True,null=True ,default=None)
-    objects = ParanoidModelManager() 
-  
-    def __str__(self):
-        return f"{self.username}({self.password})"
-    
-    def delete(self, hard=False, **kwargs):
-        if hard:
-            super(Client, self).delete()
-        else:
-            self.deleted_at = now()
-            self.save()
-    def is_authenticated(self):
-        return True  
-
-    def is_anonymous(self):
-        return False 
-
-
 class State(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(("State"), max_length=50,unique=True)
@@ -103,6 +74,56 @@ class Area(models.Model):
         else:
             self.deleted_at = now()
             self.save()
+
+class Client(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    first_name = models.CharField(max_length=20)
+    last_name = models.CharField(max_length=20)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=40)
+    profile_image = models.ImageField(blank=True, upload_to="client", validators=[FileExtensionValidator(['jpg','jpeg','png'])], height_field=None, width_field=None, max_length=None)
+    area = models.ForeignKey(Area, on_delete=models.CASCADE, related_name='client_area')
+    contact_no = models.CharField(validators=[RegexValidator(regex=r"^\+?1?\d{10}$")], max_length=10, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(blank=True,null=True ,default=None)
+    objects = ParanoidModelManager() 
+  
+    def __str__(self):
+        return f"{self.username}({self.password})"
+    
+    def delete(self, hard=False, **kwargs):
+        if hard:
+            super(Client, self).delete()
+        else:
+            self.deleted_at = now()
+            self.save()
+    def is_authenticated(self):
+        return True  
+
+    def is_anonymous(self):
+        return False 
+
+
+
+class Commission(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="client_commission")
+    commission_percent = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(blank=True,null=True ,default=None)
+    objects = ParanoidModelManager()   
+
+
+    def delete(self, hard=False, **kwargs):
+        if hard:
+            super(Commission, self).delete()
+        else:
+            self.deleted_at = now()
+            self.save()
+
+
 class Properties(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=40, null=True)
@@ -148,10 +169,10 @@ class Customer(models.Model):
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=20)
     password = models.CharField(max_length=40, null=True)
-    email = models.EmailField(default=None, max_length=250)
+    email = models.EmailField(default=None, max_length=250, unique=True)
     profile_image = models.ImageField(blank=True, upload_to="customer", validators=[FileExtensionValidator(['jpg','jpeg','png'])], max_length=None, null=True)
     contact_no = models.CharField(validators=[RegexValidator(regex=r"^\+?1?\d{10}$")], max_length=10, unique=True)
-    area = models.ForeignKey(Area, on_delete=models.CASCADE, related_name='user_are')
+    area = models.ForeignKey(Area, on_delete=models.CASCADE, related_name='user_area')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(blank=True,null=True ,default=None)
@@ -172,6 +193,29 @@ class Customer(models.Model):
 
     def is_anonymous(self):
         return False 
+
+class Bookings(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    property = models.ForeignKey(Properties, on_delete=models.CASCADE, related_name='property_booking')
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='customer_booking' )
+    CHOICES = (('Success','Success'),('Pending','Pending'), ('Cancel','cancel'))
+    status = models.CharField(("status"),choices=CHOICES, max_length=50)
+    rent = models.FloatField()
+    transaction_id = models.CharField(max_length=255)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(blank=True,null=True ,default=None)
+    objects = ParanoidModelManager() 
+    
+    def delete(self, hard=False, **kwargs):
+        if hard:
+            super(Bookings, self).delete()
+        else:
+            self.deleted_at = now()
+            self.save()
+
 
     
 class Notification(models.Model):

@@ -2,6 +2,25 @@
 {% load static %}
 
 {% block head %}
+{% comment %} <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script>
+   $(document).ready(function () {
+      $('#dtBasicExample').DataTable({
+         "lengthChange": true,
+         "searching": true,
+         "columnDefs": [
+         { "searchable": true, "targets": 0 }
+         ],
+         "order":[[ 0,"desc" ]],
+         // "columnDefs" : [{"targets":, "type":"date-eu"}], 
+
+
+      });
+   });
+</script> {% endcomment %}
+
+
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"
   integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
   <script>
@@ -25,7 +44,7 @@
         // Handle state filter
         $('#area-select').on('change', function () {
             var selectedArea = $(this).val();
-            var url = '{% url "list_clients" %}';
+            var url = '{% url "list_commission" %}';
             if (selectedArea) {
                 url += '?area=' + selectedArea;
             }
@@ -41,7 +60,7 @@
   </script>
 {% endblock head %}
 
-{% block title %} Client Management {% endblock title %}
+{% block title %} Commission Management {% endblock title %}
 
 {% block content %}
 
@@ -56,12 +75,15 @@
             </nav>
           </div>
           <div class="col-lg-6 col-5 text-right">
-            <a href="{% url 'add_client' %}" class="btn btn-sm btn-neutral">Add Client</a>
+            <a href="{% url 'add_commission' %}" class="btn btn-sm btn-neutral">Add Commission</a>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+
+  
   
   <table cellpadding="15px" id="dtBasicExample" class="table table-striped table-bordered">
     {% comment %} <th scope="row">
@@ -108,73 +130,64 @@
       </div>
     </th>
   </table>
+
+ 
+
 <body id="search-results">
-  
+    
    <section class="container-fluid mt-3">
       <div class="container page-header">
-        <h3 class="mb-0">Client Management</h3><br>
+        <h3 class="mb-0">Commission Management</h3><br>
       </div>
+      
+      {% if msg %}
+      <div>
+       <h1 class="msg">{{msg}}</h1>
+     </div>
+    {% endif %}
       <div class="list-products">
          <table cellpadding="15px" id="dtBasicExample" class="table table-striped table-bordered">
             <thead>
                 <tr>
-                    <th scope="col"class="sort" data-sort="status">Profile Image</th>
-                    <th scope="col" class="sort" data-sort="name">First Name</th>
-                    <th scope="col" class="sort" data-sort="budget">Last Name</th>
-                    <th scope="col" class="sort" data-sort="status">Email</th>
-                    <th scope="col" class="sort" data-sort="completion">Conatct No</th>
-                    <th scope="col" class="sort" data-sort="completion">Edit</th>
-                    <th scope="col" class="sort" data-sort="completion">Delete</th>
-
+                    <th scope="col"class="sort" data-sort="status">Client-Name</th>
+                    <th scope="col"class="sort" data-sort="status">Client-email</th>
+                    <th scope="col"class="sort" data-sort="status">Commission</th>
+                    <th scope="col"class="sort" data-sort="status">Update</th>
+                    <th scope="col"class="sort" data-sort="status">Delete</th>
                   </tr>
                 </thead>
            
                 <tbody class="list">
-                    {% for client in clients %}
+                    {% for commission in commissions %}
                     
                     <tr>
-                      <td>
-                        <div class="avatar-group">
-                          {% if client.profile_image %}
-                            <img class="avatar avatar-sm rounded-circle" src="{{ client.profile_image.url }}" alt="{{ client.first_name }}">
-                           {% else %} 
-                            <img class="avatar avatar-sm rounded-circle" src="/static/assets/img/theme/persons.png" alt="{{ client.first_name }}">
-                            {% endif %}
-                        </div>
-                      </td>
                       <th scope="row">
                         <div class="media align-items-center">
                           <div class="media-body">
-                            <span class="name mb-0 text-sm">{{client.first_name}}</span>
+                            <span class="name mb-0 text-sm">{{commission.client.first_name}} {{commission.client.last_name}}</span>
                           </div>
                         </div>
                       </th>
                       <th scope="row">
                         <div class="media align-items-center">
                           <div class="media-body">
-                            <span class="name mb-0 text-sm">{{client.last_name}}</span>
+                            <span class="name mb-0 text-sm">{{commission.client.email}}</span>
+                          </div>
+                        </div>
+                      </th>
+                      <th scope="row">
+                        <div class="media align-items-center">
+                          <div class="media-body">
+                            <span class="name mb-0 text-sm">{{commission.commission_percent}}</span>
                           </div>
                         </div>
                       </th>
                       <td>
-                        <span class="media align-items-center">
-                          <i class="media-body""></i>
-                          <span class="status">{{client.email}}</span>
-                        </span>
-                      </td>
-                      
-                    
-                      <td>
                         <div class="d-flex align-items-center">
-                          <span class="completion mr-2">{{client.contact_no}}</span>
+                          <a class="completion mr-2" href="{% url 'update_commission' id=commission.id %}">Update</a>
                         </div>
                       </td>
-                      <td>
-                        <div class="d-flex align-items-center">
-                          <a class="completion mr-2" href="{% url 'update_client' id=client.id %}">Update</a>
-                        </div>
-                      </td>
-                      <td class="text-center pointer">
+                        <td class="text pointer">
                         <a href="#mymodal{{forloop.counter}}" data-toggle="modal">Delete
                         </a>
                          <div class="modal fade" id="mymodal{{forloop.counter}}">
@@ -186,16 +199,16 @@
                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                                  </div>
                                  <div class="modal-body">
-                                    <p>Do you really want to delete client? </p>
+                                    <p>Do you really want to delete State? </p>
                                  </div>
                                  <div class="modal-footer justify-content-center">
                                     <button type="button" class="btn btn-outline-success" data-dismiss="modal">Cancel</button>
-                                    <a class="btn btn-outline-danger" href="{% url 'delete_client' id=client.id %}">Delete</a>
+                                    <a class="btn btn-outline-danger" href="{% url 'delete_commission' id=commission.id %}">Delete</a>
                                   </div>
                               </div>
                            </div>
                         </div>               
-                     </td>
+                     </td>  
                     </tr>
                     {% endfor %}
             </tbody>

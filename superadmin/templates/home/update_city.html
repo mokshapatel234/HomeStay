@@ -41,9 +41,10 @@
                 <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label">state*</label>
-                      <select name="state" class="form-control">
+                      <select name="state" class="form-control" disabled>
                           {% for state in states %}
-                            <option value="{{ state.id }}">{{ state.name }}</option>
+                            <option value="{{ state.id }}"{% if state.id == city.state.id %}selected{% endif %}>
+                              {{ state.name }}</option>
                           {% endfor %}
                         
                       </select>
@@ -54,7 +55,7 @@
                 <div class="col-lg-6">
                   <div class="form-group">
                     <label class="form-control-label" >status*</label>
-                    <input type="text" class="form-control" placeholder="name" name="name" value="{{city.status}}" required>
+                    <input type="text" class="form-control" placeholder="True" name="status" value="{{city.status}}" required>
                   </div>
                 </div>
                 <div>

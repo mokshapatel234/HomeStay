@@ -11,6 +11,13 @@ urlpatterns = [
     path('updateClient/<uuid:id>/', update_client, name='update_client'),
     path('deleteClient/<uuid:id>/', delete_client, name='delete_client'),
 
+    path('addCommission', add_commission, name='add_commission'),
+    path('listCommission', list_commission, name='list_commission'),
+    path('updateCommission/<uuid:id>/', update_commission, name='update_commission'),
+    path('deleteCommission/<uuid:id>/', delete_commission, name='delete_commission'),
+
+
+
     path('addState', add_state, name='add_state'),
     path('listState', list_state, name='list_state'),
     path('updateState/<uuid:id>/', update_state, name='update_state'),
@@ -25,9 +32,6 @@ urlpatterns = [
     path('listAreas', list_areas, name='list_areas'),
     path('updateArea/<uuid:id>/', update_area, name='update_area'),
     path('deleteArea/<uuid:id>/', delete_area, name='delete_area'),
-
-
-
 
     path('addProperty', add_property, name='add_property'),
     path('listProperties', list_properties, name='list_properties'),

@@ -1,10 +1,30 @@
 from rest_framework import serializers 
-from superadmin.models import Client, Properties, PropertyImage, PropertyVideo
+from superadmin.models import Client, Properties, PropertyImage, PropertyVideo, Area
+from django.core.validators import RegexValidator
+from .utils import generate_token
 
-class RegisterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Client
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'password', 'profile_image', 'contact_no']
+class RegisterSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    first_name = serializers.CharField(max_length=255)
+    last_name = serializers.CharField(max_length=255)
+    email = serializers.EmailField()
+    password = serializers.CharField(max_length=128)
+    area = serializers.PrimaryKeyRelatedField(queryset=Area.objects.all())
+    contact_no = serializers.CharField(validators=[RegexValidator(regex=r"^\+?1?\d{10}$")])
+    token = serializers.CharField(max_length=255, read_only=True)
+
+    def create(self, validated_data):
+        user = Client.objects.create(
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            email=validated_data['email'],
+            area=validated_data['area'],
+            password=validated_data['password'],
+            contact_no=validated_data['contact_no']
+        )
+        token = generate_token(str(user.id))
+        user.token = token.decode("utf-8")
+        return user
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -58,7 +78,7 @@ class PropertiesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Properties
-        fields = ['id', 'name', 'root_image', 'price', 'description', 'address', 'status', 'created_at', 'updated_at', 'images', 'videos']
+        fields = ['id', 'name', 'root_image', 'price', 'description', 'address', 'status', 'images', 'videos']
 
 
     
@@ -69,4 +89,4 @@ class ClientProfileSerializer(serializers.ModelSerializer):
    
     class Meta:
         model = Client
-        fields = ['username', 'first_name', 'last_name', 'profile_image', 'contact_no']
+        fields = ['first_name', 'last_name', 'profile_image', 'contact_no']
