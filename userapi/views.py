@@ -52,12 +52,10 @@ class RegisterApi(generics.GenericAPIView):
             response = Response({"result":False,
                                 "message": "Email or Contact_no already exists"}, status=status.HTTP_400_BAD_REQUEST)
             return response
-        except Exception as e:
-            # response = Response({"result":False,
-            #                     "message": "Invalid data input. Please provide appropriate credentials"}, status=status.HTTP_400_BAD_REQUEST)
-            # return response
-            print(e)
-            return Response(str(e))
+        except:
+            response = Response({"result":False,
+                                "message": "Invalid data input. Please provide appropriate credentials"}, status=status.HTTP_400_BAD_REQUEST)
+            return response
     
 class LoginApi(generics.GenericAPIView):
     serializer_class = LoginSerializer
