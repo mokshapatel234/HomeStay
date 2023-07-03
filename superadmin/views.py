@@ -103,11 +103,11 @@ class LoginView(View):
                     login(request, user)
                     return redirect(reverse('index'))
                 else:
-                    return render(request, 'login.html', {'form': form, 'msg': 'Invalid Credentials'})
+                    return render(request, 'accounts/login.html', {'form': form, 'msg': 'Invalid Credentials'})
             except User.DoesNotExist:
-                return render(request, 'login.html', {'form': form, 'msg': 'Invalid Credentials'})
+                return render(request, 'accounts/login.html', {'form': form, 'msg': 'Invalid Credentials'})
         else:
-            return render(request, 'login.html', {'form': form})
+            return render(request, 'accounts/login.html', {'form': form})
 
 
 class Index(View):
@@ -124,17 +124,25 @@ class Index(View):
 
 def add_state(request):
     try:
+
+        if request.method=="GET":
+            return render(request, 'home/add_state.html')
+        
+
         if request.method == 'POST':
             name = request.POST.get('name')
             state = State(
                 name=name,
             )
             state.save()
-            return redirect('list_state')
+            return redirect('list_state',  {'msg': 'State added successfully'})
+        else:
+            return render(request, 'home/add_state.html', {'msg': 'Invalid Credentials'})
+                   
+    except:
+        return render(request, 'home/add_state.html', {'msg': 'Invalid Credentials'})
+
         
-    except Exception as e:
-        print(e)
-    return render(request, 'home/add_state.html')
 
 
 def list_state(request):
@@ -146,28 +154,40 @@ def update_state(request, id):
     try:
         state = State.objects.get(id=id)
 
+        if request.method=="GET":
+            return render(request, 'home/update_state.html', {"state":state})
+
         if request.method == 'POST':
             state.name = request.POST.get('name')
             state.status = request.POST.get('status')
             
             state.save()
-            return redirect('list_state')
+            return redirect('list_state',  {'msg': 'State updated successfully'})
         
-    except Exception as e:
-        print(e)
-    return render(request, 'home/update_state.html')
-
+        else:
+                return render(request, 'home/update_state.html', {'msg': 'Invalid Credentials'})
+                   
+    except:
+        return render(request, 'home/update_state.html', {'msg': 'Invalid Credentials'})
 
 def delete_state(request, id):
-    state = State.objects.get(id=id)
-    state.delete()
-    return redirect('list_state')
+    try:
+        state = State.objects.get(id=id)
+        state.delete()
+        return redirect('list_state',  {'msg': 'State deleted successfully'})
+    except:
+        return render(request, 'home/list_state.html', {'msg': 'State is not deleted yet'})
 
 #City
 
 def add_city(request):
     try:
         states = State.objects.all()
+
+        if request.method == "GET":
+            return render(request, 'home/add_city.html', {'states':states})
+
+
         if request.method == 'POST':
             name = request.POST.get('name')
             state_id = request.POST.get('state')
@@ -178,10 +198,14 @@ def add_city(request):
             )
             city.save()
             return redirect('list_cities')
+        else:
+            return render(request, 'home/add_city.html', {'msg': 'Invalid Credentials'})
+                   
+    except:
+        return render(request, 'home/add_city.html', {'msg': 'Invalid Credentials'})
         
-    except Exception as e:
-        print(e)
-    return render(request, 'home/add_city.html', {'states':states})
+ 
+        
 
 
 def list_cities(request):
@@ -201,7 +225,7 @@ def update_city(request, id):
             city.state = state
             
             city.save()
-            return redirect('list_cities')
+            return redirect('list_cities',  {'msg': 'City updated successfully'})
         
     except Exception as e:
         print(e)
@@ -209,10 +233,13 @@ def update_city(request, id):
 
 
 def delete_city(request, id):
-    city = City.objects.get(id=id)
-    city.delete()
-    return redirect('list_cities')
+    try:
+        city = City.objects.get(id=id)
+        city.delete()
+        return redirect('list_cities',  {'msg': 'City deleted successfully'})
 
+    except:
+        return render(request, 'home/list_cities.html', {'msg': 'City is not deleted yet'})
 
 # Area
 

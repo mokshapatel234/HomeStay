@@ -6,6 +6,9 @@
         <br>
         <form method="POST">
             {% csrf_token %}
+            {% if msg %}
+                <p class="text-danger"> *{{msg}} </p>
+              {% endif %}
             <label class="form-control-label" >Terms and Condition:</label>
             {{form.terms_and_condition}}
 
