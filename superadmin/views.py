@@ -216,9 +216,10 @@ def list_cities(request):
 def update_city(request, id):
     try:
         city = City.objects.get(id=id)
-        state = State.objects.all()
+        states = State.objects.all()
+     
         if request.method == 'POST':
-            state_id = request.POST.get('state')
+            state_id = request.POST.get('state')  
             state = State.objects.get(id=state_id)
             city.name = request.POST.get('name')
             city.status = request.POST.get('status')
@@ -227,21 +228,18 @@ def update_city(request, id):
             city.save()
             messages.success(request, 'City updated successfully')
             return redirect('list_cities') 
-        else:
-            print()       
     except Exception as e:
         print(e)
-    return render(request, 'home/update_city.html', {"states":state, "city":city})
+    return render(request, 'home/update_city.html', {"states": states, "city": city})
 
 
 def delete_city(request, id):
-    try:
-        city = City.objects.get(id=id)
-        city.delete()
-        return redirect('list_cities',  {'msg': 'City deleted successfully'})
+    city = City.objects.get(id=id)
+    city.delete()
+    messages.success(request, 'City deleted successfully')
+    return redirect('list_cities') 
 
-    except:
-        return render(request, 'home/list_cities.html', {'msg': 'City is not deleted yet'})
+    
 
 # Area
 
@@ -269,13 +267,13 @@ def list_areas(request):
     areas  = Area.objects.all()
     return render(request, 'home/list_areas.html', {'areas':areas})
 
-
 def update_area(request, id):
     try:
         area = Area.objects.get(id=id)
-        city = City.objects.all()
+        cities = City.objects.all()
+
         if request.method == 'POST':
-            city_id = request.POST.get('city')
+            city_id = request.POST.get('city')  
             city = City.objects.get(id=city_id)
             area.name = request.POST.get('name')
             area.status = request.POST.get('status')
@@ -283,10 +281,9 @@ def update_area(request, id):
             
             area.save()
             return redirect('list_areas')
-        
     except Exception as e:
         print(e)
-    return render(request, 'home/update_area.html', {"cities":city, "area":area})
+    return render(request, 'home/update_area.html', {"cities": cities, "area": area})
 
 
 def delete_area(request, id):
@@ -300,6 +297,9 @@ def delete_area(request, id):
 
 def add_client(request):
     try:
+        states = State.objects.all()
+        cities = City.objects.all()
+        areas = Area.objects.all()
         if request.method == 'POST':
             data = {k:v[0]for k,v in dict(request.POST).items()}  
             
@@ -324,7 +324,7 @@ def add_client(request):
     except Exception as e:
         print(e)
 
-    return render(request, 'home/add_client.html', {'segment':'index'})
+    return render(request, 'home/add_client.html', {'segment':'index', "states": states, "cities": cities, "areas": areas})
 
 def list_clients(request):
     clients = Client.objects.all()

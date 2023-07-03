@@ -18,10 +18,7 @@
         </div>
         <div class="card-body">
           <form method="POST" enctype="multipart/form-data">
-            {% if msg %}
-                <p class="text-danger"> *{{msg}} </p>
-              {% endif %}
-            {% csrf_token %}
+            
             
             <h6 class="heading-small text-muted mb-4"></h6>
             <div class="pl-lg-4">
@@ -31,15 +28,16 @@
                 <div class="row">
                   <div class="col-lg-6">
                     <div class="form-group">
-                      <label class="form-control-label" >name*</label>
+                      <label class="form-control-label" >City-Name*</label>
                       <input type="text" class="form-control" placeholder="name" name="name" value="{{city.name}}" required>
                     </div>
                   </div>
-                  <div>
+                 
                 </div>
-                <div class="col-lg-6">
+                <div class="row">
+                  <div class="col-lg-6">
                     <div class="form-group">
-                      <label class="form-control-label">state*</label>
+                      <label class="form-control-label">State*</label>
                       <select name="state" class="form-control" disabled>
                           {% for state in states %}
                             <option value="{{ state.id }}"{% if state.id == city.state.id %}selected{% endif %}>
@@ -47,17 +45,21 @@
                           {% endfor %}
                         
                       </select>
+                      <input type="hidden" name="state" value="{{ city.state.id }}">
                     </div>
                   </div>
-              </div>
+                </div>
               <div class="row">
                 <div class="col-lg-6">
                   <div class="form-group">
-                    <label class="form-control-label" >status*</label>
-                    <input type="text" class="form-control" placeholder="True" name="status" value="{{city.status}}" required>
+                    <label class="form-control-label" >Status</label>
+                    <select id="input-status" name="status" class="form-control" value="{{property.status}}">
+                      <option value="active">Active</option>
+                      <option value="deactive">Deactive</option>
+                    </select>
                   </div>
                 </div>
-                <div>
+               
               </div>
               <center>
               <button class="btn btn-sm btn-primary" type='submit' value='submit' >Update</button>

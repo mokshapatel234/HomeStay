@@ -37,18 +37,19 @@
                   
                 </div>
                 <div class="row">
-                    <div class="col-lg-6">
-                      <div class="form-group">
-                        <label class="form-control-label" >Status*</label>
-                        <input type="text" class="form-control" placeholder="status" name="status" value="{{state.status}}" required>
-                      </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label" >Status</label>
+                      <select id="input-status" name="status" class="form-control" value="{{property.status}}">
+                        <option value="active">Active</option>
+                        <option value="deactive">Deactive</option>
+                      </select>
                     </div>
-                    
                   </div>
+               </div>
+              <div class="text-ce nter">
+                <button type="submit" class="btn btn-primary my-4">Sign in</button>
               </div>
-              <center>
-              <button class="btn btn-sm btn-primary" type='submit' value='submit' >Update</button>
-              </center>
             </form>
         </div>
       </div>
