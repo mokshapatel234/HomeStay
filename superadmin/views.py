@@ -77,6 +77,7 @@ def add_terms_policy(request):
         form = AdminTermsAndpolicyForm(request.POST, instance=admin_user)
         if form.is_valid():
             form.save()
+            TermsandPolicy(user=request.user)
             return redirect('index')
     else:
         form = AdminTermsAndpolicyForm(instance=admin_user)
@@ -591,10 +592,10 @@ def list_commission(request):
     city_id = request.GET.get('city')
     area_id = request.GET.get('area')
 
-    # if state_id:
-    #     commissions = commissions.filter(client__area__city__state_id=state_id)
-    # elif city_id:
-    #     commissions = commissions.filter(client__area__city_id=city_id)
+    if state_id:
+        commissions = commissions.filter(client__area__city__state_id=state_id)
+    elif city_id:
+        commissions = commissions.filter(client__area__city_id=city_id)
     if area_id:
         commissions = commissions.filter(client__area_id=area_id)
 

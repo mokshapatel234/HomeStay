@@ -16,6 +16,9 @@ urlpatterns = [
     path('propertyDetail/<uuid:id>/', PropertyDetailApi.as_view(), name='property_detail'),
     path('bookProperty/', BookPropertyApi.as_view(), name='book_property_list'),
     path('bookProperty/<uuid:id>/', BookPropertyApi.as_view(), name='book_property'),
+    path('propertyWishlist/', wishlistApi.as_view(), name="property_wishlist"),
+    path('propertyWishlist/<uuid:id>/', wishlistApi.as_view(), name="add_property_wishlist"),
+    path('termsPolicy/', TermsAndPolicyApi.as_view(), name='terms_and_policy'),
 
 
 ]

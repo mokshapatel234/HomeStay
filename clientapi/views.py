@@ -13,12 +13,22 @@ from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from clientapi.serializers import RegisterSerializer, LoginSerializer,\
-      ResetPasswordSerializer, ClientProfileSerializer, PropertiesSerializer
+      ResetPasswordSerializer, ClientProfileSerializer, PropertiesSerializer,\
+      BookPropertySerializer, TermsAndPolicySerializer
 from .utils import generate_token
 from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication, IsClientVerified
 from rest_framework.parsers import MultiPartParser
 
+
+class TermsAndPolicyApi(generics.GenericAPIView):
+    permission_classes =(permissions.AllowAny, )
+    
+    def get(self, request):
+        terms_and_policy = TermsandPolicy.objects.first()  
+        serializer = TermsAndPolicySerializer(terms_and_policy) 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
 
 # Register Client
 class RegisterApi(generics.GenericAPIView):
@@ -235,10 +245,14 @@ class PropertyApi(generics.GenericAPIView):
         try: 
             images = request.FILES.getlist('images')
             videos = request.FILES.getlist('videos')
-            
+            terms = request.POST.get('terms')
+
             serializer = PropertiesSerializer(data=request.data, context={'request': request})
+            print(request.data)
             request.data.pop('images')
             request.data.pop('videos')
+            request.data.pop('terms')
+
             if serializer.is_valid():
                 property_instance = serializer.save(owner=request.user)
                 
@@ -247,6 +261,8 @@ class PropertyApi(generics.GenericAPIView):
 
                 for video in videos:
                     PropertyVideo.objects.create(property=property_instance, video=video)
+
+                PropertyTerms.objects.create(property=property_instance, terms=terms)
 
                 return Response({"result":True,
                                 "data":serializer.data,
@@ -262,17 +278,18 @@ class PropertyApi(generics.GenericAPIView):
     def put(self, request, property_id):
         try:
             property_obj = request.user.properties.get(id=property_id)
+            
             serializer = PropertiesSerializer(property_obj, data=request.data)
-            print(property_obj.images)
             request.data.pop('images')
             request.data.pop('videos')
+            request.data.pop('terms')
+
             if serializer.is_valid():
                 property_instance = serializer.save()
 
-
                 property_obj.images.all().delete()
                 property_obj.videos.all().delete()
-
+                property_obj.terms.all().delete()
 
                 images = request.FILES.getlist('images')
                 for image in images:
@@ -283,6 +300,10 @@ class PropertyApi(generics.GenericAPIView):
                 for video in videos:
                     PropertyVideo.objects.create(property=property_obj, video=video)
 
+                terms = request.POST.get('terms')
+                PropertyTerms.objects.create(property=property_obj, terms=terms)
+
+
                 return Response({"result":True,
                                 "data":serializer.data,
                                 'message':'Property Updated'},status=status.HTTP_201_CREATED)
@@ -290,9 +311,9 @@ class PropertyApi(generics.GenericAPIView):
                 return Response({"result":False,
                                 "message": "Error in updating property"}, status=status.HTTP_400_BAD_REQUEST)
        
-        except:
+        except Exception as e:
             return Response({"result":False,
-                            "message": "Error in updating property"}, status=status.HTTP_400_BAD_REQUEST)
+                            "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
  
 
 
@@ -307,7 +328,31 @@ class PropertyApi(generics.GenericAPIView):
                             "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
     
 
-    
+class BookPropertyApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
+
+
+    def get(self, request):
+        try:
+            properties = request.user.properties.all()
+
+            user = request.user
+
+            bookings = Bookings.objects.filter(property__owner=user)
+
+            serializer = BookPropertySerializer(bookings, many=True)
+            
+            return Response({'result': True,
+                             'data': serializer.data,
+                             'message': 'Booking history'},
+                            status=status.HTTP_200_OK)
+        except:
+            return Response({'result': False,
+                             'message': 'History not available'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+  
 
 
 

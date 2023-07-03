@@ -12,8 +12,10 @@ from superadmin.models import *
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
-from userapi.serializers import RegisterSerializer, LoginSerializer, ResetPasswordSerializer, AreaSerializer, CitySerializer, \
-    StateSerializer, DashboardPropertiesSerializer, CustomerProfileSerializer, PropertiesDetailSerializer, BookPropertySerializer
+from userapi.serializers import RegisterSerializer, LoginSerializer, ResetPasswordSerializer,\
+      AreaSerializer, CitySerializer, StateSerializer, DashboardPropertiesSerializer,\
+          CustomerProfileSerializer, PropertiesDetailSerializer, BookPropertySerializer,\
+              TermsAndPolicySerializer, WishlistSerializer
 from .utils import generate_token
 from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication
@@ -24,7 +26,14 @@ from datetime import datetime
 # Create your views here.
 
 
-
+class TermsAndPolicyApi(generics.GenericAPIView):
+    permission_classes =(permissions.AllowAny, )
+    
+    def get(self, request):
+        terms_and_policy = TermsandPolicy.objects.first()  
+        serializer = TermsAndPolicySerializer(terms_and_policy) 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
 
 class RegisterApi(generics.GenericAPIView):
     serializer_class = RegisterSerializer
@@ -355,7 +364,6 @@ class PropertyDetailApi(generics.GenericAPIView):
             return Response({"result":False,
                             "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
     
-from django.utils import timezone
 
 class BookPropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
@@ -419,3 +427,60 @@ class BookPropertyApi(generics.GenericAPIView):
                              'message': 'Error in property booking'},
                             status=status.HTTP_400_BAD_REQUEST)
       
+
+class wishlistApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get(self, request):
+        try:   
+            user = request.user
+            wishlist = Wishlist.objects.filter(customer=user)
+            serializer = WishlistSerializer(wishlist, many=True)
+            return Response({'result': True,
+                                    'data': serializer.data,
+                                    'message': 'List of favourite properties'},
+                                    status=status.HTTP_200_OK)
+        except:
+            return Response({'result': False,
+                             'message': 'Error in property wishlist'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+    def post(self, request, id):
+        try:
+            property = Properties.objects.get(id=id)
+            user = request.user
+            data = {
+                'property': property.id,
+                'customer': user.id
+            }
+            serializer = WishlistSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'result': True,
+                                    'data': serializer.data,
+                                    'message': 'Property is now favourite'},
+                                    status=status.HTTP_200_OK)
+            else:
+                return Response({'result': False,
+                                'message': 'Property is not favourited yet',
+                                'errors': serializer.errors},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        except:
+            return Response({'result': False,
+                             'message': 'Error in property wishlist'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        try:
+            wishlist = Wishlist.objects.get(id=id)
+            wishlist.delete()
+            return Response({'result': True,
+                        'message': 'removed from wishlist'},
+                        status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({'result': False,
+                        'message': 'Error in property remove'},
+                        status=status.HTTP_400_BAD_REQUEST)

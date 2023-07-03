@@ -28,7 +28,7 @@ class Add_clientForm(forms.ModelForm):
 class AdminTermsAndpolicyForm(forms.ModelForm):
     class Meta:
         model = TermsandPolicy
-        fields = ['user','terms_and_condition', 'privacy_policy']
+        fields = ['terms_and_condition', 'privacy_policy']
         widgets = {
             'terms_and_condition': forms.Textarea(attrs={'class': 'ckeditor'}),
             'privacy_policy': forms.Textarea(attrs={'class': 'ckeditor'}),

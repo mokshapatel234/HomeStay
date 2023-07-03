@@ -23,41 +23,74 @@
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"
   integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
   <script>
-     $(document).ready(function () {
-        // Retrieve the selected state from the URL query string
-        var selectedArea = getQueryStringValue('area');
-    
-        $('#dtBasicExample').DataTable({
-            lengthChange: true,
-            searching: true,
-            paging: false,
-            columnDefs: [
-                { searchable: false, targets: 0 }
-            ],
-            order: [[0, "desc"]],
-        });
-    
-        // Set the selected state in the dropdown
-        $('#area-select').val(selectedArea);
-    
-        // Handle state filter
-        $('#area-select').on('change', function () {
-            var selectedArea = $(this).val();
-            var url = '{% url "list_commission" %}';
-            if (selectedArea) {
-                url += '?area=' + selectedArea;
-            }
-            window.location.href = url;
-        });
-    
-        // Function to retrieve query string parameter value
-        function getQueryStringValue(key) {
-            var urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(key);
-        }
+  $(document).ready(function () {
+    // Retrieve the selected state, city, and area from the URL query string
+    var selectedState = getQueryStringValue('state');
+    var selectedCity = getQueryStringValue('city');
+    var selectedArea = getQueryStringValue('area');
+  
+    $('#dtBasicExample').DataTable({
+      lengthChange: true,
+      searching: true,
+      paging: false,
+      columnDefs: [
+        { searchable: false, targets: 0 }
+      ],
+      order: [[0, "desc"]],
     });
+  
+    // Set the selected state, city, and area in the dropdowns
+    $('#state-select').val(selectedState);
+    $('#city-select').val(selectedCity);
+    $('#area-select').val(selectedArea);
+  
+    // Handle state filter
+    $('#state-select').on('change', function () {
+      var selectedState = $(this).val();
+      var url = '{% url "list_commission" %}';
+      if (selectedState) {
+        url += '?state=' + selectedState;
+      }
+      window.location.href = url;
+    });
+  
+    // Handle city filter
+    $('#city-select').on('change', function () {
+      var selectedCity = $(this).val();
+      var url = '{% url "list_commission" %}';
+      var stateParam = getQueryStringValue('state');
+      if (selectedCity) {
+        url += '?state=' + stateParam + '&city=' + selectedCity;
+      } else {
+        url += '?state=' + stateParam;
+      }
+      window.location.href = url;
+    });
+  
+    // Handle area filter
+    $('#area-select').on('change', function () {
+      var selectedArea = $(this).val();
+      var url = '{% url "list_commission" %}';
+      var stateParam = getQueryStringValue('state');
+      var cityParam = getQueryStringValue('city');
+      if (selectedArea) {
+        url += '?state=' + stateParam + '&city=' + cityParam + '&area=' + selectedArea;
+      } else {
+        url += '?state=' + stateParam + '&city=' + cityParam;
+      }
+      window.location.href = url;
+    });
+  
+    // Function to retrieve query string parameter value
+    function getQueryStringValue(key) {
+      var urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(key);
+    }
+  });
   </script>
+  
 {% endblock head %}
 
 {% block title %} Commission Management {% endblock title %}
@@ -86,13 +119,14 @@
   
   
   <table cellpadding="15px" id="dtBasicExample" class="table table-striped table-bordered">
-    {% comment %} <th scope="row">
+   <th scope="row">
       <div class="media align-items-center">
         <div class="media-body">
-          <label class="form-control-label">State*</label>
-          <select name="state" class="form-control-6">
+          <label class="state-select">State*</label>
+          <select name="state"id="state-select" class="form-control-6">
+            <option value="">All States</option>
               {% for state in states %}
-                <option value="{{ state.id }}">
+                <option value="{{ state.id }}" {% if state.id|stringformat:"state" == selected_state %}selected{% endif %}>
                   {{ state.name }}</option>
               {% endfor %}
             
@@ -103,17 +137,18 @@
     <th scope="row">
       <div class="media align-items-center">
         <div class="media-body">
-          <label class="form-control-label">City*</label>
-          <select name="city" class="form-control-6">
+          <label class="city-select">City*</label>
+          <select name="city" id="city-select"class="form-control-6">
+            <option value="">All Cities</option>
               {% for city in cities %}
-                <option value="{{ city.id }}" >
+                <option value="{{ city.id }}" {% if city.id|stringformat:"city" == selected_city %}selected{% endif %}>
                   {{ city.name }}</option>
               {% endfor %}
             
           </select>
         </div>
       </div>
-    </th> {% endcomment %}
+    </th> 
     <th scope="row">
       <div class="media align-items-center">
         <div class="media-body">

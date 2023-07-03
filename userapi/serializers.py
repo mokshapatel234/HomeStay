@@ -1,6 +1,6 @@
 from rest_framework import serializers 
 from superadmin.models import Customer, Area, City, State, Properties, PropertyImage, PropertyTerms,\
-      PropertyVideo, Bookings
+      PropertyVideo, Bookings, TermsandPolicy, Wishlist
 from django.core.validators import RegexValidator
 from .utils import generate_token
 
@@ -143,3 +143,15 @@ class BookPropertySerializer(serializers.ModelSerializer):
         model = Bookings
         fields = ['id', 'customer', 'status', 'rent', 'transaction_id', 'start_date', 'end_date']
     
+
+class TermsAndPolicySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TermsandPolicy
+        fields = ['id', 'user', 'terms_and_condition', 'privacy_policy']
+
+class WishlistSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Wishlist
+        fields = ['id','property', 'customer']

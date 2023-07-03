@@ -1,7 +1,17 @@
 from rest_framework import serializers 
-from superadmin.models import Client, Properties, PropertyImage, PropertyVideo, Area
+from superadmin.models import Client, Properties, PropertyImage, PropertyVideo,\
+      Area, PropertyTerms, Bookings, TermsandPolicy
 from django.core.validators import RegexValidator
 from .utils import generate_token
+
+
+
+class TermsAndPolicySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TermsandPolicy
+        fields = ['id', 'user', 'terms_and_condition', 'privacy_policy']
+
 
 class RegisterSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
@@ -66,27 +76,35 @@ class ResetPasswordSerializer(serializers.Serializer):
 class PropertyImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyImage
-        fields = ['id', 'image']
+        fields = ['id','image']
 
 class PropertyVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyVideo
-        fields = ['id', 'video']
+        fields = ['id','video']
+class PropertyTermsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PropertyTerms
+        fields = ['id', 'terms']
 
 class PropertiesSerializer(serializers.ModelSerializer):
-   
 
     class Meta:
         model = Properties
-        fields = ['id', 'name', 'root_image', 'price', 'description', 'address', 'status', 'images', 'videos']
-
-
-    
-    
-    
+        fields = ['id', 'name', 'root_image', 'price', 'description', 'address', 'status','area_id', 'images', 'videos', 'terms']
+   
 
 class ClientProfileSerializer(serializers.ModelSerializer):
    
     class Meta:
         model = Client
         fields = ['first_name', 'last_name', 'profile_image', 'contact_no']
+
+
+class BookPropertySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Bookings
+        fields = ['id', 'customer', 'status', 'rent', 'transaction_id', 'start_date', 'end_date']
+  

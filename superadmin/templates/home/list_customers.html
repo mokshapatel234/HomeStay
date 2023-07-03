@@ -25,7 +25,7 @@
         // Handle state filter
         $('#area-select').on('change', function () {
             var selectedArea = $(this).val();
-            var url = '{% url "list_clients" %}';
+            var url = '{% url "list_customers" %}';
             if (selectedArea) {
                 url += '?area=' + selectedArea;
             }
