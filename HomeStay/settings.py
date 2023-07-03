@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "superadmin.apps.SuperadminConfig",
     'clientapi',
     'userapi',
+    'master',
     'rest_framework',
     'rest_auth',
     'ckeditor',

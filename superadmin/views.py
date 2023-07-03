@@ -135,12 +135,12 @@ def add_state(request):
                 name=name,
             )
             state.save()
-            return redirect('list_state',  {'msg': 'State added successfully'})
+            return redirect('list_state')
         else:
-            return render(request, 'home/add_state.html', {'msg': 'Invalid Credentials'})
+            return render(request, 'home/add_state.html')
                    
     except:
-        return render(request, 'home/add_state.html', {'msg': 'Invalid Credentials'})
+        return render(request, 'home/add_state.html')
 
         
 
@@ -225,8 +225,10 @@ def update_city(request, id):
             city.state = state
             
             city.save()
-            return redirect('list_cities',  {'msg': 'City updated successfully'})
-        
+            messages.success(request, 'City updated successfully')
+            return redirect('list_cities') 
+        else:
+            print()       
     except Exception as e:
         print(e)
     return render(request, 'home/update_city.html', {"states":state, "city":city})

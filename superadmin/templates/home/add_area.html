@@ -17,9 +17,7 @@
           </div>
         </div>
         <div class="card-body">
-          {% if msg %}
-          <p class="text-danger"> *{{msg}} </p>
-        {% endif %}
+          
           <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
           

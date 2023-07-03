@@ -19,9 +19,7 @@
         <div class="card-body">
           <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-            {% if msg %}
-                <p class="text-danger"> *{{msg}} </p>
-              {% endif %}
+            
             <h6 class="heading-small text-muted mb-4">User information</h6>
             <div class="pl-lg-4">
                   <div class="col-lg-6">
@@ -50,13 +48,13 @@
                   </div>
                   <div class="col-lg-6">
                     <div class="form-group">
-                      <label class="form-control-label">Profile Image*</label>
+                      <label class="form-control-label">Profile Image</label>
                       <input type="file" class="form-control" placeholder="Profile Image" name="profile_image" required>
                     </div>
                   </div>
                   <div class="col-lg-6">
                     <div class="form-group">
-                      <label class="form-control-label" >contact_no</label>
+                      <label class="form-control-label" >contact_no*</label>
                       <input type="text" class="form-control" placeholder="Contact No" pattern="[0-9]{10}" name="contact_no">
                     </div>
                   </div>
