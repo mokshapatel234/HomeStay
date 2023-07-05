@@ -812,6 +812,8 @@ def add_commission(request):
         print(e)
 
     return render(request, 'home/add_commission.html', {'clients':clients, 'segment':'commission'})
+
+
 def list_commission(request):
     commissions = Commission.objects.all()
     states = State.objects.all()
