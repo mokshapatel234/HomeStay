@@ -12,6 +12,9 @@ urlpatterns = [
     path('clientProperty/', PropertyApi.as_view(), name="client_property"),
     path('clientProperty/<property_id>', PropertyApi.as_view(), name="client_property_update"),
     path('propertyBooking/', BookPropertyApi.as_view(), name="client_booked_property"),
+    path('bookingDetail/<id>', BookingDetailApi.as_view(), name="client_booked_detail"),
     path('termsPolicy/', TermsAndPolicyApi.as_view(), name='terms_and_policy'),
+    path('dashboard/', DashboardApi.as_view(), name='dashboard'),
+
 
 ]

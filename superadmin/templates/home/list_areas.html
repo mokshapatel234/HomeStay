@@ -63,8 +63,8 @@
             <thead>
                 <tr>
                     <th scope="col"class="sort" data-sort="status">Name</th>
-                    <th scope="col"class="sort" data-sort="status">Status</th>
                     <th scope="col"class="sort" data-sort="status">City</th>
+                    <th scope="col"class="sort" data-sort="status">Status</th>
                     <th scope="col"class="sort" data-sort="status">Update</th>
                     <th scope="col"class="sort" data-sort="status">Delete</th>
 
@@ -84,13 +84,7 @@
                           </div>
                         </div>
                       </th>
-                      <th scope="row">
-                        <div class="media align-items-center">
-                          <div class="media-body">
-                            <span class="name mb-0 text-sm">{{area.status}}</span>
-                          </div>
-                        </div>
-                      </th>
+                      
                       <th scope="row">
                         <div class="media align-items-center">
                           <div class="media-body">
@@ -98,6 +92,14 @@
                           </div>
                         </div>
                       </th>
+                      <th scope="row">
+                        <div class="media align-items-center">
+                          <div class="media-body">
+                            <span class="name mb-0 text-sm">{{area.status}}</span>
+                          </div>
+                        </div>
+                      </th>
+
                        <td>
                         <div class="d-flex align-items-center">
                           <a class="completion mr-2" href="{% url 'update_area' id=area.id %}">Update</a>

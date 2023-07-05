@@ -30,7 +30,7 @@
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label">City*</label>
-                      <select name="city" class="form-control">
+                      <select name="city" class="form-control" style="height: 3rem;">
                           {% for city in cities %}
                             <option value="{{ city.id }}">{{ city.name }}</option>
                           {% endfor %}
@@ -38,8 +38,8 @@
                       </select>
                     </div>
                   </div>
-                </div>
-                <div class="row">
+               
+                
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label" >Area-Name*</label>

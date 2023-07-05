@@ -40,7 +40,7 @@
                 <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label">Client*</label>
-                      <select name="client" class="form-control" disabled>
+                      <select name="client" class="form-control" style="height: 3rem;" disabled>
                           {% for client in clients %}
                             <option value="{{ client.id }}"{% if client.id == commission.client.id %}selected{% endif %}>
                                 {{ client.first_name }}{{ client.last_name }}</option>
@@ -50,9 +50,9 @@
                     </div>
                   </div>
               </div>
-              <center>
-              <button class="btn btn-sm btn-primary" type='submit' value='submit' >Update</button>
-              </center>
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary my-4">Update</button>
+              </div>
             </form>
         </div>
       </div>

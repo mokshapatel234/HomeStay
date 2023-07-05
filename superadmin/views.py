@@ -15,7 +15,9 @@ from django.utils.encoding import force_bytes
 from django.template.loader import render_to_string
 from django.http.response import HttpResponse
 from django.contrib import messages
-
+import json
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 
 
 # Create your views here.
@@ -292,6 +294,26 @@ def delete_area(request, id):
     return redirect('list_areas')
 
 
+def get_cities(request):
+    state_id = request.GET.get('state_id')
+    if state_id:
+        cities = City.objects.filter(state_id=state_id).values('id', 'name')
+        return JsonResponse(list(cities), safe=False)
+    else:
+        return JsonResponse([], safe=False)
+
+
+def get_areas(request):
+    city_id = request.GET.get('city_id')
+    if city_id:
+        areas = Area.objects.filter(city_id=city_id).values('id', 'name')
+        return JsonResponse(list(areas), safe=False)
+    else:
+        return JsonResponse([], safe=False)
+
+
+
+
 # Client 
 
 
@@ -300,67 +322,134 @@ def add_client(request):
         states = State.objects.all()
         cities = City.objects.all()
         areas = Area.objects.all()
+
+
         if request.method == 'POST':
+
             data = {k:v[0]for k,v in dict(request.POST).items()}  
             
             data.pop('csrfmiddlewaretoken')
             
+            area_id = request.POST.get('area')
+            area = get_object_or_404(Area, id=area_id) 
             # first_name = request.POST.get('first_name')
-            # last_name = request.POST.get('last_name')
+            # last_name = request.POST.get('last_name') 
             # email = request.POST.get('email')
             # password = request.POST.get('password')
             profile_image = request.FILES.get('profile_image')
             # contact_no = request.POST.get('contact_no')
+            state_id = request.GET.get('state')
+            city_id = request.GET.get('city')
 
             client = Client(
                 **data,
                 profile_image=profile_image,
+                area=area,
                 
             )
             client.save()
-        
-
             return redirect('list_clients')  
+        
+        if 'state_id' in request.GET:
+            state_id = request.GET.get('state_id')
+            cities = City.objects.filter(state_id=state_id)
+
+        if 'city_id' in request.GET:
+            city_id = request.GET.get('city_id')
+            areas = Area.objects.filter(city_id=city_id)
+
+        return render(request, 'home/add_client.html', {'segment': 'index', 'states': states, 'cities': cities, 'areas': areas})
+
     except Exception as e:
         print(e)
 
-    return render(request, 'home/add_client.html', {'segment':'index', "states": states, "cities": cities, "areas": areas})
+    return render(request, 'home/add_client.html', {'segment': 'index', 'states': states, 'cities': cities, 'areas': areas})
+
 
 def list_clients(request):
     clients = Client.objects.all()
     states = State.objects.all()
     cities = City.objects.all()
-    areas  = Area.objects.all()
+    areas = Area.objects.all()
 
+    state_id = request.GET.get('state_id')
+    city_id = request.GET.get('city_id')
+    area_id = request.GET.get('area_id')
 
-    state_id = request.GET.get('state')
-    city_id = request.GET.get('city')
-    area_id = request.GET.get('area')
+    selected_state = None
+    selected_city = None
+
+    if state_id:
+        clients = clients.filter(area__city__state=state_id)
+        cities = cities.filter(state_id=state_id)
+        selected_state = State.objects.get(id=state_id).name
+
+    if city_id:
+        clients = clients.filter(area__city=city_id)
+        areas = areas.filter(city_id=city_id)
+        selected_city = City.objects.get(id=city_id).name
 
     if area_id:
-        clients = clients.filter(area_id=area_id)
+        clients = clients.filter(area=area_id)
 
-    else:
-        clients = Client.objects.all()
-    return render(request, 'home/list_clients.html', {"clients":clients, "states":states, 'cities':cities, 'areas':areas})
+    context = {
+        'clients': clients,
+        'states': states,
+        'cities': cities,
+        'areas': areas,
+        'selected_state': selected_state,
+        'selected_city': selected_city,
+        'selected_state_id': state_id,
+        'selected_city_id': city_id,
+        'selected_area_id': area_id,
+    }
+
+    return render(request, 'home/list_clients.html', context)
 
 def update_client(request, id):
-    client = Client.objects.get(id=id)
+    try:
+        client = Client.objects.get(id=id)
+        states = State.objects.all()
+        cities = City.objects.all()
+        areas  = Area.objects.all()
 
-    if request.method == 'POST':
-        client.first_name = request.POST.get('first_name')
-        client.last_name = request.POST.get('last_name')
-        client.email = request.POST.get('email')
-        client.contact_no = request.POST.get('contact_no')
+        if request.method == 'POST':
+            
+            client.first_name = request.POST.get('first_name')
+            client.last_name = request.POST.get('last_name')
+            client.email = request.POST.get('email')
+            client.contact_no = request.POST.get('contact_no')
 
-        profile_image = request.FILES.get('profile_image')
-        if profile_image:
-            client.profile_image = profile_image
+            profile_image = request.FILES.get('profile_image')
+            if profile_image:
+                client.profile_image = profile_image
 
-        client.save()
+            client.save()
 
-        return redirect('list_clients') 
-    return render(request, 'home/update_client.html', {'client':client,'segment':'index'})
+            return redirect('list_clients') 
+        else:
+            
+            
+            return render(request, 'home/update_client.html',
+                    {'client':client,
+                        'segment':'index',
+                        'states': states,
+                        'cities': cities,
+                        'areas': areas
+                        
+                })
+    except Exception as e:
+        print(e)
+
+    return render(request, 'home/update_client.html',
+                    {'client':client,
+                        'segment':'index',
+                        'states': states,
+                        'cities': cities,
+                        'areas': areas
+                        
+                })   
+
 
 def delete_client(request, id):
     cli = Client.objects.get(id=id)
@@ -373,6 +462,10 @@ def delete_client(request, id):
      
 def add_customer(request):
     try:
+        states = State.objects.all()
+        cities = City.objects.all()
+        areas  = Area.objects.all()
+
         if request.method == 'POST':
             data = {k:v[0]for k,v in dict(request.POST).items()}  
             
@@ -384,20 +477,34 @@ def add_customer(request):
             # password = request.POST.get('password')
             profile_image = request.FILES.get('profile_image')
             # contact_no = request.POST.get('contact_no')
-
+            state_id = request.GET.get('state')
+            city_id = request.GET.get('city')
+            area_id = request.GET.get('area')
+            area = Area.objects.get(id=area_id)
             customer = Customer(
                 **data,
                 profile_image=profile_image,
+                area=area
                 
             )
             customer.save()
-        
-
             return redirect('list_customers')  
+
+
+        if 'state_id' in request.GET:
+            state_id = request.GET.get('state_id')
+            cities = City.objects.filter(state_id=state_id)
+
+        if 'city_id' in request.GET:
+            city_id = request.GET.get('city_id')
+            areas = Area.objects.filter(city_id=city_id)
+
+        return render(request, 'home/add_customer.html', {'segment': 'index', 'states': states, 'cities': cities, 'areas': areas})
+
     except Exception as e:
         print(e)
 
-    return render(request, 'home/add_customer.html', {'segment':'customer'})
+    return render(request, 'home/add_customer.html', {'segment': 'index', 'states': states, 'cities': cities, 'areas': areas})
 
 
 def list_customers(request):
@@ -407,16 +514,39 @@ def list_customers(request):
     areas  = Area.objects.all()
 
 
-    state_id = request.GET.get('state')
-    city_id = request.GET.get('city')
-    area_id = request.GET.get('area')
+    state_id = request.GET.get('state_id')
+    city_id = request.GET.get('city_id')
+    area_id = request.GET.get('area_id')
+
+    selected_state = None
+    selected_city = None
+
+    if state_id:
+        customers = customers.filter(area__city__state=state_id)
+        cities = cities.filter(state_id=state_id)
+        selected_state = State.objects.get(id=state_id).name
+
+    if city_id:
+        customers = customers.filter(area__city=city_id)
+        areas = areas.filter(city_id=city_id)
+        selected_city = City.objects.get(id=city_id).name
 
     if area_id:
-        customers = customers.filter(area_id=area_id)
+        customers = customers.filter(area=area_id)
 
-    else:
-        customers = Customer.objects.all()
-    return render(request, 'home/list_customers.html', {"customers":customers, "segment":'customer', "states":states, 'cities':cities, 'areas':areas})
+    context = {
+        'customers': customers,
+        'states': states,
+        'cities': cities,
+        'areas': areas,
+        'selected_state': selected_state,
+        'selected_city': selected_city,
+        'selected_state_id': state_id,
+        'selected_city_id': city_id,
+        'selected_area_id': area_id,
+    }
+
+    return render(request, 'home/list_customers.html', context)
 
 
 def update_customer(request, id):
@@ -451,13 +581,20 @@ def add_property(request):
         form = PropertyTermsForm(request.POST)
         clients = Client.objects.all()
         areas = Area.objects.all()
+        states = State.objects.all()
+        cities = City.objects.all()
+        areas  = Area.objects.all()
+
         try:
             if request.method == 'POST':
                 form = PropertyTermsForm(request.POST)
                 owner_id = request.POST.get('owner')
                 owner = Client.objects.get(id=owner_id)
-                area_id = request.POST.get('area')
-                area = Area.objects.get(id=area_id)
+                state_id = request.GET.get('state')
+                city_id = request.GET.get('city')
+                area_id = request.GET.get('area')
+                print(area_id)
+                area= Area.objects.get(id=area_id)
                 
                 # Add Property fields
                 property = Properties(
@@ -495,18 +632,63 @@ def add_property(request):
                     print(e)
                 
                 return redirect('list_properties')
+            
+            if 'state_id' in request.GET:
+                state_id = request.GET.get('state_id')
+                cities = City.objects.filter(state_id=state_id)
+
+            if 'city_id' in request.GET:
+                city_id = request.GET.get('city_id')
+                areas = Area.objects.filter(city_id=city_id)
+            return render(request, 'home/add_property.html', {'clients': clients,'states': states, 'cities': cities, 'areas': areas, 'segment':'property', 'form':form})
         except Exception as e:
             print(e)
     except Exception as e:
         print(e)
 
-    return render(request, 'home/add_property.html', {'clients': clients,'areas':areas, 'segment':'property', 'form':form})
+    return render(request, 'home/add_property.html', {'clients': clients,'states': states, 'cities': cities, 'areas': areas, 'segment':'property', 'form':form})
 
 
 def list_properties(request):
     properties = Properties.objects.all()
-    
-    return render(request, 'home/list_properties.html', {"properties":properties, "segment":'property'})
+    states = State.objects.all()
+    cities = City.objects.all()
+    areas  = Area.objects.all()
+
+
+    state_id = request.GET.get('state_id')
+    city_id = request.GET.get('city_id')
+    area_id = request.GET.get('area_id')
+
+    selected_state = None
+    selected_city = None
+
+    if state_id:
+        properties = properties.filter(area_id__city__state=state_id)
+        cities = cities.filter(state_id=state_id)
+        selected_state = State.objects.get(id=state_id).name
+
+    if city_id:
+        properties = properties.filter(area_id__city=city_id)
+        areas = areas.filter(city_id=city_id)
+        selected_city = City.objects.get(id=city_id).name
+
+    if area_id:
+        properties = properties.filter(area_id=area_id)
+
+    context = {
+        'properties': properties,
+        'states': states,
+        'cities': cities,
+        'areas': areas,
+        'selected_state': selected_state,
+        'selected_city': selected_city,
+        'selected_state_id': state_id,
+        'selected_city_id': city_id,
+        'selected_area_id': area_id,
+    }
+
+    return render(request, 'home/list_properties.html', context)
 
 
 def update_property(request,id):
@@ -518,11 +700,14 @@ def update_property(request,id):
         num_images = property_images.count()
         num_videos = property_videos.count()
         property_terms = PropertyTerms.objects.filter(property=property_obj).first()        
-
+        states = State.objects.all()
+        cities = City.objects.all()
+        areas  = Area.objects.all()
 
         if request.method == 'POST':
             form = PropertyTermsForm(request.POST, instance=property_terms)
-
+            selected_state_id = property_obj.area_id.city.state.id
+            selected_city_id = property_obj.area_id.city.id
             owner_id = request.POST.get('owner')
             owner = Client.objects.get(id=owner_id)
             
@@ -563,6 +748,24 @@ def update_property(request,id):
             return redirect('list_properties')
         else:
             form = PropertyTermsForm(instance=property_terms)
+            selected_state_id = property_obj.area_id.city.state.id
+            selected_city_id = property_obj.area_id.city.id
+            return render(
+                request, 'home/update_property.html',
+                {
+                    'property': property_obj,
+                    'property_images': property_images,
+                    'property_videos': property_videos,
+                    'clients': clients,
+                    'segment': 'property',
+                    'num_images': num_images,
+                    'num_videos': num_videos,
+                    'form': form,
+                    'states': states,
+                    'cities': cities,
+                    'areas': areas,
+                }
+            )
     except Exception as e:
         print(e)
 
@@ -575,6 +778,7 @@ def update_property(request,id):
                      'num_images': num_images,
                      'num_videos': num_videos,
                      'form':form,
+                     "states":states, 'cities':cities, 'areas':areas,
                      })
 
 
@@ -608,31 +812,45 @@ def add_commission(request):
         print(e)
 
     return render(request, 'home/add_commission.html', {'clients':clients, 'segment':'commission'})
-
-
 def list_commission(request):
     commissions = Commission.objects.all()
     states = State.objects.all()
     cities = City.objects.all()
-    areas  = Area.objects.all()
+    areas = Area.objects.all()
 
+    state_id = request.GET.get('state_id')
+    city_id = request.GET.get('city_id')
+    area_id = request.GET.get('area_id')
 
-    state_id = request.GET.get('state')
-    city_id = request.GET.get('city')
-    area_id = request.GET.get('area')
+    selected_state = None
+    selected_city = None
 
     if state_id:
-        commissions = commissions.filter(client__area__city__state_id=state_id)
-    elif city_id:
-        commissions = commissions.filter(client__area__city_id=city_id)
+        commissions = commissions.filter(client__area__city__state=state_id)
+        cities = cities.filter(state_id=state_id)
+        selected_state = State.objects.get(id=state_id).name
+
+    if city_id:
+        commissions = commissions.filter(client__area__city=city_id)
+        areas = areas.filter(city_id=city_id)
+        selected_city = City.objects.get(id=city_id).name
+
     if area_id:
-        commissions = commissions.filter(client__area_id=area_id)
+        commissions = commissions.filter(client__area=area_id)
 
-    else:
-        commissions = Commission.objects.all()
+    context = {
+        'commissions': commissions,
+        'states': states,
+        'cities': cities,
+        'areas': areas,
+        'selected_state': selected_state,
+        'selected_city': selected_city,
+        'selected_state_id': state_id,
+        'selected_city_id': city_id,
+        'selected_area_id': area_id,
+    }
 
-    return render(request, 'home/list_commission.html', {"commissions":commissions, "segment":'commission', "states":states, 'cities':cities, 'areas':areas})
-    
+    return render(request, 'home/list_commission.html', context)
 
 def update_commission(request, id):
     try:

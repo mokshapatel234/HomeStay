@@ -37,7 +37,7 @@
                 <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label">City*</label>
-                      <select name="city" class="form-control" disabled>
+                      <select name="city" class="form-control" style="height: 3rem;" disabled>
                           {% for city in cities %}
                             <option value="{{ city.id }}" {% if city.id == area.city.id %}selected{% endif %}>
                               {{ city.name }}</option>
@@ -52,17 +52,17 @@
                 <div class="col-lg-6">
                   <div class="form-group">
                     <label class="form-control-label" >Status</label>
-                    <select id="input-status" name="status" class="form-control" value="{{property.status}}">
+                    <select id="input-status" name="status" class="form-control" style="height: 3rem;" value="{{property.status}}">
                       <option value="active">Active</option>
                       <option value="deactive">Deactive</option>
                     </select>
                   </div>
                 </div>
-                <div>
+                
               </div>
-              <center>
-              <button class="btn btn-sm btn-primary" type='submit' value='submit' >Update</button>
-              </center>
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary my-4">Update</button>
+              </div>
             </form>
         </div>
       </div>

@@ -49,8 +49,9 @@ class RegisterApi(generics.GenericAPIView):
                                     "data":serializer.data,
                                     "message": "Customer created successfully",}, status=status.HTTP_201_CREATED)
                 return response
+            errors = [str(error[0]) for error in serializer.errors.values()]
             response = Response({"result":False,
-                                "message": "Email or Contact_no already exists"}, status=status.HTTP_400_BAD_REQUEST)
+                                "message":", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
             return response
         except:
             response = Response({"result":False,

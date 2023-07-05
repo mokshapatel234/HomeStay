@@ -11,7 +11,7 @@
         <div class="card-header">
           <div class="row align-items-center">
             <div class="col-8">
-              <h3 class="mb-0">Customer Management </h3>
+              <h3 class="mb-0">User Management </h3>
             </div>
            
           </div>
@@ -22,7 +22,8 @@
             
             <h6 class="heading-small text-muted mb-4">User information</h6>
             <div class="pl-lg-4">
-                  <div class="col-lg-6">
+              <div class="row">
+                <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label" >First name*</label>
                       <input type="text" class="form-control" placeholder="First name" name="first_name" required>
@@ -58,11 +59,47 @@
                       <input type="text" class="form-control" placeholder="Contact No" pattern="[0-9]{10}" name="contact_no">
                     </div>
                   </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label">State*</label>
+                      <select name="state" class="form-control" id="state-dropdown" style="height: 3rem;" required>
+                        <option value="">Select a state</option>
+                        {% for state in states %}
+                          <option value="{{ state.id }}">{{ state.name }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label">City*</label>
+                      <select name="city" class="form-control" id="city-dropdown" style="height: 3rem;" required disabled>
+                        <option value="">Select a city</option>
+                        {% for city in cities %}
+                        <option value="{{ city.id }}">{{ city.name }}</option>
+                      {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label">Area*</label>
+                      <select name="area" class="form-control" id="area-dropdown" style="height: 3rem;" required disabled>
+                        <option value="">Select an area</option>
+                        {% for area in areas %}
+                        <option value="{{ area.id }}">{{ area.name }}</option>
+                      {% endfor %}
+                      </select>
+                    </div>
+                  </div>
                 </div>
+              </div>  
+
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary my-4">Submit</button>
               </div>
-              <center>
-              <button class="btn btn-sm btn-primary" type='submit' value='submit' >Submit</button>
-              </center>
             </form>
         </div>
       </div>
@@ -76,4 +113,72 @@
 {% endblock content %}
 
 <!-- Specific JS goes HERE --> 
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+$(document).ready(function() {
+  // Disable city and area dropdowns initially
+  $('#city-dropdown').prop('disabled', true);
+  $('#area-dropdown').prop('disabled', true);
+
+  // Handle state dropdown change event
+  $('#state-dropdown').on('change', function() {
+    var selectedStateId = $(this).val();
+
+    // Enable or disable city dropdown based on state selection
+    if (selectedStateId) {
+      $('#city-dropdown').prop('disabled', false);
+    } else {
+      $('#city-dropdown').prop('disabled', true);
+      $('#area-dropdown').prop('disabled', true);
+    }
+
+    // Clear city and area dropdown values
+    $('#city-dropdown').val('');
+    $('#area-dropdown').val('');
+
+    // Make an AJAX request to fetch cities based on the selected state
+    $.ajax({
+      url: '/get_cities/',  // Replace with your Django URL for fetching cities
+      data: { state_id: selectedStateId },
+      success: function(data) {
+        // Clear existing city options and add new options
+        $('#city-dropdown').html('<option value="">Select a city</option>');
+        for (var i = 0; i < data.length; i++) {
+          $('#city-dropdown').append('<option value="' + data[i].id + '">' + data[i].name + '</option>');
+        }
+      }
+    });
+  });
+
+  // Handle city dropdown change event
+  $('#city-dropdown').on('change', function() {
+    var selectedCityId = $(this).val();
+
+    // Enable or disable area dropdown based on city selection
+    if (selectedCityId) {
+      $('#area-dropdown').prop('disabled', false);
+    } else {
+      $('#area-dropdown').prop('disabled', true);
+    }
+
+    // Clear area dropdown value
+    $('#area-dropdown').val('');
+
+    // Make an AJAX request to fetch areas based on the selected city
+    $.ajax({
+      url: '/get_areas/',  // Replace with your Django URL for fetching areas
+      data: { city_id: selectedCityId },
+      success: function(data) {
+        // Clear existing area options and add new options
+        $('#area-dropdown').html('<option value="">Select an area</option>');
+        for (var i = 0; i < data.length; i++) {
+          $('#area-dropdown').append('<option value="' + data[i].id + '">' + data[i].name + '</option>');
+        }
+      }
+    });
+  });
+});
+</script>
+{% endblock javascripts %}

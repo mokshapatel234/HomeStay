@@ -13,8 +13,8 @@ from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from clientapi.serializers import RegisterSerializer, LoginSerializer,\
-      ResetPasswordSerializer, ClientProfileSerializer, PropertiesSerializer,\
-      BookPropertySerializer, TermsAndPolicySerializer
+      ResetPasswordSerializer, ClientProfileSerializer,PropertiesListSerializer, PropertiesSerializer,\
+      BookPropertySerializer, TermsAndPolicySerializer, BookingDetailSerializer, CustomerSerializer
 from .utils import generate_token
 from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication, IsClientVerified
@@ -45,8 +45,10 @@ class RegisterApi(generics.GenericAPIView):
                                     "data":serializer.data,
                                     "message": "Customer created successfully",}, status=status.HTTP_201_CREATED)
                 return response
+            
+            errors = [str(error[0]) for error in serializer.errors.values()]
             response = Response({"result":False,
-                                "message": "Email or Contact_no already exists"}, status=status.HTTP_400_BAD_REQUEST)
+                                "message":", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
             return response
         except:
             response = Response({"result":False,
@@ -232,7 +234,7 @@ class PropertyApi(generics.GenericAPIView):
     def get(self, request):
         try:
             properties = request.user.properties.all()
-            serializer = PropertiesSerializer(properties, many=True)
+            serializer = PropertiesListSerializer(properties, many=True)
             return Response({'result':True,
                             'data':serializer.data,
                             "message":"property found successfully"}, status=status.HTTP_200_OK)
@@ -328,31 +330,89 @@ class PropertyApi(generics.GenericAPIView):
                             "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
     
 
+
+
+class DashboardApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
+
+    
+    def get(self, request):
+        try:
+            properties = Properties.objects.order_by('-created_at')[:10]
+            bookings = Bookings.objects.order_by('-created_at')[:10]
+
+            property_serializer = PropertiesListSerializer(properties, many=True)
+            booking_serializer = BookPropertySerializer(bookings, many=True)
+
+            data = {
+                'properties': property_serializer.data,
+                'bookings': booking_serializer.data
+            }
+
+            return Response({"result":True,
+                            "data":data,
+                            'message':'found successfully'},status=status.HTTP_201_CREATED)
+            
+        except:
+            return Response({"result":False,
+                            "message": "Error in dashbord"}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class BookPropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
 
-
     def get(self, request):
         try:
             properties = request.user.properties.all()
-
             user = request.user
-
             bookings = Bookings.objects.filter(property__owner=user)
 
             serializer = BookPropertySerializer(bookings, many=True)
             
-            return Response({'result': True,
-                             'data': serializer.data,
-                             'message': 'Booking history'},
-                            status=status.HTTP_200_OK)
-        except:
-            return Response({'result': False,
-                             'message': 'History not available'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({
+                'result': True,
+                'data': serializer.data,
+                'message': 'Booking history'
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'result': False,
+                'message': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BookingDetailApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get(self, request, id):
+        try:
+            booking = Bookings.objects.get(id=id)
+            property = booking.property
+            customer = booking.customer
+
+            property_serializer = PropertiesListSerializer(property)
+            customer_serializer = CustomerSerializer(customer)
+            booking_serializer = BookingDetailSerializer(booking)
+
+            serializer_data = {
+                'property': property_serializer.data,
+                'customer': customer_serializer.data,
+                'booking': booking_serializer.data
+            }
+            return Response({'result':True,
+                            'data':serializer_data,
+                            "message":"Booking found successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'result': False,
+                'message': str(e) },status=status.HTTP_400_BAD_REQUEST)  
+    
+
   
+
 
 
 

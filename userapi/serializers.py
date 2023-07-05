@@ -21,6 +21,21 @@ class RegisterSerializer(serializers.Serializer):
     area = serializers.PrimaryKeyRelatedField(queryset=Area.objects.all())
     contact_no = serializers.CharField(validators=[RegexValidator(regex=r"^\+?1?\d{10}$")])
     token = serializers.CharField(max_length=255, read_only=True)
+    
+    def validate(self, attrs):
+        email = attrs.get('email')
+        contact_no = attrs.get('contact_no')
+
+        if Customer.objects.filter(email=email).exists() and Customer.objects.filter(contact_no=contact_no).exists():
+            raise serializers.ValidationError("Email and Contact number already exist.")
+
+        if Customer.objects.filter(email=email).exists():
+            raise serializers.ValidationError("Email already exists.")
+
+        if Customer.objects.filter(contact_no=contact_no).exists():
+            raise serializers.ValidationError("Contact number already exists.")
+
+        return attrs
 
     def create(self, validated_data):
         user = Customer.objects.create(

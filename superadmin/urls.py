@@ -23,8 +23,12 @@ urlpatterns = [
     path('updateState/<uuid:id>/', update_state, name='update_state'),
     path('deleteState/<uuid:id>/', delete_state, name='delete_state'),
 
+    path('get_cities/', get_cities, name='get_cities'),
+    path('get_areas/', get_areas, name='get_areas'),
+
+
     path('addCity', add_city, name='add_city'),
-    path('listCities', list_cities, name='list_cities'),
+    path('listCities', list_cities, name='list_cities'),    
     path('updateCity/<uuid:id>/', update_city, name='update_city'),
     path('deleteCity/<uuid:id>/', delete_city, name='delete_city'),
 

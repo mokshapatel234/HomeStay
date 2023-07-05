@@ -26,7 +26,7 @@
             <div class="pl-lg-4">
                 <div class="row">
                  
-                </div>
+               
                 
                   <div class="col-lg-6">
                     <div class="form-group">
@@ -59,23 +59,62 @@
                       <input type="text" class="form-control" placeholder="Contact No" name="contact_no" value="{{client.contact_no}}">
                     </div>
                   </div>
+            
+              
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label class="form-control-label" >Status</label>
+                    <select id="input-status" name="status" class="form-control" style="height: 3rem;" value="{{property.status}}">
+                      <option value="active">Active</option>
+                      <option value="deactive">Deactive</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="form-group">
-                  <label class="form-control-label" >Status</label>
-                  <select id="input-status" name="status" class="form-control" value="{{property.status}}">
-                    <option value="active">Active</option>
-                    <option value="deactive">Deactive</option>
-                  </select>
+
+                <div class="col-lg-6">
+                  <div class="form-group">
+                    <label class="form-control-label">State*</label>
+                    <select name="state" class="form-control" style="height: 3rem;" disabled>
+                        {% for state in states %}
+                        <option value="{{ state.id }}" {% if state.id == client.area.city.state.id %}selected{% endif %}>
+                          {{ state.name }}</option>
+                        {% endfor %}
+                      
+                    </select>
+                  </div>
                 </div>
+                <div class="col-lg-6"> 
+                  <div class="form-group">
+                    <label class="form-control-label">City*</label>
+                    <select name="city" class="form-control" style="height: 3rem;" disabled>
+                        {% for city in cities %}
+                        <option value="{{ city.id }}" {% if city.id == client.area.city.id %}selected{% endif %}>
+                          {{ city.name }}</option>
+                        {% endfor %}
+                      
+                    </select>
+                  </div>
+                </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label">Area*</label>
+                      <select name="area" class="form-control" style="height: 3rem;" disabled>
+                          {% for area in areas %}
+                            <option value="{{ area.id }}"{% if area.id == client.area.id %}selected{% endif %}>
+                              {{ area.name }}</option>
+                          {% endfor %}
+                        
+                      </select>
+                    </div>
+                  </div>
               </div>
-              <div>
-              <center>
-              <button class="btn btn-sm btn-primary" type='submit' value='submit' >Update</button>
-              </center>
+            
+                <div class="text-center">
+                  <button type="submit" class="btn btn-primary my-4">Update</button>
+                </div>
             </form>
         </div>
+
       </div>
     </div>
   </div>
