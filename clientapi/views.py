@@ -85,8 +85,9 @@ class LoginApi(generics.GenericAPIView):
                                     "data":user_data,
                                     "message":"Login successfull!!",         
                                      })
+            errors = [str(error[0]) for error in serializer.errors.values()]
             response = Response({"result":False,
-                                "message": "Invalid data input. Please provide appropriate credentials"}, status=status.HTTP_400_BAD_REQUEST)
+                                "message":", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
             return response
         except:
             response = Response({"result":False,
