@@ -6,40 +6,30 @@
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"
   integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
   <script>
-     $(document).ready(function () {
-        // Retrieve the selected state from the URL query string
-        var selectedArea = getQueryStringValue('area');
-    
-        $('#dtBasicExample').DataTable({
-            lengthChange: true,
-            searching: true,
-            paging: true,
-            columnDefs: [
-                { searchable: false, targets: 0 }
-            ],
-            order: [[0, "desc"]],
-        });
-    
-        // Set the selected state in the dropdown
-        $('#area-select').val(selectedArea);
-    
-        // Handle state filter
-        $('#area-select').on('change', function () {
-            var selectedArea = $(this).val();
-            var url = '{% url "list_clients" %}';
-            if (selectedArea) {
-                url += '?area=' + selectedArea;
-            }
-            window.location.href = url;
-        });
-    
-        // Function to retrieve query string parameter value
-        function getQueryStringValue(key) {
-            var urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(key);
-        }
-    });
-  </script>
+    $(document).ready(function () {
+       // Retrieve the selected state from the URL query string
+       var selectedArea = getQueryStringValue('area');
+   
+       $('#dtBasicExample').DataTable({
+           lengthChange: true,
+           searching: true,
+           paging: true,
+           columnDefs: [
+               { searchable: false, targets: 0 }
+           ],
+           order: [[0, "desc"]],
+       });
+   // Function to retrieve query string parameter value
+   function getQueryStringValue(key) {
+     var urlParams = new URLSearchParams(window.location.search);
+     return urlParams.get(key);
+ }
+});
+       
+  
+ </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+
 {% endblock head %}
 
 {% block title %} Client Management {% endblock title %}

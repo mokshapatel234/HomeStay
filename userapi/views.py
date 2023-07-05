@@ -81,7 +81,7 @@ class LoginApi(generics.GenericAPIView):
                     "contact_no":customer.contact_no,
                     'token': str(token.decode("utf-8"))
                 }
-                return JsonResponse({"result":True, 
+                return Response({"result":True, 
                                     "data":user_data,
                                     "message":"Login successfull!!",         
                                      })
@@ -100,7 +100,7 @@ class ForgotPasswordApi(generics.GenericAPIView):
 
     def post(self,request):
         try:
-            email = request.POST['email']
+            email = request.data['email']
             if email:
                 print(email)
             else:
@@ -133,7 +133,7 @@ class OtpVerificationApi(generics.GenericAPIView):
 
     def post(self,request):
         try:
-            customer_otp = request.POST['otp']
+            customer_otp = request.data['otp']
             try:
                 if customer_otp == str(request.session.get('otp')):
                     del request.session['otp']

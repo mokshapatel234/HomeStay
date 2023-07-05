@@ -2,23 +2,31 @@
 {% load static %}
 
 {% block head %}
-{% comment %} <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"
     integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-<script>
-   $(document).ready(function () {
-      $('#dtBasicExample').DataTable({
-         "lengthChange": true,
-         "searching": true,
-         "columnDefs": [
-         { "searchable": true, "targets": 0 }
-         ],
-         "order":[[ 0,"desc" ]],
-         // "columnDefs" : [{"targets":, "type":"date-eu"}], 
-
-
-      });
-   });
-</script> {% endcomment %}
+    <script>
+      $(document).ready(function () {
+         // Retrieve the selected state from the URL query string
+         var selectedArea = getQueryStringValue('area');
+     
+         $('#dtBasicExample').DataTable({
+             lengthChange: true,
+             searching: true,
+             paging: true,
+             columnDefs: [
+                 { searchable: false, targets: 0 }
+             ],
+             order: [[0, "desc"]],
+         });
+     // Function to retrieve query string parameter value
+     function getQueryStringValue(key) {
+       var urlParams = new URLSearchParams(window.location.search);
+       return urlParams.get(key);
+   }
+ });
+         
+    
+   </script>
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 
@@ -181,22 +189,5 @@
 
 
 {% block javascripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-<script>
-  $(document).ready(function() {
-    $('select[name="state"], select[name="city"], select[name="area"]').on('change', function() {
-      var stateId = $('select[name="state"]').val();
-      var cityId = $('select[name="city"]').val();
-      var areaId = $('select[name="area"]').val();
-      var url = "{% url 'list_commission' %}?state_id=" + stateId + "&city_id=" + cityId + "&area_id=" + areaId;
-      window.location.href = url;
-    });
 
-    $('select[name="client"]').select2({
-      placeholder: "Search and select",
-      allowClear: true,
-      minimumResultsForSearch: 1
-    });
-  });
-</script>
 {% endblock javascripts %}

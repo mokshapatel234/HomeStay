@@ -391,7 +391,7 @@ def list_clients(request):
 
     if area_id:
         clients = clients.filter(area=area_id)
-
+    
     context = {
         'clients': clients,
         'states': states,
