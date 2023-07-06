@@ -109,9 +109,11 @@ class ForgotPasswordApi(generics.GenericAPIView):
                 print("error")
             client_obj = Client.objects.get(email=email)
             generated_otp = random.randint(1111, 9999)
+            otp_string = str(generated_otp)
             # otp_verification_link = request.build_absolute_uri(reverse('otpverify'))
             request.session['client'] = str(client_obj.id)
-            request.session['otp'] = generated_otp
+            request.session['otp'] = otp_string
+            print(type(otp_string))
             subject = 'Acount Recovery'
 
             template_data = {'otp':generated_otp}
@@ -353,7 +355,7 @@ class DashboardApi(generics.GenericAPIView):
 
             return Response({"result":True,
                             "data":data,
-                            'message':'found successfully'},status=status.HTTP_201_CREATED)
+                            'message':'Data found successfully'},status=status.HTTP_201_CREATED)
             
         except:
             return Response({"result":False,
@@ -412,7 +414,7 @@ class BookingDetailApi(generics.GenericAPIView):
                 'message': str(e) },status=status.HTTP_400_BAD_REQUEST)  
     
 
-  
+
 
 
 
