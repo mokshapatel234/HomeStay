@@ -140,7 +140,7 @@ class OtpVerificationApi(generics.GenericAPIView):
             client_otp = request.data['otp']
             try:
                 if client_otp == str(request.session.get('otp')):
-                    del request.session['otp']
+                    print("okkk")
 
                     return Response({'result':True,
                                     'message':'Otp Verified'},status=status.HTTP_200_OK)

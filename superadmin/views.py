@@ -330,7 +330,7 @@ def add_client(request):
             
             data.pop('csrfmiddlewaretoken')
             
-            area_id = request.POST.get('area')
+            area_id = request.POST.get('area_id')
             area = get_object_or_404(Area, id=area_id) 
             # first_name = request.POST.get('first_name')
             # last_name = request.POST.get('last_name') 
