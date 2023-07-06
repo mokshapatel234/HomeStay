@@ -112,7 +112,7 @@ class DashboardPropertiesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Properties
-        fields = ['name', 'root_image', 'price', 'status']
+        fields = ['id', 'name', 'root_image', 'price', 'status']
 
 
 

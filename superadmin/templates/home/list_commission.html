@@ -233,17 +233,15 @@ $(document).ready(function() {
 
   function getCities(stateId) {
     $.ajax({
-      url: "/get-cities/", // Update the URL to match your Django URL pattern
+      url: "/get_cities/", // Update the URL to match your Django URL pattern
       type: 'GET',
       data: { state_id: stateId },
       success: function(response) {
-        var cityDropdown = $('select[name="city"]');
-        cityDropdown.empty(); // Clear existing options
-        cityDropdown.append('<option value="">All City</option>'); // Add default option
-        for (var i = 0; i < response.cities.length; i++) {
-          var city = response.cities[i];
-          cityDropdown.append('<option value="' + city.id + '">' + city.name + '</option>'); // Add city options
-        }
+        $('#city-dropdown').html('<option value="">Select a city</option>');
+          for (var i = 0; i < data.length; i++) {
+            $('#city-dropdown').append('<option value="' + data[i].id + '">' + data[i].name + '</option>');
+          }
+        
         cityDropdown.val(''); // Clear city dropdown value
         $('select[name="area"]').prop('disabled', true).val(''); // Disable and clear area dropdown
         applyFilters();
@@ -256,12 +254,11 @@ $(document).ready(function() {
 
   function getAreas(stateId, cityId) {
     $.ajax({
-      url: "/get-areas/", // Update the URL to match your Django URL pattern
+      url: "/get_areas/", // Update the URL to match your Django URL pattern
       type: 'GET',
       data: { state_id: stateId, city_id: cityId },
       success: function(response) {
         var areaDropdown = $('select[name="area"]');
-        areaDropdown.empty(); // Clear existing options
         areaDropdown.append('<option value="">All Area</option>'); // Add default option
         for (var i = 0; i < response.areas.length; i++) {
           var area = response.areas[i];

@@ -130,7 +130,6 @@
                         <option value="{{ area.id }}">{{ area.name }}</option>
                       {% endfor %}
                       </select>
-                      <input type="hidden" name="area" value="{{ area_id }}">
                     </div>
                   </div>
                 </div>
@@ -169,12 +168,6 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-  $(document).ready(function() {
-    $('select[name="owner"]').select2({
-      placeholder: "Search and select a client",
-      allowClear: true,
-      minimumResultsForSearch: 1
-    });
   
 
   $(document).ready(function() {
@@ -322,7 +315,7 @@
   });
   });
 });
-});
+
 </script>
 
 {% endblock javascripts %}
