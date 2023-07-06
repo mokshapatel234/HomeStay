@@ -137,7 +137,7 @@ class OtpVerificationApi(generics.GenericAPIView):
 
     def post(self,request):
         try:
-            client_otp = request.data['otp']
+            client_otp = request.POST['otp']
             try:
                 if client_otp == str(request.session.get('otp')):
                     del request.session['otp']

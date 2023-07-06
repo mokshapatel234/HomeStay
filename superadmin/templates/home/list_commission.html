@@ -71,7 +71,7 @@
             <div class="col-lg-12">
               <div class="form-group">
                 <label class="form-control-label">State*</label>
-                <select name="state" class="form-control select2" style="height: 3rem;">
+                <select name="state" class="form-control select2" id="state-dropdown" style="height: 3rem;">
                   <option value="">All State</option>
                   {% for state in states %}
                     <option value="{{ state.id }}">{{ state.name }}</option>
@@ -84,7 +84,7 @@
             <div class="col-lg-12">
               <div class="form-group">
                 <label class="form-control-label">City*</label>
-                <select name="city" class="form-control select2" style="height: 3rem;">
+                <select name="city" class="form-control select2" id="city-dropdown" style="height: 3rem;">
                   <option value="">All City</option>
                   {% for city in cities %}
                     <option value="{{ city.id }}">{{ city.name }}</option>
@@ -97,7 +97,7 @@
             <div class="col-lg-12">
               <div class="form-group">
                 <label class="form-control-label">Area*</label>
-                <select name="area" class="form-control select2" style="height: 3rem;">
+                <select name="area" class="form-control select2" id="area-dropdown" style="height: 3rem;">
                   <option value="">All Area</option>
                   {% for area in areas %}
                     <option value="{{ area.id }}">{{ area.name }}</option>
