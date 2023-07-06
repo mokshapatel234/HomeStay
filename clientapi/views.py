@@ -41,8 +41,12 @@ class RegisterApi(generics.GenericAPIView):
         
             if serializer.is_valid():
                 user = serializer.save()
+                token = generate_token(str(user.id))
+                user_token = token.decode("utf-8")
+                
                 response = Response({"result":True,
                                     "data":serializer.data,
+                                    "token":user_token,
                                     "message": "Customer created successfully",}, status=status.HTTP_201_CREATED)
                 return response
             
@@ -71,6 +75,7 @@ class LoginApi(generics.GenericAPIView):
                 client = serializer.validated_data['client']
                 
                 token = generate_token(str(client.id))
+                user_token = token.decode("utf-8")
                 
                 user_data = {
                     "id": client.id,
@@ -79,10 +84,10 @@ class LoginApi(generics.GenericAPIView):
                     "email":client.email,
                     "password":client.password,
                     "contact_no":client.contact_no,
-                    'token': str(token.decode("utf-8"))
                 }
                 return Response({"result":True, 
                                     "data":user_data,
+                                    "token":user_token,
                                     "message":"Login successfull!!",         
                                      })
             errors = [str(error[0]) for error in serializer.errors.values()]

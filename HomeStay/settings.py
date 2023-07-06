@@ -180,7 +180,8 @@ EMAIL_PORT = os.getenv("EMAIL_PORT")
 
 
 
-
+RAZORPAY_API_KEY = os.getenv("RAZORPAY_API_KEY")
+RAZORPAY_API_SECRET = os.getenv("RAZORPAY_API_SECRET")
 
 
 DEFAULT_FILE_STORAGE = 'main.storage_backends.MediaStorage'
