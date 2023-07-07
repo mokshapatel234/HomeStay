@@ -21,6 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication, IsClientVerified
 from rest_framework.parsers import MultiPartParser
 from .paginator import ClientPagination
+from django.db.models import Q
 
 class TermsAndPolicyApi(generics.GenericAPIView):
     permission_classes =(permissions.AllowAny, )
@@ -234,49 +235,62 @@ class ClientProfileApi(generics.GenericAPIView):
                             "message": "Error in updating profile"}, status=status.HTTP_400_BAD_REQUEST)
  
 # Property Management
-from django.db.models import Q
 
 class PropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
     parser_classes = (MultiPartParser, )
-    pagination_class = ClientPagination
-    page_size = 10
-    page = 1
+    # pagination_class = ClientPagination
+    # page_size = 10
+    # page = 1
+
+    # def get(self, request):
+    #     try:
+    #         query = request.GET.get('query')  # Get the search query from the request
+    #         properties = request.user.properties.all()
+
+    #         if query:
+    #             # Apply search filter using Q objects
+    #             properties = properties.filter(
+    #                 Q(name__icontains=query) |  
+    #                 Q(address__icontains=query) |
+    #                 Q(price__icontains=query) |
+    #                 Q(status__icontains=query)  
+    #             )
+
+    #         serializer = PropertiesListSerializer(properties, many=True)
+
+    #         if len(serializer.data) > 0:
+    #             page = self.paginate_queryset(serializer.data)
+    #             if page is not None:
+    #                 serializer = PropertiesListSerializer(page, many=True)
+    #                 return self.get_paginated_response(serializer.data)
+
+    #         return Response({
+    #             'result': True,
+    #             'data': serializer.data,
+    #             'message': 'Property found successfully'
+    #         }, status=status.HTTP_200_OK)
+    #     except Exception as e:
+    #         return Response({
+    #             'result': False,
+    #             'message': 'cannot find data'
+    #         }, status=status.HTTP_400_BAD_REQUEST)
+        
 
     def get(self, request):
         try:
-            query = request.GET.get('query')  # Get the search query from the request
             properties = request.user.properties.all()
-
-            if query:
-                # Apply search filter using Q objects
-                properties = properties.filter(
-                    Q(name__icontains=query) |  
-                    Q(address__icontains=query) |
-                    Q(price__icontains=query) |
-                    Q(status__icontains=query)  
-                )
-
             serializer = PropertiesListSerializer(properties, many=True)
+            return Response({'result':True,
+                            'data':serializer.data,
+                            "message":"property found successfully"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"result":False,
+                            "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
 
-            if len(serializer.data) > 0:
-                page = self.paginate_queryset(serializer.data)
-                if page is not None:
-                    serializer = PropertiesListSerializer(page, many=True)
-                    return self.get_paginated_response(serializer.data)
 
-            return Response({
-                'result': True,
-                'data': serializer.data,
-                'message': 'Property found successfully'
-            }, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({
-                'result': False,
-                'message': 'cannot find data'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
+     
 
     def post(self, request):
         try: 

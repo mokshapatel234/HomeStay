@@ -21,6 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication
 from rest_framework.parsers import MultiPartParser
 from datetime import datetime
+from decimal import Decimal
 
 
 # Create your views here.
@@ -414,11 +415,28 @@ class BookPropertyApi(generics.GenericAPIView):
                 property.status = 'inactive'
                 property.save()
 
-                return Response({
+                # Calculate commission
+                client = property.client
+                commission = Commission.objects.get(client=client)
+                commission_percent = commission.commission_percent
+                total_amount = serializer.data['total_amount']
+                commission_amount = Decimal(total_amount) * (Decimal(commission_percent) / 100)
+
+                # Update commission fields
+                commission.admin_amount += commission_amount
+                commission.client_amount += Decimal(total_amount) - commission_amount
+                commission.save()
+
+                # Prepare response data
+                response_data = {
                     'result': True,
                     'data': serializer.data,
-                    'message': 'Property is booked'
-                }, status=status.HTTP_200_OK)
+                    'message': 'Property is booked',
+                    'admin_amount': commission.admin_amount,
+                    'client_amount': commission.client_amount
+                }
+
+                return Response(response_data, status=status.HTTP_200_OK)
             else:
                 return Response({
                     'result': False,
@@ -429,7 +447,7 @@ class BookPropertyApi(generics.GenericAPIView):
             return Response({
                 'result': False,
                 'message': 'Error in property booking'
-            }, status=status.HTTP_400_BAD_REQUEST)      
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class wishlistApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
