@@ -14,12 +14,13 @@ from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from clientapi.serializers import RegisterSerializer, LoginSerializer,\
       ResetPasswordSerializer, ClientProfileSerializer,PropertiesListSerializer, PropertiesSerializer,\
-      BookPropertySerializer, TermsAndPolicySerializer, BookingDetailSerializer, CustomerSerializer
+      BookPropertySerializer, TermsAndPolicySerializer, BookingDetailSerializer, CustomerSerializer, \
+      ClientBankingSerializer, PropertiesUpdateSerializer
 from .utils import generate_token
 from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication, IsClientVerified
 from rest_framework.parsers import MultiPartParser
-
+from .paginator import ClientPagination
 
 class TermsAndPolicyApi(generics.GenericAPIView):
     permission_classes =(permissions.AllowAny, )
@@ -233,24 +234,50 @@ class ClientProfileApi(generics.GenericAPIView):
                             "message": "Error in updating profile"}, status=status.HTTP_400_BAD_REQUEST)
  
 # Property Management
+from django.db.models import Q
+
 class PropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
     parser_classes = (MultiPartParser, )
-
+    pagination_class = ClientPagination
+    page_size = 10
+    page = 1
 
     def get(self, request):
         try:
+            query = request.GET.get('query')  # Get the search query from the request
             properties = request.user.properties.all()
-            serializer = PropertiesListSerializer(properties, many=True)
-            return Response({'result':True,
-                            'data':serializer.data,
-                            "message":"property found successfully"}, status=status.HTTP_200_OK)
-        except:
-            return Response({"result":False,
-                            "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
 
-    
+            if query:
+                # Apply search filter using Q objects
+                properties = properties.filter(
+                    Q(name__icontains=query) |  
+                    Q(address__icontains=query) |
+                    Q(price__icontains=query) |
+                    Q(status__icontains=query)  
+                )
+
+            serializer = PropertiesListSerializer(properties, many=True)
+
+            if len(serializer.data) > 0:
+                page = self.paginate_queryset(serializer.data)
+                if page is not None:
+                    serializer = PropertiesListSerializer(page, many=True)
+                    return self.get_paginated_response(serializer.data)
+
+            return Response({
+                'result': True,
+                'data': serializer.data,
+                'message': 'Property found successfully'
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'result': False,
+                'message': 'cannot find data'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+
     def post(self, request):
         try: 
             images = request.FILES.getlist('images')
@@ -288,43 +315,46 @@ class PropertyApi(generics.GenericAPIView):
     def put(self, request, property_id):
         try:
             property_obj = request.user.properties.get(id=property_id)
-            
-            serializer = PropertiesSerializer(property_obj, data=request.data)
-            request.data.pop('images')
-            request.data.pop('videos')
-            request.data.pop('terms')
+
+            serializer = PropertiesUpdateSerializer(property_obj, data=request.data, partial=True)
 
             if serializer.is_valid():
-                property_instance = serializer.save()
-
-                property_obj.images.all().delete()
-                property_obj.videos.all().delete()
-                property_obj.terms.all().delete()
+                serializer.save()
 
                 images = request.FILES.getlist('images')
-                for image in images:
-                    PropertyImage.objects.create(property=property_obj, image=image)
-
+                if images:
+                    property_obj.images.all().delete()
+                    for image in images:
+                        PropertyImage.objects.create(property=property_obj, image=image)
 
                 videos = request.FILES.getlist('videos')
-                for video in videos:
-                    PropertyVideo.objects.create(property=property_obj, video=video)
+                if videos:
+                    property_obj.videos.all().delete()
+                    for video in videos:
+                        PropertyVideo.objects.create(property=property_obj, video=video)
 
                 terms = request.POST.get('terms')
-                PropertyTerms.objects.create(property=property_obj, terms=terms)
+                if terms:
+                    property_obj.terms.all().delete()
+                    PropertyTerms.objects.create(property=property_obj, terms=terms)
 
-
-                return Response({"result":True,
-                                "data":serializer.data,
-                                'message':'Property Updated'},status=status.HTTP_201_CREATED)
+                updated_property_serializer = PropertiesSerializer(property_obj)
+                return Response({
+                    "result": True,
+                    "data": updated_property_serializer.data,
+                    "message": "Property updated successfully"
+                }, status=status.HTTP_200_OK)
             else:
-                return Response({"result":False,
-                                "message": "Error in updating property"}, status=status.HTTP_400_BAD_REQUEST)
-       
+                return Response({
+                    "result": False,
+                    "message": 'Error in data updation'
+                }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"result":False,
-                            "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
- 
+            return Response({
+                "result": False,
+                "message": 'Error in data updation'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
 
 
     def delete(self, request, property_id):
@@ -344,11 +374,12 @@ class DashboardApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
 
-    
     def get(self, request):
         try:
-            properties = Properties.objects.order_by('-created_at')[:10]
-            bookings = Bookings.objects.order_by('-created_at')[:10]
+            user = request.user
+
+            properties = user.properties.order_by('-created_at')[:10]
+            bookings = Bookings.objects.filter(property__owner=user).order_by('-created_at')[:10]
 
             property_serializer = PropertiesListSerializer(properties, many=True)
             booking_serializer = BookPropertySerializer(bookings, many=True)
@@ -358,14 +389,16 @@ class DashboardApi(generics.GenericAPIView):
                 'bookings': booking_serializer.data
             }
 
-            return Response({"result":True,
-                            "data":data,
-                            'message':'Data found successfully'},status=status.HTTP_201_CREATED)
-            
-        except:
-            return Response({"result":False,
-                            "message": "Error in dashbord"}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({
+                "result": True,
+                "data": data,
+                'message': 'Data found successfully'
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "result": False,
+                "message": 'Error in data listing'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class BookPropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
@@ -377,17 +410,23 @@ class BookPropertyApi(generics.GenericAPIView):
             user = request.user
             bookings = Bookings.objects.filter(property__owner=user)
 
-            serializer = BookPropertySerializer(bookings, many=True)
-            
-            return Response({
-                'result': True,
-                'data': serializer.data,
-                'message': 'Booking history'
-            }, status=status.HTTP_200_OK)
+            if bookings.exists():
+                serializer = BookPropertySerializer(bookings, many=True)
+                return Response({
+                    'result': True,
+                    'data': serializer.data,
+                    'message': 'Data found successfully'
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'result': True,
+                    'data': [],
+                    'message': 'Empty booking history'
+                }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({
                 'result': False,
-                'message': str(e)
+                'message': 'Error in data found'
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -416,11 +455,29 @@ class BookingDetailApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 'result': False,
-                'message': str(e) },status=status.HTTP_400_BAD_REQUEST)  
+                'message': 'Error in data found' },status=status.HTTP_400_BAD_REQUEST)  
     
 
 
+class ClientBankingApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
 
-
-
+    def post(self, request):
+        try:
+            serializer = ClientBankingSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(client=request.user)
+                return Response({"result":True,
+                                "data":serializer.data,
+                                'message':'Bank-detail added successfully'},status=status.HTTP_201_CREATED)
+            errors = [str(error[0]) for error in serializer.errors.values()]
+            response = Response({"result":False,
+                                "message":", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
+            return response
+        except Exception as e:
+            return Response({"result":False,
+                            "message": 'Error in data insertion'}, status=status.HTTP_400_BAD_REQUEST)
+ 
+            
 

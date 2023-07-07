@@ -3,7 +3,7 @@ from superadmin.models import Client, Properties, PropertyImage, PropertyVideo,\
       Area, PropertyTerms, Bookings, TermsandPolicy, Customer
 from django.core.validators import RegexValidator
 from .utils import generate_token
-
+from .models import ClientrBanking
 
 
 class TermsAndPolicySerializer(serializers.ModelSerializer):
@@ -103,11 +103,31 @@ class PropertyTermsSerializer(serializers.ModelSerializer):
         fields = ['id', 'terms']
 
 class PropertiesSerializer(serializers.ModelSerializer):
+    images = serializers.SerializerMethodField()
+    videos = serializers.SerializerMethodField()
+    terms = serializers.SerializerMethodField()
+
+    def get_images(self, obj):
+        image_urls = [image.image.url for image in obj.images.all()]
+        return image_urls
+
+    def get_videos(self, obj):
+        video_urls = [video.video.url for video in obj.videos.all()]
+        return video_urls
+
+    def get_terms(self, obj):
+        terms = [term.terms for term in obj.terms.all()]
+        return terms
 
     class Meta:
         model = Properties
-        fields = ['id', 'name', 'root_image', 'price', 'description', 'address', 'status','area_id', 'images', 'videos', 'terms']
-   
+        fields = ['id', 'name', 'root_image', 'price', 'description', 'address', 'status', 'area_id', 'images', 'videos', 'terms']
+
+class PropertiesUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Properties
+        fields = ['name', 'price', 'description', 'address', 'status', 'area_id']
+
 
 class PropertiesListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -158,3 +178,25 @@ class BookingDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bookings
         fields = ['id', 'status', 'rent', 'start_date', 'end_date']
+
+
+class ClientBankingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ClientrBanking
+        fields = ['account_number', 'bank_name', 'branch','ifsc_code', 'status']
+
+    def validate(self, attrs):
+        account_number = attrs.get('account_number')
+        ifsc_code = attrs.get('ifsc_code')
+        
+        if ClientrBanking.objects.filter(account_number=account_number).exists() and ClientrBanking.objects.filter(ifsc_code=ifsc_code).exists():
+            raise serializers.ValidationError("Account number and ifsc_code number already exist.")
+
+        if ClientrBanking.objects.filter(account_number=account_number).exists():
+            raise serializers.ValidationError("Account number already exists.")
+
+        if ClientrBanking.objects.filter(ifsc_code=ifsc_code).exists():
+            raise serializers.ValidationError("IFSC code number already exists.")
+
+        return attrs

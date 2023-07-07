@@ -367,68 +367,69 @@ class PropertyDetailApi(generics.GenericAPIView):
                             "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
     
 
+
 class BookPropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
 
-
     def get(self, request):
         try:
             user = request.user
-
             bookings = Bookings.objects.filter(customer=user)
-
             serializer = BookPropertySerializer(bookings, many=True)
-            
-            return Response({'result': True,
-                             'data': serializer.data,
-                             'message': 'Booking history'},
-                            status=status.HTTP_200_OK)
+            return Response({
+                'result': True,
+                'data': serializer.data,
+                'message': 'Booking history'
+            }, status=status.HTTP_200_OK)
         except:
-            return Response({'result': False,
-                             'message': 'History not available'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({
+                'result': False,
+                'message': 'History not available'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request,id):
+    def post(self, request, id):
         try:
-
             user = request.user
-
             data = request.data.copy()
             data['customer'] = user.id
 
             serializer = BookPropertySerializer(data=data)
             if serializer.is_valid():
+                property = Properties.objects.get(id=id)
 
-                try:
-                    property = Properties.objects.get(id=id)
-                except Properties.DoesNotExist:
-                    return Response({'result': False,
-                                     'message': 'Invalid property ID'},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                if property.status == 'inactive':
+                    return Response({
+                        'result': False,
+                        'message': 'Property is already booked'
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
-  
                 serializer.validated_data['start_date'] = data.get('start_date')
                 serializer.validated_data['end_date'] = data.get('end_date')
                 serializer.validated_data['property'] = property
 
                 serializer.save()
-                return Response({'result': True,
-                                 'data': serializer.data,
-                                 'message': 'Property is booked'},
-                                status=status.HTTP_200_OK)
-            else:
-                return Response({'result': False,
-                                 'message': 'Property is not booked yet',
-                                 'errors': serializer.errors},
-                                status=status.HTTP_400_BAD_REQUEST)
 
+                # Change property status to "inactive"
+                property.status = 'inactive'
+                property.save()
+
+                return Response({
+                    'result': True,
+                    'data': serializer.data,
+                    'message': 'Property is booked'
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'result': False,
+                    'message': 'Property is not booked yet',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
         except:
-            return Response({'result': False,
-                             'message': 'Error in property booking'},
-                            status=status.HTTP_400_BAD_REQUEST)
-      
+            return Response({
+                'result': False,
+                'message': 'Error in property booking'
+            }, status=status.HTTP_400_BAD_REQUEST)      
 
 class wishlistApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )

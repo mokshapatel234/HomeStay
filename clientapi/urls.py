@@ -15,6 +15,8 @@ urlpatterns = [
     path('bookingDetail/<id>', BookingDetailApi.as_view(), name="client_booked_detail"),
     path('termsPolicy/', TermsAndPolicyApi.as_view(), name='terms_and_policy'),
     path('dashboard/', DashboardApi.as_view(), name='dashboard'),
+    path('bankDetail/', ClientBankingApi.as_view(), name='client_bank_detail'),
+
 
 
 ]
