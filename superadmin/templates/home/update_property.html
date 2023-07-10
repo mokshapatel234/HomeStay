@@ -38,6 +38,11 @@
                     <div class="form-group">
                       <label class="form-control-label" for="input-images">Root Image</label>
                       <input type="file" multiple id="input-images" class="form-control" placeholder="Images" name="root_image">
+                      {% if property.root_image %}
+                      <img style="height: 150px; width: 200px;" src="{{ property.root_image.url }}" alt="Root Image">
+                      {% else %}
+                        <p>No root image found.</p>
+                      {% endif %}
                     </div>
                   </div>
                   <div class="col-lg-6">
@@ -108,7 +113,7 @@
                       <label class="form-control-label" >Status</label>
                       <select id="input-status" name="status" class="form-control" style="height: 3rem;" value="{{property.status}}">
                         <option value="active">Active</option>
-                        <option value="deactive">Deactive</option>
+                        <option value="deactive">Inactive</option>
                       </select>
                     </div>
                   </div>
@@ -116,11 +121,10 @@
                     <div class="form-group">
                       <label class="form-control-label">State*</label>
                       <select name="state" class="form-control" style="height: 3rem;" disabled>
-                          {% for state in states %}
+                        {% for state in states %}
                           <option value="{{ state.id }}" {% if state.id == property.area_id.city.state.id %}selected{% endif %}>
                             {{ state.name }}</option>
-                          {% endfor %}
-                        
+                        {% endfor %}
                       </select>
                     </div>
                   </div>
@@ -128,26 +132,25 @@
                     <div class="form-group">
                       <label class="form-control-label">City*</label>
                       <select name="city" class="form-control" style="height: 3rem;" disabled>
-                          {% for city in cities %}
-                          <option value="{{ state.id }}" {% if state.id == property.area_id.city.id %}selected{% endif %}>
+                        {% for city in cities %}
+                          <option value="{{ city.id }}" {% if city.id == property.area_id.city.id %}selected{% endif %}>
                             {{ city.name }}</option>
-                          {% endfor %}
-                        
+                        {% endfor %}
                       </select>
                     </div>
                   </div>
-                    <div class="col-lg-6">
-                      <div class="form-group">
-                        <label class="form-control-label">Area*</label>
-                        <select name="area" class="form-control" style="height: 3rem;" disabled>
-                            {% for area in areas %}
-                              <option value="{{ area.id }}"{% if area.id == area_id.id %}selected{% endif %}>
-                                {{ area.name }}</option>
-                            {% endfor %}
-                          
-                        </select>
-                      </div>
+                  <div class="col-lg-6">
+                    <div class="form-group">
+                      <label class="form-control-label">Area*</label>
+                      <select name="area" class="form-control" style="height: 3rem;" disabled>
+                        {% for area in areas %}
+                          <option value="{{ area.id }}" {% if area.id == property.area_id.id %}selected{% endif %}>
+                            {{ area.name }}</option>
+                        {% endfor %}
+                      </select>
                     </div>
+                  </div>
+                  
                   <div>
                   <div class="col-lg-6">
                     <div class="form-group">

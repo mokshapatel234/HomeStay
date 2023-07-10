@@ -128,7 +128,7 @@
                         <option value="">Select an area</option>
                         {% for area in areas %}
                         <option value="{{ area.id }}">{{ area.name }}</option>
-                      {% endfor %}
+                        {% endfor %}
                       </select>
                     </div>
                   </div>
@@ -187,13 +187,35 @@
               'max-width': '200px',
               'margin-right': '10px'
             });
-            $('#' + containerId).append(imagePreview);
+            const imagePreviewItem = $('<div class="image-preview-item"></div>');
+            imagePreviewItem.append(imagePreview);
+            
+            // Create buttons for the image preview item
+            const buttonsContainer = $('<div class="image-preview-buttons"></div>');
+            const viewButton = $('<button class="btn btn-sm btn-primary view-image-btn">View</button>');
+            const deleteButton = $('<button class="btn btn-sm btn-danger delete-image-btn">Delete</button>');
+            buttonsContainer.append(viewButton, deleteButton);
+            
+            // Add click handlers to the buttons
+            viewButton.on('click', function() {
+              const imageUrl = e.target.result;
+              window.open(imageUrl, '_blank');
+            });
+
+            deleteButton.on('click', function() {
+              imagePreviewItem.remove();
+            });
+            
+            imagePreviewItem.append(buttonsContainer);
+            
+            $('#' + containerId).append(imagePreviewItem);
           };
 
           reader.readAsDataURL(input.files[i]);
         }
       }
     }
+          
 
     // Function to read and display video files
     function readVideo(input, containerId) {
@@ -211,13 +233,35 @@
               'max-width': '200px',
               'margin-right': '10px'
             });
-            $('#' + containerId).append(videoPreview);
+            const videoPreviewItem = $('<div class="video-preview-item"></div>');
+            videoPreviewItem.append(videoPreview);
+            
+            // Create buttons for the video preview item
+            const buttonsContainer = $('<div class="video-preview-buttons"></div>');
+            const viewButton = $('<button class="btn btn-sm btn-primary view-video-btn">View</button>');
+            const deleteButton = $('<button class="btn btn-sm btn-danger delete-video-btn">Delete</button>');
+            buttonsContainer.append(viewButton, deleteButton);
+            
+            // Add click handlers to the buttons
+            viewButton.on('click', function() {
+              const videoUrl = e.target.result;
+              window.open(videoUrl, '_blank');
+            });
+            
+            deleteButton.on('click', function() {
+              videoPreviewItem.remove();
+            });
+            
+            videoPreviewItem.append(buttonsContainer);
+            
+            $('#' + containerId).append(videoPreviewItem);
           };
 
           reader.readAsDataURL(input.files[i]);
         }
       }
     }
+
 
     $(document).ready(function() {
       // Function to read and display root image file

@@ -108,9 +108,9 @@ class ForgotPasswordApi(generics.GenericAPIView):
                 print("error")
             customer_obj = Customer.objects.get(email=email)
             generated_otp = random.randint(1111, 9999)
-            # otp_verification_link = request.build_absolute_uri(reverse('otpverify'))
+            otp_string = str(generated_otp)            # otp_verification_link = request.build_absolute_uri(reverse('otpverify'))
             request.session['customer'] = str(customer_obj.id)
-            request.session['otp'] = generated_otp
+            request.session['otp'] = otp_string
             subject = 'Acount Recovery'
 
             template_data = {'otp':generated_otp}
@@ -138,7 +138,6 @@ class OtpVerificationApi(generics.GenericAPIView):
             try:
                 if customer_otp == str(request.session.get('otp')):
                     del request.session['otp']
-                    reset_password_link = request.build_absolute_uri(reverse('reset_password'))
 
                     return Response({'result':True,
                                     'message':'Otp Verified'},status=status.HTTP_200_OK)
@@ -416,26 +415,25 @@ class BookPropertyApi(generics.GenericAPIView):
                 property.save()
 
                 # Calculate commission
-                client = property.client
+                client = property.owner
                 commission = Commission.objects.get(client=client)
                 commission_percent = commission.commission_percent
-                total_amount = serializer.data['total_amount']
+                total_amount = serializer.data['rent']
                 commission_amount = Decimal(total_amount) * (Decimal(commission_percent) / 100)
+                client_amount = Decimal(total_amount) - commission_amount
+                admin_amount = Decimal(total_amount) - client_amount
 
-                # Update commission fields
-                commission.admin_amount += commission_amount
-                commission.client_amount += Decimal(total_amount) - commission_amount
-                commission.save()
+                serializer_data = serializer.data.copy()
+                serializer_data['client_amount'] = client_amount
+                serializer_data['admin_amount'] = admin_amount
 
                 # Prepare response data
                 response_data = {
                     'result': True,
-                    'data': serializer.data,
+                    'data': serializer_data,
                     'message': 'Property is booked',
-                    'admin_amount': commission.admin_amount,
-                    'client_amount': commission.client_amount
+                   
                 }
-
                 return Response(response_data, status=status.HTTP_200_OK)
             else:
                 return Response({
@@ -443,11 +441,12 @@ class BookPropertyApi(generics.GenericAPIView):
                     'message': 'Property is not booked yet',
                     'errors': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
-        except:
+        except Exception as e:
             return Response({
                 'result': False,
-                'message': 'Error in property booking'
+                'message': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
+
 
 class wishlistApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )

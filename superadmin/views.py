@@ -326,28 +326,30 @@ def add_client(request):
 
         if request.method == 'POST':
 
-            data = {k:v[0]for k,v in dict(request.POST).items()}  
-            
-            data.pop('csrfmiddlewaretoken')
-            
-            area_id = request.POST.get('area_id')
-            area = get_object_or_404(Area, id=area_id) 
-            # first_name = request.POST.get('first_name')
-            # last_name = request.POST.get('last_name') 
-            # email = request.POST.get('email')
-            # password = request.POST.get('password')
-            profile_image = request.FILES.get('profile_image')
-            # contact_no = request.POST.get('contact_no')
-            state_id = request.GET.get('state')
-            city_id = request.GET.get('city')
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+            profile_image = request.FILES.get('root_image')
+            contact_no = request.POST.get('contact_no')
+            area_id = request.POST.get('area')  # Retrieve the selected area value
 
-            client = Client(
-                **data,
+            try:
+                area = Area.objects.get(id=area_id)  # Get the Area object based on the selected area value
+            except Area.DoesNotExist:
+                return HttpResponse('Invalid area')
+
+            # Create the Client object with the retrieved values
+            client = Client.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                password=password,
                 profile_image=profile_image,
-                area=area,
-                
+                area=area,  # Assign the retrieved Area object to the area field
+                contact_no=contact_no,
+                status='active'
             )
-            client.save()
             return redirect('list_clients')  
         
         if 'state_id' in request.GET:
@@ -467,27 +469,32 @@ def add_customer(request):
         areas  = Area.objects.all()
 
         if request.method == 'POST':
-            data = {k:v[0]for k,v in dict(request.POST).items()}  
-            
-            data.pop('csrfmiddlewaretoken')
 
-            # first_name = request.POST.get('first_name')
-            # last_name = request.POST.get('last_name')
-            # email = request.POST.get('email')
-            # password = request.POST.get('password')
-            profile_image = request.FILES.get('profile_image')
-            # contact_no = request.POST.get('contact_no')
-            state_id = request.GET.get('state')
-            city_id = request.GET.get('city')
-            area_id = request.GET.get('area')
-            area = Area.objects.get(id=area_id)
-            customer = Customer(
-                **data,
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+            profile_image = request.FILES.get('root_image')
+            contact_no = request.POST.get('contact_no')
+            area_id = request.POST.get('area')  
+
+            try:
+                area = Area.objects.get(id=area_id)  
+            except Area.DoesNotExist:
+                return HttpResponse('Invalid area')
+
+            # Create the Client object with the retrieved values
+            customer = Customer.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                password=password,
                 profile_image=profile_image,
-                area=area
-                
+                area=area,  
+                contact_no=contact_no,
+                status='active'
             )
-            customer.save()
+
             return redirect('list_customers')  
 
 
@@ -575,7 +582,6 @@ def delete_customer(request, id):
 
 #Property
 
-
 def add_property(request):
     try:
         form = PropertyTermsForm(request.POST)
@@ -583,70 +589,69 @@ def add_property(request):
         areas = Area.objects.all()
         states = State.objects.all()
         cities = City.objects.all()
-        areas  = Area.objects.all()
+        areas = Area.objects.all()
 
-        try:
-            if request.method == 'POST':
-                form = PropertyTermsForm(request.POST)
-                owner_id = request.POST.get('owner')
-                owner = Client.objects.get(id=owner_id)
-                state_id = request.GET.get('state')
-                city_id = request.GET.get('city')
-                area_id = request.GET.get('area')
-                print(area_id)
-                area= Area.objects.get(id=area_id)
-                
-                # Add Property fields
-                property = Properties(
-                    name=request.POST.get('property_name'),
-                    price=request.POST.get('price'),
-                    root_image = request.FILES.get('root_image'),
-                    description=request.POST.get('description'),
-                    owner=owner,
-                    area_id=area,
-                    address=request.POST.get('address'),
-                    status='active',
+        if request.method == 'POST':
+            form = PropertyTermsForm(request.POST)
+            owner_id = request.POST.get('owner')
+            owner = Client.objects.get(id=owner_id)
+            area_id = request.POST.get('area')
 
-                )
-                property.save()
-                
-                # Add Property images
-                images = request.FILES.getlist('images')
-                for image in images:
-                    PropertyImage.objects.create(property=property, image=image)
-                
-                # Add Property Videos
-                videos = request.FILES.getlist('videos')
-                for video in videos:
-                    PropertyVideo.objects.create(property=property, video=video)
+            try:
+                area = Area.objects.get(id=area_id)  # Get the Area object based on the selected area value
+            except Area.DoesNotExist:
+                area = None
+                print('Invalid area')
+                # Return an error message to the user or handle the invalid area case
 
+            property_obj = Properties(
+                name=request.POST.get('property_name'),
+                price=request.POST.get('price'),
+                root_image=request.FILES.get('root_image'),
+                description=request.POST.get('description'),
+                owner=owner,
+                area_id=area,
+                address=request.POST.get('address'),
+                status='active',
+            )
+            property_obj.save()
 
-                try:
-                    if form.is_valid():
-                        property_terms = form.save(commit=False)
-                        property_terms.property = property  
-                        property_terms.save()
-                    else:
-                        print("Error")
-                except Exception as e:
-                    print(e)
-                
-                return redirect('list_properties')
-            
-            if 'state_id' in request.GET:
-                state_id = request.GET.get('state_id')
-                cities = City.objects.filter(state_id=state_id)
+            # Add Property images
+            images = request.FILES.getlist('images')
+            for image in images:
+                PropertyImage.objects.create(property=property_obj, image=image)
 
-            if 'city_id' in request.GET:
-                city_id = request.GET.get('city_id')
-                areas = Area.objects.filter(city_id=city_id)
-            return render(request, 'home/add_property.html', {'clients': clients,'states': states, 'cities': cities, 'areas': areas, 'segment':'property', 'form':form})
-        except Exception as e:
-            print(e)
+            # Add Property Videos
+            videos = request.FILES.getlist('videos')
+            for video in videos:
+                PropertyVideo.objects.create(property=property_obj, video=video)
+
+            try:
+                if form.is_valid():
+                    property_terms = form.save(commit=False)
+                    property_terms.property = property_obj
+                    property_terms.save()
+                else:
+                    print("Error")
+            except Exception as e:
+                print(e)
+
+            return redirect('list_properties')
+
+        if 'state_id' in request.GET:
+            state_id = request.GET.get('state_id')
+            cities = City.objects.filter(state_id=state_id)
+
+        if 'city_id' in request.GET:
+            city_id = request.GET.get('city_id')
+            areas = Area.objects.filter(city_id=city_id)
+
+        return render(request, 'home/add_property.html', {'clients': clients, 'states': states, 'cities': cities, 'areas': areas, 'segment': 'property', 'form': form})
+
     except Exception as e:
         print(e)
 
-    return render(request, 'home/add_property.html', {'clients': clients,'states': states, 'cities': cities, 'areas': areas, 'segment':'property', 'form':form})
+    return render(request, 'home/add_property.html', {'clients': clients, 'states': states, 'cities': cities, 'areas': areas, 'segment': 'property', 'form': form})
 
 
 def list_properties(request):
@@ -690,8 +695,7 @@ def list_properties(request):
 
     return render(request, 'home/list_properties.html', context)
 
-
-def update_property(request,id):
+def update_property(request, id):
     try:
         property_obj = Properties.objects.get(id=id)
         clients = Client.objects.all()
@@ -699,46 +703,58 @@ def update_property(request,id):
         property_videos = PropertyVideo.objects.filter(property=property_obj)
         num_images = property_images.count()
         num_videos = property_videos.count()
-        property_terms = PropertyTerms.objects.filter(property=property_obj).first()        
+        property_terms = PropertyTerms.objects.filter(property=property_obj).first()
         states = State.objects.all()
         cities = City.objects.all()
-        areas  = Area.objects.all()
+        areas = Area.objects.all()
 
         if request.method == 'POST':
             form = PropertyTermsForm(request.POST, instance=property_terms)
             selected_state_id = property_obj.area_id.city.state.id
             selected_city_id = property_obj.area_id.city.id
             owner_id = request.POST.get('owner')
-            owner = Client.objects.get(id=owner_id)
-            
+            owner = None
+            try:
+                owner = Client.objects.get(id=owner_id)
+            except Client.DoesNotExist:
+                print('Client Not found')
+
 
             # Update property fields
-            property_obj.name = request.POST.get('property_name')
-            property_obj.price = request.POST.get('price')
-            property_obj.root_image = request.FILES.get('root_image')
-            property_obj.description = request.POST.get('description')
-            property_obj.owner = owner
-            property_obj.address = request.POST.get('address')
-            property_obj.status = request.POST.get('status')
+            if 'property_name' in request.POST:
+                property_obj.name = request.POST.get('property_name')
+            if 'price' in request.POST:
+                property_obj.price = request.POST.get('price')
+            if 'root_image' in request.FILES:
+                property_obj.root_image = request.FILES.get('root_image')
+            if 'description' in request.POST:
+                property_obj.description = request.POST.get('description')
+            if 'owner' in request.POST:
+                property_obj.owner = owner
+            if 'address' in request.POST:
+                property_obj.address = request.POST.get('address')
+            if 'status' in request.POST:
+                property_obj.status = request.POST.get('status')
             property_obj.save()
 
             # Update property images
-            images = request.FILES.getlist('images')
-            PropertyImage.objects.filter(property=property_obj).delete()  
-            for image in images:
-                PropertyImage.objects.create(property=property_obj, image=image)
+            if 'images' in request.FILES:
+                images = request.FILES.getlist('images')
+                PropertyImage.objects.filter(property=property_obj).delete()
+                for image in images:
+                    PropertyImage.objects.create(property=property_obj, image=image)
 
             # Update property videos
-            videos = request.FILES.getlist('videos')
-            PropertyVideo.objects.filter(property=property_obj).delete() 
-            for video in videos:
-                PropertyVideo.objects.create(property=property_obj, video=video)
-
+            if 'videos' in request.FILES:
+                videos = request.FILES.getlist('videos')
+                PropertyVideo.objects.filter(property=property_obj).delete()
+                for video in videos:
+                    PropertyVideo.objects.create(property=property_obj, video=video)
 
             try:
                 if form.is_valid():
                     property_terms = form.save(commit=False)
-                    property_terms.property = property_obj  
+                    property_terms.property = property_obj
                     property_terms.save()
                 else:
                     print("Error")
@@ -770,17 +786,16 @@ def update_property(request,id):
         print(e)
 
     return render(request, 'home/update_property.html',
-                   {'property': property_obj,
-                     'property_images': property_images, 
-                     'property_videos': property_videos, 
-                     'clients': clients, 
-                     'segment': 'property', 
-                     'num_images': num_images,
-                     'num_videos': num_videos,
-                     'form':form,
-                     "states":states, 'cities':cities, 'areas':areas,
-                     })
-
+                  {'property': property_obj,
+                   'property_images': property_images,
+                   'property_videos': property_videos,
+                   'clients': clients,
+                   'segment': 'property',
+                   'num_images': num_images,
+                   'num_videos': num_videos,
+                   'form': form,
+                   "states": states, 'cities': cities, 'areas': areas,
+                   })
 
 
 def delete_property(request, id):
