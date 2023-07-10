@@ -3,7 +3,7 @@ from superadmin.models import Client, Properties, PropertyImage, PropertyVideo,\
       Area, PropertyTerms, Bookings, TermsandPolicy, Customer
 from django.core.validators import RegexValidator
 from .utils import generate_token
-from .models import ClientrBanking
+from .models import ClientBanking
 from django.conf import settings
 
 
@@ -184,7 +184,7 @@ class BookingDetailSerializer(serializers.ModelSerializer):
 class ClientBankingSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = ClientrBanking
+        model = ClientBanking
         fields = ['account_number', 'bank_name', 'branch','ifsc_code', 'status']
     
     # def create(self, validated_data):
@@ -217,13 +217,13 @@ class ClientBankingSerializer(serializers.ModelSerializer):
         account_number = attrs.get('account_number')
         ifsc_code = attrs.get('ifsc_code')
         
-        if ClientrBanking.objects.filter(account_number=account_number).exists() and ClientrBanking.objects.filter(ifsc_code=ifsc_code).exists():
+        if ClientBanking.objects.filter(account_number=account_number).exists() and ClientBanking.objects.filter(ifsc_code=ifsc_code).exists():
             raise serializers.ValidationError("Account number and ifsc_code number already exist.")
 
-        if ClientrBanking.objects.filter(account_number=account_number).exists():
+        if ClientBanking.objects.filter(account_number=account_number).exists():
             raise serializers.ValidationError("Account number already exists.")
 
-        if ClientrBanking.objects.filter(ifsc_code=ifsc_code).exists():
+        if ClientBanking.objects.filter(ifsc_code=ifsc_code).exists():
             raise serializers.ValidationError("IFSC code number already exists.")
 
         return attrs
