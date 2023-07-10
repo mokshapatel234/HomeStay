@@ -5,7 +5,6 @@ from django.core.validators import RegexValidator
 from .utils import generate_token
 from .models import ClientrBanking
 from django.conf import settings
-import razorpay
 
 
 class TermsAndPolicySerializer(serializers.ModelSerializer):
@@ -188,31 +187,31 @@ class ClientBankingSerializer(serializers.ModelSerializer):
         model = ClientrBanking
         fields = ['account_number', 'bank_name', 'branch','ifsc_code', 'status']
     
-    def create(self, validated_data):
-        # Retrieve banking details
-        account_number = validated_data['account_number']
-        bank_name = validated_data['bank_name']
-        branch = validated_data['branch']
-        ifsc_code = validated_data['ifsc_code']
+    # def create(self, validated_data):
+    #     # Retrieve banking details
+    #     account_number = validated_data['account_number']
+    #     bank_name = validated_data['bank_name']
+    #     branch = validated_data['branch']
+    #     ifsc_code = validated_data['ifsc_code']
 
-        # Create the route in Razorpay
-        client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
-        data = {
-            'account_number': account_number,
-            'bank_name': bank_name,
-            'branch': branch,
-            'ifsc_code': ifsc_code,
-            'fund_account_id': '<your_fund_account_id>',
-            'client_share': 80,
-            # Additional route data as required
-        }
-        route = client.route.create(data=data)
+    #     # Create the route in Razorpay
+    #     client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
+    #     data = {
+    #         'account_number': account_number,
+    #         'bank_name': bank_name,
+    #         'branch': branch,
+    #         'ifsc_code': ifsc_code,
+    #         'fund_account_id': '<your_fund_account_id>',
+    #         'client_share': 80,
+    #         # Additional route data as required
+    #     }
+    #     route = client.route.create(data=data)
 
-        # Save the route details in your database
-        validated_data['route_id'] = route['id']
-        validated_data['recipient_id'] = route['recipient_id']
+    #     # Save the route details in your database
+    #     validated_data['route_id'] = route['id']
+    #     validated_data['recipient_id'] = route['recipient_id']
 
-        return super().create(validated_data)
+    #     return super().create(validated_data)
 
     def validate(self, attrs):
         account_number = attrs.get('account_number')
