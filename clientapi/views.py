@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import serializers
 from django.http import JsonResponse
 import random
+import requests
 from django.core.mail import EmailMultiAlternatives
 from django.urls import reverse
 from superadmin.models import *
@@ -22,6 +23,10 @@ from .authentication import JWTAuthentication, IsClientVerified
 from rest_framework.parsers import MultiPartParser
 from .paginator import ClientPagination
 from django.db.models import Q
+import razorpay
+from .models import ClientBanking
+from rest_framework.views import APIView
+
 
 class TermsAndPolicyApi(generics.GenericAPIView):
     permission_classes =(permissions.AllowAny, )
@@ -281,7 +286,7 @@ class PropertyApi(generics.GenericAPIView):
     def get(self, request):
         try:
             properties = request.user.properties.all()
-            serializer = PropertiesListSerializer(properties, many=True)
+            serializer = PropertiesSerializer(properties, many=True)
             return Response({'result':True,
                             'data':serializer.data,
                             "message":"property found successfully"}, status=status.HTTP_200_OK)
@@ -473,25 +478,43 @@ class BookingDetailApi(generics.GenericAPIView):
     
 
 
-class ClientBankingApi(generics.GenericAPIView):
-    authentication_classes = (JWTAuthentication, )
-    permission_classes = (permissions.IsAuthenticated, )
+# class ClientBankingApi(generics.GenericAPIView):
+#     authentication_classes = (JWTAuthentication, )
+#     permission_classes = (permissions.IsAuthenticated, )
 
-    def post(self, request):
-        try:
-            serializer = ClientBankingSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save(client=request.user)
-                return Response({"result":True,
-                                "data":serializer.data,
-                                'message':'Bank-detail added successfully'},status=status.HTTP_201_CREATED)
-            errors = [str(error[0]) for error in serializer.errors.values()]
-            response = Response({"result":False,
-                                "message":", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
-            return response
-        except Exception as e:
-            return Response({"result":False,
-                            "message": 'Error in data insertion'}, status=status.HTTP_400_BAD_REQUEST)
+#     def post(self, request):
+#         try:
+#             base_url = "https://api.razorpay.com/v2" 
+#             endpoint = "/accounts" 
+            
+#             url = base_url + endpoint
+            
+#             serializer = ClientBankingSerializer(data=request.data)
+#             if serializer.is_valid():
+                
+                
+#                 # Make API call using the Razorpay API URL
+#                 response = requests.post(url, data=request.data)
+#                 serializer.save(client=request.user)
+                
+#                 return Response({"result": True,
+#                                 "data": serializer.data,
+#                                 "message": "Bank-detail added successfully",
+#                                 "api_response": response.json()}, status=status.HTTP_201_CREATED)
+            
+#             errors = [str(error[0]) for error in serializer.errors.values()]
+#             response = Response({"result": False,
+#                                 "message": ", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
+#             return response
+    
+#         except Exception as e:
+#             return Response({"result":False,
+#                             "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
  
+    
+
+
+
+             
             
 

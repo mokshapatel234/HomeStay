@@ -5,7 +5,7 @@ from django.core.validators import RegexValidator
 from .utils import generate_token
 from .models import ClientBanking
 from django.conf import settings
-
+import razorpay
 
 class TermsAndPolicySerializer(serializers.ModelSerializer):
 
@@ -185,45 +185,32 @@ class ClientBankingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClientBanking
-        fields = ['account_number', 'bank_name', 'branch','ifsc_code', 'status']
+        fields = ['account_number', 'account_holder_name', 'account_type' , 'bank_name', 'branch', 'ifsc_code', 'status']
     
     # def create(self, validated_data):
     #     # Retrieve banking details
-    #     account_number = validated_data['account_number']
-    #     bank_name = validated_data['bank_name']
-    #     branch = validated_data['branch']
-    #     ifsc_code = validated_data['ifsc_code']
+    #     razorpay_payment_id = validated_data.pop('razorpay_payment_id', None)
+    #     razorpay_order_id = validated_data.pop('razorpay_order_id', None)
 
     #     # Create the route in Razorpay
     #     client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
+    #     print(client)
     #     data = {
-    #         'account_number': account_number,
-    #         'bank_name': bank_name,
-    #         'branch': branch,
-    #         'ifsc_code': ifsc_code,
-    #         'fund_account_id': '<your_fund_account_id>',
-    #         'client_share': 80,
-    #         # Additional route data as required
+    #         'account_number': validated_data['account_number'],
+    #         'bank_name': validated_data['bank_name'],
+    #         'branch': validated_data['branch'],
+    #         'ifsc_code': validated_data['ifsc_code'],
+    #         'razorpay_payment_id': razorpay_payment_id,
+    #         'razorpay_order_id': razorpay_order_id,
+    #         'amount': validated_data['amount'],
+    #         'currency': validated_data['currency'],
+    #         'payment_status': validated_data['payment_status'],
+    #         'payment_date': validated_data['payment_date']
     #     }
     #     route = client.route.create(data=data)
 
     #     # Save the route details in your database
-    #     validated_data['route_id'] = route['id']
-    #     validated_data['recipient_id'] = route['recipient_id']
+    #     validated_data['razorpay_payment_id'] = route['payment_id']
+    #     validated_data['razorpay_order_id'] = route['order_id']
 
     #     return super().create(validated_data)
-
-    def validate(self, attrs):
-        account_number = attrs.get('account_number')
-        ifsc_code = attrs.get('ifsc_code')
-        
-        if ClientBanking.objects.filter(account_number=account_number).exists() and ClientBanking.objects.filter(ifsc_code=ifsc_code).exists():
-            raise serializers.ValidationError("Account number and ifsc_code number already exist.")
-
-        if ClientBanking.objects.filter(account_number=account_number).exists():
-            raise serializers.ValidationError("Account number already exists.")
-
-        if ClientBanking.objects.filter(ifsc_code=ifsc_code).exists():
-            raise serializers.ValidationError("IFSC code number already exists.")
-
-        return attrs
