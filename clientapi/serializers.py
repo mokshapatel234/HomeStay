@@ -127,7 +127,7 @@ class PropertiesSerializer(serializers.ModelSerializer):
 class PropertiesUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Properties
-        fields = ['name', 'price', 'description', 'address', 'status', 'area_id']
+        fields = ['name', 'root_image', 'price', 'description', 'address', 'status', 'area_id']
 
 
 class PropertiesListSerializer(serializers.ModelSerializer):
@@ -185,7 +185,7 @@ class ClientBankingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClientBanking
-        fields = ['account_number', 'account_holder_name', 'account_type' , 'bank_name', 'branch', 'ifsc_code', 'status']
+        fields = ['email', 'phone', 'contact_name', 'legal_business_name' , 'business_type', 'category', 'sub_category', 'registered']
     
     # def create(self, validated_data):
     #     # Retrieve banking details

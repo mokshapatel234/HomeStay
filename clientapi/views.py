@@ -24,6 +24,7 @@ from rest_framework.parsers import MultiPartParser
 from .paginator import ClientPagination
 from django.db.models import Q
 import razorpay
+import base64
 from .models import ClientBanking
 from rest_framework.views import APIView
 
@@ -335,7 +336,7 @@ class PropertyApi(generics.GenericAPIView):
         try:
             property_obj = request.user.properties.get(id=property_id)
 
-            serializer = PropertiesUpdateSerializer(property_obj, data=request.data, partial=True)
+            serializer = PropertiesUpdateSerializer(property_obj, data=request.data,  partial=True)
 
             if serializer.is_valid():
                 serializer.save()
@@ -491,11 +492,17 @@ class BookingDetailApi(generics.GenericAPIView):
             
 #             serializer = ClientBankingSerializer(data=request.data)
 #             if serializer.is_valid():
+#                 # key_id = 'rzp_test_Ty890qcC85nq5I'
+#                 # key_secret = 'eVt3lBv03IrVki8dBkoSnrsb'
+#                 # auth = base64.b64encode(f"{key_id}:{key_secret}".encode()).decode('utf-8')
                 
-                
+#                 headers = {
+#                     'Content-Type': 'application/json',
+#                     'Authorization': 'Basic cnpwX3Rlc3RfVHk4OTBxY0M4NW5xNUk6ZVZ0M2xCdjAzSXJWa2k4ZEJrb1NucnNi'
+#                     }
 #                 # Make API call using the Razorpay API URL
-#                 response = requests.post(url, data=request.data)
-#                 serializer.save(client=request.user)
+#                 response = requests.post(url, data=request.data, headers=headers)
+#                 serializer.save(client=request.user, status='active')
                 
 #                 return Response({"result": True,
 #                                 "data": serializer.data,
