@@ -351,7 +351,8 @@ class PropertyApi(generics.GenericAPIView):
 
                 # Add new images
                 for image in images:
-                    PropertyImage.objects.create(property=property_obj, image=image)
+                    if not PropertyImage.objects.filter(property=property_obj, image=image).exists():
+                        PropertyImage.objects.create(property=property_obj, image=image)
 
                 videos = request.FILES.getlist('videos')
                 existing_videos = property_obj.videos.all()
@@ -363,8 +364,10 @@ class PropertyApi(generics.GenericAPIView):
 
                 # Add new videos
                 for video in videos:
-                    PropertyVideo.objects.create(property=property_obj, video=video)
+                    if not PropertyVideo.objects.filter(property=property_obj, video=video).exists():
+                        PropertyVideo.objects.create(property=property_obj, video=video)
 
+                        
                 terms = request.POST.get('terms')
                 if terms:
                     property_obj.terms.all().delete()
