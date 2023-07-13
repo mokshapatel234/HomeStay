@@ -47,7 +47,7 @@ urlpatterns = [
     path('updateCustomer/<uuid:id>/', update_customer, name='update_customer'),
     path('deleteCustomer/<uuid:id>/', delete_customer, name='delete_customer'),
 
-    path('addTermsPolicy', add_terms_policy, name="add_terms_policy"),
+    path('addTermsPolicy/', add_terms_policy, name="add_terms_policy"),
 
     # path("password_reset",password_reset_request.as_view(), name="admin_password_reset"),
 

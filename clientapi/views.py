@@ -99,9 +99,34 @@ class LoginApi(generics.GenericAPIView):
                                     "token":user_token,
                                     "message":"Login successfull!!",         
                                      })
+            email_errors = serializer.errors.get('email', [])
+            password_errors = serializer.errors.get('password', [])
+            
+            error_messages = []
+            if email_errors and password_errors:
+                error_messages.append('Please provide email and password')
+
+
+            elif email_errors:
+                error_messages.append('Please provide email')
+            elif password_errors:
+                error_messages.append('Please provide password')
+            
+
+
+            if error_messages:
+                response = Response({
+                    "result": False,
+                    "message": ', '.join(error_messages)
+                }, status=status.HTTP_400_BAD_REQUEST)
+                return response
+
+            # Default error handling
             errors = [str(error[0]) for error in serializer.errors.values()]
-            response = Response({"result":False,
-                                "message":", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
+            response = Response({
+                "result": False,
+                "message": ', '.join(errors)
+            }, status=status.HTTP_400_BAD_REQUEST)
             return response
         except:
             response = Response({"result":False,
@@ -340,7 +365,7 @@ class PropertyApi(generics.GenericAPIView):
             city = area.city
             state = city.state
          
-            print(state, city, area)
+            print(state.name, city.name, area.name)
             area_id = request.data.get('area_id')
             if area_id:
                 area = get_object_or_404(Area, id=area_id)

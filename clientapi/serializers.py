@@ -61,6 +61,20 @@ class LoginSerializer(serializers.Serializer):
         password = attrs.get('password')
         client = None
 
+        if not email and not password:
+            raise serializers.ValidationError(
+                {'detail': 'Please provide "email" or "password".'},
+                code='authorization'
+            )
+        elif email and not password:
+            raise serializers.ValidationError(
+                {'password': 'Please provide a password.'}
+            )
+        elif not email and password:
+            raise serializers.ValidationError(
+                {'email': 'Please provide an email.'}
+            )
+
         if email and password:
             try:
                 client = Client.objects.get(email=email)
@@ -73,9 +87,7 @@ class LoginSerializer(serializers.Serializer):
                 msg = {'detail': 'Client password is incorrect.'}
                 raise serializers.ValidationError(msg)
 
-        else:
-            msg = 'Must include "email" and "password".'
-            raise serializers.ValidationError(msg, code='authorization')
+        
         
         attrs['client'] = client
         return attrs

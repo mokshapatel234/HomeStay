@@ -13,7 +13,7 @@ from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from userapi.serializers import RegisterSerializer, LoginSerializer, ResetPasswordSerializer,\
-      AreaSerializer, CitySerializer, StateSerializer, DashboardPropertiesSerializer,\
+      DashboardPropertiesSerializer,\
           CustomerProfileSerializer, PropertiesDetailSerializer, BookPropertySerializer,\
               TermsAndPolicySerializer, WishlistSerializer
 from .utils import generate_token
@@ -86,6 +86,28 @@ class LoginApi(generics.GenericAPIView):
                                     "data":user_data,
                                     "message":"Login successfull!!",         
                                      })
+            email_errors = serializer.errors.get('email', [])
+            password_errors = serializer.errors.get('password', [])
+            
+            error_messages = []
+            if email_errors and password_errors:
+                error_messages.append('Please provide email and password')
+
+
+            elif email_errors:
+                error_messages.append('Please provide email')
+            elif password_errors:
+                error_messages.append('Please provide password')
+            
+
+
+            if error_messages:
+                response = Response({
+                    "result": False,
+                    "message": ', '.join(error_messages)
+                }, status=status.HTTP_400_BAD_REQUEST)
+                return response
+
             errors = [str(error[0]) for error in serializer.errors.values()]
             response = Response({"result":False,
                                 "message":", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
@@ -184,86 +206,16 @@ class ResetPasswordApi(generics.GenericAPIView):
                             'message':'Cannot Change Password Without otp verification'},status=status.HTTP_404_NOT_FOUND)
 
 
-class AreaListApi(generics.GenericAPIView):
-
-    permission_classes = (permissions.AllowAny,)
-    authentication_classes = (JSONWebTokenAuthentication,)
-    def get(self, request):
+class ChangePasswordApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+    
+    def post(self, request):
         try:
-            city = request.query_params.get('city', None)
-            
-            if city:
-                areas = Area.objects.filter(city=city)
-                if not areas:
-                    return Response({"result": False,
-                                     "message": "No areas found for the provided city ID."},
-                                    status=status.HTTP_404_NOT_FOUND)
-            else:
-                areas = Area.objects.all()
-            
-            serializer = AreaSerializer(areas, many=True)
-            area_data = []
-            for area in serializer.data:
-                area_data.append({
-                    "id": area["id"],
-                    "name": area["name"]
-                })
-            return Response({"result":True,
-                            "data":area_data, 
-                            'message':'Data found successfully'}, status=status.HTTP_200_OK)
+            pass
         except:
-            return Response({"result":False,
-                            "message": "Error in getting data"}, status=status.HTTP_404_NOT_FOUND)
+            pass
 
-
-class CityListApi(generics.GenericAPIView):
-    permission_classes = (permissions.AllowAny,)
-    authentication_classes = (JSONWebTokenAuthentication,)
-
-    def get(self, request):
-        try:
-            state = request.query_params.get('state', None)
-            
-            if state:
-                city = City.objects.filter(state=state)
-                if not city:
-                    return Response({"result": False,
-                                     "message": "No cities found for the provided state ID."},
-                                    status=status.HTTP_404_NOT_FOUND)
-            else:
-                city = City.objects.all()
-            
-            serializer = CitySerializer(city, many=True)
-            city_data = []
-            for city in serializer.data:
-                city_data.append({
-                    "id": city["id"],
-                    "name": city["name"]
-                })
-            return Response({"result":True,
-                            "data":city_data,
-                            "message":"Data found successfully"}, status=status.HTTP_200_OK)
-        except:
-            return Response({"result":False,
-                            "message": "Error in getting data"}, status=status.HTTP_404_NOT_FOUND)
-
-
-class StateListApi(generics.GenericAPIView):
-
-    permission_classes = (permissions.AllowAny,)
-    authentication_classes = (JSONWebTokenAuthentication,)
-    def get(self, request):
-        try:
-            state = State.objects.all()
-            
-            serializer = StateSerializer(state, many=True)
-            return Response({"result":True,
-                            "data":serializer.data,
-                            "message":"Data found successfully"}, status=status.HTTP_200_OK)
-        except:
-            return Response({"result":False,
-                            "message": "Error in getting data"}, status=status.HTTP_404_NOT_FOUND)
-        
 
 class DashboardPropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication,)

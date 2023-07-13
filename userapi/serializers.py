@@ -87,24 +87,6 @@ class ResetPasswordSerializer(serializers.Serializer):
     confirm_password = serializers.CharField(required=True)
 
 
-class AreaSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Area
-        fields = ['id','name']
-
-class CitySerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = City
-        fields = ['id','name']
-
-
-class StateSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = State
-        fields = ['id','name']
 
 
 class DashboardPropertiesSerializer(serializers.ModelSerializer):

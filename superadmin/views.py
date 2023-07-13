@@ -73,19 +73,22 @@ def is_authenticate(request):
 
 
 def add_terms_policy(request):
-    admin_user = TermsandPolicy.objects.first() 
+    try:
+        admin_user = TermsandPolicy.objects.get(user=request.user)
+    except TermsandPolicy.DoesNotExist:
+        admin_user = None
 
     if request.method == 'POST':
         form = AdminTermsAndpolicyForm(request.POST, instance=admin_user)
         if form.is_valid():
-            form.save()
-            TermsandPolicy(user=request.user)
+            terms_policy = form.save(commit=False)
+            terms_policy.user = request.user  # Assign the current user
+            terms_policy.save()
             return redirect('index')
     else:
         form = AdminTermsAndpolicyForm(instance=admin_user)
     
     return render(request, 'home/add_terms_policy.html', {'form': form})
-
 
 
 class LoginView(View):
@@ -416,7 +419,8 @@ def update_client(request, id):
         areas  = Area.objects.all()
 
         if request.method == 'POST':
-            
+            selected_state_id = client.area_id.city.state.id
+            selected_city_id = client.area_id.city.id
             client.first_name = request.POST.get('first_name')
             client.last_name = request.POST.get('last_name')
             client.email = request.POST.get('email')
@@ -558,8 +562,12 @@ def list_customers(request):
 
 def update_customer(request, id):
     customer = Customer.objects.get(id=id)
-
+    states = State.objects.all()
+    cities = City.objects.all()
+    areas = Area.objects.all()
     if request.method == 'POST':
+        selected_state_id = customer.area_id.city.state.id
+        selected_city_id = customer.area_id.city.id
         customer.first_name = request.POST.get('first_name')
         customer.last_name = request.POST.get('last_name')
         customer.email = request.POST.get('email')
@@ -572,7 +580,9 @@ def update_customer(request, id):
         customer.save()
 
         return redirect('list_customers') 
-    return render(request, 'home/update_customer.html', {'customer':customer, 'segment':'customer'})
+    return render(request, 'home/update_customer.html', {'customer':customer, 'segment':'customer','states': states,
+                    'cities': cities,
+                    'areas': areas, })
 
 def delete_customer(request, id):
     customer = Customer.objects.get(id=id)
