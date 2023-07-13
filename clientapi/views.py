@@ -342,14 +342,28 @@ class PropertyApi(generics.GenericAPIView):
                 serializer.save()
 
                 images = request.FILES.getlist('images')
-                if images:
-                    for image in images:
-                        PropertyImage.objects.create(property=property_obj, image=image)
+                existing_images = property_obj.images.all()
+
+                # Delete specific images not included in the request
+                for existing_image in existing_images:
+                    if existing_image.image not in images:
+                        existing_image.delete()
+
+                # Add new images
+                for image in images:
+                    PropertyImage.objects.create(property=property_obj, image=image)
 
                 videos = request.FILES.getlist('videos')
-                if videos:
-                    for video in videos:
-                        PropertyVideo.objects.create(property=property_obj, video=video)
+                existing_videos = property_obj.videos.all()
+
+                # Delete specific videos not included in the request
+                for existing_video in existing_videos:
+                    if existing_video.video not in videos:
+                        existing_video.delete()
+
+                # Add new videos
+                for video in videos:
+                    PropertyVideo.objects.create(property=property_obj, video=video)
 
                 terms = request.POST.get('terms')
                 if terms:
