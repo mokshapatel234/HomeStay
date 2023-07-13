@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework import status, generics
@@ -335,7 +336,18 @@ class PropertyApi(generics.GenericAPIView):
     def put(self, request, property_id):
         try:
             property_obj = request.user.properties.get(id=property_id)
-
+            area = property_obj.area_id
+            city = area.city
+            state = city.state
+         
+            print(state, city, area)
+            area_id = request.data.get('area_id')
+            if area_id:
+                area = get_object_or_404(Area, id=area_id)
+                city = area.city
+                state = city.state
+          
+                print(state.name, city.name, area.name)
             serializer = PropertiesUpdateSerializer(property_obj, data=request.data,  partial=True)
 
             if serializer.is_valid():
