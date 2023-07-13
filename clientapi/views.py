@@ -343,13 +343,11 @@ class PropertyApi(generics.GenericAPIView):
 
                 images = request.FILES.getlist('images')
                 if images:
-                    property_obj.images.all().delete()
                     for image in images:
                         PropertyImage.objects.create(property=property_obj, image=image)
 
                 videos = request.FILES.getlist('videos')
                 if videos:
-                    property_obj.videos.all().delete()
                     for video in videos:
                         PropertyVideo.objects.create(property=property_obj, video=video)
 
