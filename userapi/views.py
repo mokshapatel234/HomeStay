@@ -478,9 +478,7 @@ class wishlistApi(generics.GenericAPIView):
 
 
             return Response({'result': True,
-                            'data': {
-                                'wishlist': wishlist_serializer.data,
-                            },
+                            'data': wishlist_serializer.data,
                             'message': 'List of favorite properties'},
                             status=status.HTTP_200_OK)
         except Exception as e:
@@ -503,10 +501,7 @@ class wishlistApi(generics.GenericAPIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response({'result': True,
-                                'data': {
-                                    'wishlist': serializer.data,
-                                    
-                                },
+                                'data': serializer.data,
                                 'message': 'Property is now favorite'},
                                 status=status.HTTP_200_OK)
             else:

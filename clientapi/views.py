@@ -342,32 +342,19 @@ class PropertyApi(generics.GenericAPIView):
                 serializer.save()
 
                 images = request.FILES.getlist('images')
-                existing_images = property_obj.images.all()
-
-                # Delete specific images not included in the request
-                for existing_image in existing_images:
-                    if existing_image.image not in images:
-                        existing_image.delete()
-
-                # Add new images
-                for image in images:
-                    if not PropertyImage.objects.filter(property=property_obj, image=image).exists():
+                
+                if images:
+                    property_obj.images.all().delete()
+                    for image in images:
                         PropertyImage.objects.create(property=property_obj, image=image)
 
                 videos = request.FILES.getlist('videos')
-                existing_videos = property_obj.videos.all()
-
-                # Delete specific videos not included in the request
-                for existing_video in existing_videos:
-                    if existing_video.video not in videos:
-                        existing_video.delete()
-
-                # Add new videos
-                for video in videos:
-                    if not PropertyVideo.objects.filter(property=property_obj, video=video).exists():
+                if videos:
+                    property_obj.videos.all().delete()
+                    for video in videos:
                         PropertyVideo.objects.create(property=property_obj, video=video)
 
-                        
+
                 terms = request.POST.get('terms')
                 if terms:
                     property_obj.terms.all().delete()
@@ -418,10 +405,17 @@ class DashboardApi(generics.GenericAPIView):
 
             property_serializer = PropertiesListSerializer(properties, many=True)
             booking_serializer = BookPropertySerializer(bookings, many=True)
-
+            
             data = {
                 'properties': property_serializer.data,
-                'bookings': booking_serializer.data
+                'bookings': booking_serializer.data,
+                "id": user.id,
+                "first_name": user.first_name,
+                # "profile_image":user.profile_image,
+                "last_name":user.last_name,
+                "email":user.email,
+                "password":user.password,
+                "contact_no":user.contact_no,
             }
 
             return Response({
