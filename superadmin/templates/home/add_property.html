@@ -198,9 +198,11 @@
             
             // Add click handlers to the buttons
             viewButton.on('click', function() {
-              const imageUrl = e.target.result;
+              const file = input.files[i];
+              const imageUrl = URL.createObjectURL(file);
               window.open(imageUrl, '_blank');
             });
+            
 
             deleteButton.on('click', function() {
               imagePreviewItem.remove();
@@ -244,9 +246,11 @@
             
             // Add click handlers to the buttons
             viewButton.on('click', function() {
-              const videoUrl = e.target.result;
+              const file = input.files[i];
+              const videoUrl = URL.createObjectURL(file);
               window.open(videoUrl, '_blank');
             });
+            
             
             deleteButton.on('click', function() {
               videoPreviewItem.remove();

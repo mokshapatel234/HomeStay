@@ -185,7 +185,7 @@ class ClientBankingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClientBanking
-        fields = ['email', 'phone', 'contact_name', 'legal_business_name' , 'business_type', 'category', 'sub_category', 'registered']
+        fields = ['email', 'phone', 'contact_name', 'legal_business_name' , 'business_type']
     
     # def create(self, validated_data):
     #     # Retrieve banking details

@@ -22,7 +22,7 @@ from .authentication import JWTAuthentication
 from rest_framework.parsers import MultiPartParser
 from datetime import datetime
 from decimal import Decimal
-
+import razorpay
 
 # Create your views here.
 
@@ -404,35 +404,53 @@ class BookPropertyApi(generics.GenericAPIView):
                         'message': 'Property is already booked'
                     }, status=status.HTTP_400_BAD_REQUEST)
 
+                # start_date_str = data.get('start_date')
+                # current_date = datetime.now().date()
+
+                # # Check if the start_date is before the current_date
+                # start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+
+                # if start_date < current_date:
+                #     return Response({
+                #         'result': False,
+                #         'message': 'Invalid start date. Please select a date from today or later.'
+                #     }, status=status.HTTP_400_BAD_REQUEST)
+
                 serializer.validated_data['start_date'] = data.get('start_date')
                 serializer.validated_data['end_date'] = data.get('end_date')
                 serializer.validated_data['property'] = property
 
-                serializer.save()
+                instance = serializer.save()
 
-                # Change property status to "inactive"
                 property.status = 'inactive'
                 property.save()
 
-                # Calculate commission
-                client = property.owner
-                commission = Commission.objects.get(client=client)
-                commission_percent = commission.commission_percent
-                total_amount = serializer.data['rent']
-                commission_amount = Decimal(total_amount) * (Decimal(commission_percent) / 100)
-                client_amount = Decimal(total_amount) - commission_amount
-                admin_amount = Decimal(total_amount) - client_amount
+                client = razorpay.Client(auth=("rzp_test_Ty890qcC85nq5I", "eVt3lBv03IrVki8dBkoSnrsb"))
+                amount = int(instance.amount * 100)  
+                currency = instance.currency
 
-                serializer_data = serializer.data.copy()
-                serializer_data['client_amount'] = client_amount
-                serializer_data['admin_amount'] = admin_amount
+                order_data = {
+                    "amount": amount,
+                    "currency": currency,
+                    "notes": {
+                        "property_id": str(property.id),
+                        "booking_id": str(instance.id)
+                    }
+                }
+
+                order = client.order.create(order_data)
+                order_id = order.get('id', '')
+
+                # Update the order_id field in the instance
+                instance.order_id = order_id
+                instance.save()
 
                 # Prepare response data
                 response_data = {
                     'result': True,
-                    'data': serializer_data,
+                    'data': serializer.data,
                     'message': 'Property is booked',
-                   
+                    'order_id': order_id
                 }
                 return Response(response_data, status=status.HTTP_200_OK)
             else:
@@ -453,23 +471,29 @@ class wishlistApi(generics.GenericAPIView):
     permission_classes = (permissions.IsAuthenticated, )
 
     def get(self, request):
-        try:   
+        try:
             user = request.user
             wishlist = Wishlist.objects.filter(customer=user)
-            serializer = WishlistSerializer(wishlist, many=True)
+            wishlist_serializer = WishlistSerializer(wishlist, many=True)
+
+
             return Response({'result': True,
-                                    'data': serializer.data,
-                                    'message': 'List of favourite properties'},
-                                    status=status.HTTP_200_OK)
-        except:
+                            'data': {
+                                'wishlist': wishlist_serializer.data,
+                            },
+                            'message': 'List of favorite properties'},
+                            status=status.HTTP_200_OK)
+        except Exception as e:
             return Response({'result': False,
-                             'message': 'Error in property wishlist'},
-                            status=status.HTTP_400_BAD_REQUEST)
+                            'message': 'Error in property wishlist',
+                         'error': str(e)},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
-    def post(self, request, id):
+    def post(self, request):
         try:
-            property = Properties.objects.get(id=id)
+            property_id = request.data.get('property_id')
+            property = Properties.objects.get(id=property_id)
             user = request.user
             data = {
                 'property': property.id,
@@ -479,19 +503,29 @@ class wishlistApi(generics.GenericAPIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response({'result': True,
-                                    'data': serializer.data,
-                                    'message': 'Property is now favourite'},
-                                    status=status.HTTP_200_OK)
+                                'data': {
+                                    'wishlist': serializer.data,
+                                    
+                                },
+                                'message': 'Property is now favorite'},
+                                status=status.HTTP_200_OK)
             else:
                 return Response({'result': False,
-                                'message': 'Property is not favourited yet',
+                                'message': 'Property is not favorited yet',
                                 'errors': serializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        except:
+        except Properties.DoesNotExist:
             return Response({'result': False,
-                             'message': 'Error in property wishlist'},
+                            'message': 'Invalid property ID'},
                             status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'result': False,
+                            'message': 'Error in property wishlist',
+                            'error': str(e)},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+
 
     def delete(self, request, id):
         try:

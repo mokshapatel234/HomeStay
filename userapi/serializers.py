@@ -3,7 +3,7 @@ from superadmin.models import Customer, Area, City, State, Properties, PropertyI
       PropertyVideo, Bookings, TermsandPolicy, Wishlist
 from django.core.validators import RegexValidator
 from .utils import generate_token
-
+from .models import BookProperty
 
 
 # class RegisterSerializer(serializers.ModelSerializer):
@@ -155,8 +155,8 @@ class PropertiesDetailSerializer(serializers.ModelSerializer):
 class BookPropertySerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Bookings
-        fields = ['id', 'customer', 'status', 'rent', 'transaction_id', 'start_date', 'end_date']
+        model = BookProperty
+        fields = ['id', 'start_date', 'end_date', 'amount', 'currency']
     
 
 class TermsAndPolicySerializer(serializers.ModelSerializer):
@@ -166,7 +166,53 @@ class TermsAndPolicySerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'terms_and_condition', 'privacy_policy']
 
 class WishlistSerializer(serializers.ModelSerializer):
+    property_name = serializers.CharField(source='property.name', read_only=True)
+    root_image = serializers.ImageField(source='property.root_image', read_only=True)
+    price = serializers.FloatField(source='property.price', read_only=True)
+    status = serializers.CharField(source='property.status', read_only=True)
 
     class Meta:
         model = Wishlist
-        fields = ['id','property', 'customer']
+        fields = ['id', 'property', 'property_name', 'customer',  'root_image', 'price', 'status']
+
+
+
+
+
+class RegisterSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    first_name = serializers.CharField(max_length=255)
+    last_name = serializers.CharField(max_length=255)
+    email = serializers.EmailField()
+    password = serializers.CharField(max_length=128)
+    area = serializers.PrimaryKeyRelatedField(queryset=Area.objects.all())
+    contact_no = serializers.CharField(validators=[RegexValidator(regex=r"^\+?1?\d{10}$")])
+    token = serializers.CharField(max_length=255, read_only=True)
+    
+    def validate(self, attrs):
+        email = attrs.get('email')
+        contact_no = attrs.get('contact_no')
+
+        if Customer.objects.filter(email=email).exists() and Customer.objects.filter(contact_no=contact_no).exists():
+            raise serializers.ValidationError("Email and Contact number already exist.")
+
+        if Customer.objects.filter(email=email).exists():
+            raise serializers.ValidationError("Email already exists.")
+
+        if Customer.objects.filter(contact_no=contact_no).exists():
+            raise serializers.ValidationError("Contact number already exists.")
+
+        return attrs
+
+    def create(self, validated_data):
+        user = Customer.objects.create(
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            email=validated_data['email'],
+            password=validated_data['password'],
+            area=validated_data['area'],
+            contact_no=validated_data['contact_no']
+        )
+        token = generate_token(str(user.id))
+        user.token = token.decode("utf-8")
+        return user

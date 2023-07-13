@@ -479,44 +479,59 @@ class BookingDetailApi(generics.GenericAPIView):
     
 
 
-# class ClientBankingApi(generics.GenericAPIView):
-#     authentication_classes = (JWTAuthentication, )
-#     permission_classes = (permissions.IsAuthenticated, )
+class ClientBankingApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
 
-#     def post(self, request):
-#         try:
-#             base_url = "https://api.razorpay.com/v2" 
-#             endpoint = "/accounts" 
+    def post(self, request):
+        try:
+            base_url = "https://api.razorpay.com/v2" 
+            endpoint = "/accounts" 
             
-#             url = base_url + endpoint
+            url = base_url + endpoint
             
-#             serializer = ClientBankingSerializer(data=request.data)
-#             if serializer.is_valid():
-#                 # key_id = 'rzp_test_Ty890qcC85nq5I'
-#                 # key_secret = 'eVt3lBv03IrVki8dBkoSnrsb'
-#                 # auth = base64.b64encode(f"{key_id}:{key_secret}".encode()).decode('utf-8')
+            serializer = ClientBankingSerializer(data=request.data)
+            if serializer.is_valid():
+     
                 
-#                 headers = {
-#                     'Content-Type': 'application/json',
-#                     'Authorization': 'Basic cnpwX3Rlc3RfVHk4OTBxY0M4NW5xNUk6ZVZ0M2xCdjAzSXJWa2k4ZEJrb1NucnNi'
-#                     }
-#                 # Make API call using the Razorpay API URL
-#                 response = requests.post(url, data=request.data, headers=headers)
-#                 serializer.save(client=request.user, status='active')
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic cnpwX3Rlc3RfVHk4OTBxY0M4NW5xNUk6ZVZ0M2xCdjAzSXJWa2k4ZEJrb1NucnNi'
+                }
+
+
+                response = requests.post(url, json=request.data, headers=headers)
                 
-#                 return Response({"result": True,
-#                                 "data": serializer.data,
-#                                 "message": "Bank-detail added successfully",
-#                                 "api_response": response.json()}, status=status.HTTP_201_CREATED)
+                if response.status_code == 200:
+                    account_data = response.json()
+                    serializer.save(
+                        client=request.user,
+                        status='active',
+                        account_id=account_data.get('id', ''),
+                        
+                    )
+                    return Response({
+                        "result": True,
+                        "data": serializer.data,
+                        "message": "Bank-detail added successfully",
+                        "api_response": account_data
+                    }, status=status.HTTP_201_CREATED)
+                
+                return Response({
+                    "result": False,
+                    "message": "Failed to create account in Razorpay",
+                    "api_response": response.json()
+                }, status=status.HTTP_400_BAD_REQUEST)
             
-#             errors = [str(error[0]) for error in serializer.errors.values()]
-#             response = Response({"result": False,
-#                                 "message": ", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
-#             return response
+            
+            errors = [str(error[0]) for error in serializer.errors.values()]
+            response = Response({"result": False,
+                                "message": ", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
+            return response
     
-#         except Exception as e:
-#             return Response({"result":False,
-#                             "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"result":False,
+                            "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
  
     
 
