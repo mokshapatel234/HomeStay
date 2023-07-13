@@ -17,7 +17,7 @@ from django.core.mail import send_mail
 from clientapi.serializers import RegisterSerializer, LoginSerializer,\
       ResetPasswordSerializer, ClientProfileSerializer,PropertiesListSerializer, PropertiesSerializer,\
       BookPropertySerializer, TermsAndPolicySerializer, BookingDetailSerializer, CustomerSerializer, \
-      ClientBankingSerializer, PropertiesUpdateSerializer
+      ClientBankingSerializer, PropertiesUpdateSerializer, PropertiesDetailSerializer
 from .utils import generate_token
 from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication, IsClientVerified
@@ -422,6 +422,21 @@ class PropertyApi(generics.GenericAPIView):
             property_instance.delete()
             return Response({'result':True,
                             "message":"property deleted successfully"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"result":False,
+                            "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
+    
+class PropertyDetailApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
+   
+    def get(self, request, id):
+        try:
+            properties = Properties.objects.get(id=id)
+            serializer = PropertiesDetailSerializer(properties)
+            return Response({'result':True,
+                            'data':serializer.data,
+                            "message":"property found successfully"}, status=status.HTTP_200_OK)
         except:
             return Response({"result":False,
                             "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  

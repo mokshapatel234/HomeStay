@@ -147,6 +147,16 @@ class PropertiesListSerializer(serializers.ModelSerializer):
         model = Properties
         fields = ['id', 'root_image', 'name', 'price','address', 'status']
 
+class PropertiesDetailSerializer(serializers.ModelSerializer):
+    images = PropertyImageSerializer(many=True)
+    videos = PropertyVideoSerializer(many=True)
+    terms = PropertyTermsSerializer(many=True)
+
+    class Meta:
+        model = Properties
+        fields = ['name', 'root_image', 'price', 'status', 'description', 'area_id', 'address', 'images', 'videos', 'terms']
+
+
 
 class ClientProfileSerializer(serializers.ModelSerializer):
    

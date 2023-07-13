@@ -8,6 +8,7 @@ urlpatterns = [
     path('forgotPassword/', ForgotPasswordApi.as_view(), name="forgot_password"),
     path('otpVerify/', OtpVerificationApi.as_view(), name="otp_verify"),
     path('resetPassword/', ResetPasswordApi.as_view(), name="reset_password"),
+    path('changePassword/', ChangePasswordApi.as_view(), name="change_password"),
     path('getDashboard/', DashboardPropertyApi.as_view(), name='get_dashboard'),
     path('customerProfile/', CustomerProfileApi.as_view(), name='customer_profile'),
     path('propertyDetail/<uuid:id>/', PropertyDetailApi.as_view(), name='property_detail'),

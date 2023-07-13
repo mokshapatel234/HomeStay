@@ -3,11 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 from django.template.loader import render_to_string
 from rest_framework.response import Response
-from rest_framework import serializers
-from django.http import JsonResponse
 import random
 from django.core.mail import EmailMultiAlternatives
-from django.urls import reverse
 from superadmin.models import *
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.permissions import AllowAny
@@ -20,8 +17,8 @@ from .utils import generate_token
 from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication
 from rest_framework.parsers import MultiPartParser
-from datetime import datetime
-from decimal import Decimal
+from django.contrib.auth.hashers import check_password
+from django.contrib.auth import update_session_auth_hash
 import razorpay
 
 # Create your views here.
@@ -212,9 +209,45 @@ class ChangePasswordApi(generics.GenericAPIView):
     
     def post(self, request):
         try:
-            pass
-        except:
-            pass
+            current_password = request.data.get('current_password')
+            new_password = request.data.get('new_password')
+            confirm_password = request.data.get('confirm_password')
+
+            if not current_password or not new_password or not confirm_password:
+                return Response({
+                    "result": False,
+                    "message": "Please provide the current password, new password, and confirm password."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            if new_password != confirm_password:
+                return Response({
+                    "result": False,
+                    "message": "New password and confirm password do not match."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            user = request.user
+            if current_password != user.password:
+                return Response({
+                    "result": False,
+                    "message": "Current password is incorrect."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            user.password=new_password
+            user.save()
+
+            # Ensure the user stays logged in by updating the session
+            update_session_auth_hash(request, user)
+
+            return Response({
+                "result": True,
+                "message": "Password changed successfully."
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                "result": False,
+                "message": str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DashboardPropertyApi(generics.GenericAPIView):
