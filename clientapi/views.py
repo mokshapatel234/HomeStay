@@ -501,17 +501,24 @@ class BookPropertyApi(generics.GenericAPIView):
 
     def get(self, request):
         try:
-            properties = request.user.properties.all()
             user = request.user
+            # query = request.GET.get('query')  # Get the search query from the request
+
             bookings = BookProperty.objects.filter(property__owner=user)
 
-            if bookings.exists():
-                serializer = BookPropertySerializer(bookings, many=True)
-                return Response({
-                    'result': True,
-                    'data': serializer.data,
-                    'message': 'Data found successfully'
-                }, status=status.HTTP_200_OK)
+            # if query:
+            #     # Apply search filter using Q objects
+            #     bookings = bookings.filter(
+            #         Q(amount__icontains=query) |
+            #         Q(start_date__icontains=query) |
+            #         Q(end_date__icontains=query) 
+            #     )
+                
+            page = self.paginate_queryset(bookings)  # Apply pagination to bookings queryset
+
+            if page:
+                serializer = BookPropertySerializer(page, many=True)
+                return self.get_paginated_response(serializer.data)  # Use get_paginated_response for paginated response
             else:
                 return Response({
                     'result': True,
@@ -523,12 +530,8 @@ class BookPropertyApi(generics.GenericAPIView):
                 'result': False,
                 'message': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
-# try:
-        #     user = request.user
-        #     bookings = BookProperty.objects.filter(property__owner=user)
-        #     serializer = BookPropertySerializer(bookings, many=True)
 
-        #     if len(serializer.data) > 0:
+        #   if len(serializer.data) > 0:
         #         page = self.paginate_queryset(serializer.data)
         #         if page is not None:
         #             serializer = BookPropertySerializer(page, many=True)
