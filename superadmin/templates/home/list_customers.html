@@ -19,18 +19,7 @@
             order: [[0, "desc"]],
         });
     
-        // Set the selected state in the dropdown
-        $('#area-select').val(selectedArea);
-    
-        // Handle state filter
-        $('#area-select').on('change', function () {
-            var selectedArea = $(this).val();
-            var url = '{% url "list_customers" %}';
-            if (selectedArea) {
-                url += '?area=' + selectedArea;
-            }
-            window.location.href = url;
-        });
+       
     
         // Function to retrieve query string parameter value
         function getQueryStringValue(key) {
@@ -77,12 +66,11 @@
          <th scope="row">
            <div class="col-lg-12">
              <div class="form-group">
-               <label class="form-control-label">State*</label>
-               <select name="state" class="form-control select2" style="height: 3rem;">
+               <label for="form-control-label">State*</label>
+               <select name="state" id="state-select" class="form-control" style="height: 3rem;">
                  <option value="">All State</option>
                  {% for state in states %}
-                   <option value="{{ state.id }}">{{ state.name }}</option>
-                 {% endfor %}
+                 <option value="{{ state.id }}" {% if state.id|stringformat:"state" == selected_state %}selected{% endif %}>{{ state.name }}</option>                 {% endfor %}
                </select>
              </div>
            </div>
@@ -90,11 +78,11 @@
          <th scope="row">
            <div class="col-lg-12">
              <div class="form-group">
-               <label class="form-control-label">City*</label>
-               <select name="city" class="form-control select2" style="height: 3rem;">
+               <label for="city-select">City*</label>
+               <select name="city" id="city-select" class="form-control" style="height: 3rem;">
                  <option value="">All City</option>
                  {% for city in cities %}
-                   <option value="{{ city.id }}">{{ city.name }}</option>
+                   <option value="{{ city.id }}" {% if city.id|stringformat:"city" == selected_city %}selected{% endif %}>{{ city.name }}</option>
                  {% endfor %}
                </select>
              </div>
@@ -103,11 +91,11 @@
          <th scope="row">
            <div class="col-lg-12">
              <div class="form-group">
-               <label class="form-control-label">Area*</label>
-               <select name="area" class="form-control select2" style="height: 3rem;">
+               <label for="area-select">Area*</label>
+               <select name="area" id="area-select" class="form-control" style="height: 3rem;">
                  <option value="">All Area</option>
                  {% for area in areas %}
-                   <option value="{{ area.id }}">{{ area.name }}</option>
+                   <option value="{{ area.id }}" {% if area.id|stringformat:"area" == selected_area %}selected{% endif %}>{{ area.name }}</option>
                  {% endfor %}
                </select>
              </div>
@@ -221,7 +209,7 @@
 <script src="{%static 'assets/js/datatables.min.js'%}"> </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-<script>
+{% comment %} <script>
   $(document).ready(function() {
     $('select[name="state"], select[name="city"], select[name="area"]').on('change', function() {
       var stateId = $('select[name="state"]').val();
@@ -237,5 +225,71 @@
       minimumResultsForSearch: 1
     });
   });
+</script> {% endcomment %}
+<script>
+  $(document).ready(function () {
+     // Retrieve the selected state, city, and area from the URL query string
+     var selectedState = getQueryStringValue('state');
+     var selectedCity = getQueryStringValue('city');
+     var selectedArea = getQueryStringValue('area');
+ 
+     $('#dtBasicExample').DataTable({
+         lengthChange: true,
+         searching: true,
+         paging: false,
+         columnDefs: [
+             { searchable: false, targets: 0 }
+         ],
+         order: [[0, "desc"]],
+     });
+ 
+     // Set the selected state, city, and area in the dropdowns
+     $('#state-select').val(selectedState);
+     $('#city-select').val(selectedCity);
+     $('#area-select').val(selectedArea);
+ 
+     // Handle state filter
+     $('#state-select').on('change', function () {
+         var selectedState = $(this).val();
+         var url = '{% url "list_customers" %}';
+         if (selectedState) {
+             url += '?state=' + selectedState;
+         }
+         window.location.href = url;
+     });
+ 
+     // Handle city filter
+     $('#city-select').on('change', function () {
+         var selectedCity = $(this).val();
+         var url = '{% url "list_customers" %}';
+         var stateParam = getQueryStringValue('state');
+         if (selectedCity) {
+             url += '?state=' + stateParam + '&city=' + selectedCity;
+         } else {
+             url += '?state=' + stateParam;
+         }
+         window.location.href = url;
+     });
+ 
+     // Handle area filter
+     $('#area-select').on('change', function () {
+         var selectedArea = $(this).val();
+         var url = '{% url "list_customers" %}';
+         var stateParam = getQueryStringValue('state');
+         var cityParam = getQueryStringValue('city');
+         if (selectedArea) {
+             url += '?state=' + stateParam + '&city=' + cityParam + '&area=' + selectedArea;
+         } else {
+             url += '?state=' + stateParam + '&city=' + cityParam;
+         }
+         window.location.href = url;
+     });
+ 
+     // Function to retrieve query string parameter value
+     function getQueryStringValue(key) {
+         var urlParams = new URLSearchParams(window.location.search);
+         return urlParams.get(key);
+     }
+ });
 </script>
 {% endblock javascripts %}

@@ -398,11 +398,17 @@ class PropertyApi(generics.GenericAPIView):
                     PropertyTerms.objects.create(property=property_obj, terms=terms)
 
                 updated_property_serializer = PropertiesSerializer(property_obj)
+                response_data = updated_property_serializer.data
+                response_data['area_name'] = area.name
+                response_data['city_name'] = city.name
+                response_data['state_name'] = state.name
+
                 return Response({
                     "result": True,
-                    "data": updated_property_serializer.data,
+                    "data": response_data,
                     "message": "Property updated successfully"
                 }, status=status.HTTP_200_OK)
+                
             else:
                 return Response({
                     "result": False,

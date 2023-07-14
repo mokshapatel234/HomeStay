@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework import status, generics
 from django.template.loader import render_to_string
@@ -66,7 +67,7 @@ class LoginApi(generics.GenericAPIView):
             serializer = self.serializer_class(data=request.data)
             if serializer.is_valid():
                 customer = serializer.validated_data['customer']
-                
+                request.session['customer'] = str(customer.id)
                 token = generate_token(str(customer.id))
                 
                 user_data = {
@@ -113,6 +114,8 @@ class LoginApi(generics.GenericAPIView):
             response = Response({"result":False,
                                 "message": "Invalid data input. Please provide appropriate credentials"}, status=status.HTTP_400_BAD_REQUEST)
             return response
+
+
 
 
 class ForgotPasswordApi(generics.GenericAPIView):
@@ -260,8 +263,6 @@ class DashboardPropertyApi(generics.GenericAPIView):
             city = request.query_params.get('city', None)
             area = request.query_params.get('area', None)
             
-    
-            
             if area:
                 try:
                     area_obj = Area.objects.get(id=area)
@@ -295,6 +296,7 @@ class DashboardPropertyApi(generics.GenericAPIView):
             return Response({"result":True,
                             "data":serializer.data,
                             "message":"Property found successfully"}, status=status.HTTP_200_OK)
+        
         except:
             return Response({"result":False,
                             "message": "Error in getting data"}, status=status.HTTP_404_NOT_FOUND)

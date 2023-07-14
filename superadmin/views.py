@@ -377,9 +377,9 @@ def list_clients(request):
     cities = City.objects.all()
     areas = Area.objects.all()
 
-    state_id = request.GET.get('state_id')
-    city_id = request.GET.get('city_id')
-    area_id = request.GET.get('area_id')
+    state_id = request.GET.get('state')
+    city_id = request.GET.get('city')
+    area_id = request.GET.get('area')
 
     selected_state = None
     selected_city = None
@@ -525,9 +525,9 @@ def list_customers(request):
     areas  = Area.objects.all()
 
 
-    state_id = request.GET.get('state_id')
-    city_id = request.GET.get('city_id')
-    area_id = request.GET.get('area_id')
+    state_id = request.GET.get('state')
+    city_id = request.GET.get('city')
+    area_id = request.GET.get('area')
 
     selected_state = None
     selected_city = None
@@ -845,9 +845,9 @@ def list_commission(request):
     cities = City.objects.all()
     areas = Area.objects.all()
 
-    state_id = request.GET.get('state_id')
-    city_id = request.GET.get('city_id')
-    area_id = request.GET.get('area_id')
+    state_id = request.GET.get('state')
+    city_id = request.GET.get('city')
+    area_id = request.GET.get('area')
 
     selected_state = None
     selected_city = None
