@@ -8,6 +8,7 @@ from rest_framework import serializers
 from django.http import JsonResponse
 import random
 import requests
+from userapi.models import BookProperty
 from django.core.mail import EmailMultiAlternatives
 from django.urls import reverse
 from superadmin.models import *
@@ -252,7 +253,7 @@ class ClientProfileApi(generics.GenericAPIView):
 
     def put(self, request):
         try: 
-            serializer = ClientProfileSerializer(request.user, data=request.data, partial=True)
+            serializer = ClientProfileSerializer(request.user, data=request.data, context={'request': request}, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response({"result":True,
@@ -272,54 +273,54 @@ class PropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
     parser_classes = (MultiPartParser, )
-    # pagination_class = ClientPagination
-    # page_size = 10
-    # page = 1
-
-    # def get(self, request):
-    #     try:
-    #         query = request.GET.get('query')  # Get the search query from the request
-    #         properties = request.user.properties.all()
-
-    #         if query:
-    #             # Apply search filter using Q objects
-    #             properties = properties.filter(
-    #                 Q(name__icontains=query) |  
-    #                 Q(address__icontains=query) |
-    #                 Q(price__icontains=query) |
-    #                 Q(status__icontains=query)  
-    #             )
-
-    #         serializer = PropertiesListSerializer(properties, many=True)
-
-    #         if len(serializer.data) > 0:
-    #             page = self.paginate_queryset(serializer.data)
-    #             if page is not None:
-    #                 serializer = PropertiesListSerializer(page, many=True)
-    #                 return self.get_paginated_response(serializer.data)
-
-    #         return Response({
-    #             'result': True,
-    #             'data': serializer.data,
-    #             'message': 'Property found successfully'
-    #         }, status=status.HTTP_200_OK)
-    #     except Exception as e:
-    #         return Response({
-    #             'result': False,
-    #             'message': 'cannot find data'
-    #         }, status=status.HTTP_400_BAD_REQUEST)
-        
+    pagination_class = ClientPagination
+    page_size = 5
+    page = 1
 
     def get(self, request):
         try:
+            query = request.GET.get('query')  # Get the search query from the request
             properties = request.user.properties.all()
-            serializer = PropertiesSerializer(properties, many=True)
-            return Response({'result':True,
-                            'data':serializer.data,
-                            "message":"property found successfully"}, status=status.HTTP_200_OK)
-        except:
-            return Response({"result":False,
-                            "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
+
+            if query:
+                # Apply search filter using Q objects
+                properties = properties.filter(
+                    Q(name__icontains=query) |  
+                    Q(address__icontains=query) |
+                    Q(price__icontains=query) |
+                    Q(status__icontains=query)  
+                )
+
+            serializer = PropertiesListSerializer(properties, many=True)
+
+            if len(serializer.data) > 0:
+                page = self.paginate_queryset(serializer.data)
+                if page is not None:
+                    serializer = PropertiesListSerializer(page, many=True)
+                    return self.get_paginated_response(serializer.data)
+
+            return Response({
+                'result': True,
+                'data': serializer.data,
+                'message': 'Property found successfully'
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'result': False,
+                'message': 'cannot find data'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+
+    # def get(self, request):
+    #     try:
+    #         properties = request.user.properties.all()
+    #         serializer = PropertiesSerializer(properties, many=True)
+    #         return Response({'result':True,
+    #                         'data':serializer.data,
+    #                         "message":"property found successfully"}, status=status.HTTP_200_OK)
+    #     except:
+    #         return Response({"result":False,
+    #                         "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
 
 
      
@@ -398,14 +399,17 @@ class PropertyApi(generics.GenericAPIView):
                     PropertyTerms.objects.create(property=property_obj, terms=terms)
 
                 updated_property_serializer = PropertiesSerializer(property_obj)
-                response_data = updated_property_serializer.data
-                response_data['area_name'] = area.name
-                response_data['city_name'] = city.name
-                response_data['state_name'] = state.name
+                updated_property_data = updated_property_serializer.data
+                updated_property_data['area'] = {
+                'name': area.name,
+                'city': city.name,
+                'state': state.name
+            }
+
 
                 return Response({
                     "result": True,
-                    "data": response_data,
+                    "data": updated_property_data,
                     "message": "Property updated successfully"
                 }, status=status.HTTP_200_OK)
                 
@@ -454,6 +458,7 @@ class DashboardApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
 
+
     def get(self, request):
         try:
             user = request.user
@@ -469,12 +474,13 @@ class DashboardApi(generics.GenericAPIView):
                 'bookings': booking_serializer.data,
                 "id": user.id,
                 "first_name": user.first_name,
-                # "profile_image":user.profile_image,
                 "last_name":user.last_name,
                 "email":user.email,
                 "password":user.password,
                 "contact_no":user.contact_no,
             }
+            if user.profile_image:
+                data["profile_image"] = user.profile_image
 
             return Response({
                 "result": True,
@@ -484,18 +490,20 @@ class DashboardApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 "result": False,
-                "message": 'Error in data listing'
+                "message": str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
 class BookPropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
+    pagination_class = ClientPagination
+
 
     def get(self, request):
         try:
             properties = request.user.properties.all()
             user = request.user
-            bookings = Bookings.objects.filter(property__owner=user)
+            bookings = BookProperty.objects.filter(property__owner=user)
 
             if bookings.exists():
                 serializer = BookPropertySerializer(bookings, many=True)
@@ -513,8 +521,30 @@ class BookPropertyApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 'result': False,
-                'message': 'Error in data found'
+                'message': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
+# try:
+        #     user = request.user
+        #     bookings = BookProperty.objects.filter(property__owner=user)
+        #     serializer = BookPropertySerializer(bookings, many=True)
+
+        #     if len(serializer.data) > 0:
+        #         page = self.paginate_queryset(serializer.data)
+        #         if page is not None:
+        #             serializer = BookPropertySerializer(page, many=True)
+        #             return self.get_paginated_response(serializer.data)
+            
+        #     else:
+        #         return Response({
+        #             'result': True,
+        #             'data': [],
+        #             'message': 'Empty booking history'
+        #         }, status=status.HTTP_200_OK)
+        # except Exception as e:
+        #     return Response({
+        #         'result': False,
+        #         'message': str(e)
+        #     }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BookingDetailApi(generics.GenericAPIView):

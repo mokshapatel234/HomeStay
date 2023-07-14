@@ -6,6 +6,7 @@ from .utils import generate_token
 from .models import ClientBanking
 from django.conf import settings
 import razorpay
+from userapi.models import BookProperty
 
 class TermsAndPolicySerializer(serializers.ModelSerializer):
 
@@ -190,8 +191,8 @@ class BookPropertySerializer(serializers.ModelSerializer):
         return obj.property.name if obj.property else None
 
     class Meta:
-        model = Bookings
-        fields = ['id', 'property_name', 'property_root_image', 'customer_name', 'customer_profile_image', 'status', 'rent', 'start_date', 'end_date'] 
+        model = BookProperty
+        fields = ['id', 'property_name', 'property_root_image', 'customer_name', 'customer_profile_image', 'start_date', 'end_date'] 
   
 
 class BookingDetailSerializer(serializers.ModelSerializer):
@@ -199,40 +200,53 @@ class BookingDetailSerializer(serializers.ModelSerializer):
     end_date = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S')
 
     class Meta:
-        model = Bookings
-        fields = ['id', 'status', 'rent', 'start_date', 'end_date']
+        model = BookProperty
+        fields = ['id', 'status', 'amount', 'start_date', 'end_date']
 
 
 class ClientBankingSerializer(serializers.ModelSerializer):
+    email = serializers.CharField()
+    phone = serializers.CharField()
+    contact_name = serializers.CharField()
+    legal_business_name = serializers.CharField()
+    business_type = serializers.CharField(required=False)  # Set as optional field
+    type = serializers.CharField(required=False)  # Set as optional field
 
     class Meta:
         model = ClientBanking
-        fields = ['email', 'phone', 'contact_name', 'legal_business_name' , 'business_type']
-    
-    # def create(self, validated_data):
-    #     # Retrieve banking details
-    #     razorpay_payment_id = validated_data.pop('razorpay_payment_id', None)
-    #     razorpay_order_id = validated_data.pop('razorpay_order_id', None)
+        fields = ['email', 'phone', 'contact_name', 'legal_business_name', 'business_type', 'type']   
 
-    #     # Create the route in Razorpay
-    #     client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
-    #     print(client)
-    #     data = {
-    #         'account_number': validated_data['account_number'],
-    #         'bank_name': validated_data['bank_name'],
-    #         'branch': validated_data['branch'],
-    #         'ifsc_code': validated_data['ifsc_code'],
-    #         'razorpay_payment_id': razorpay_payment_id,
-    #         'razorpay_order_id': razorpay_order_id,
-    #         'amount': validated_data['amount'],
-    #         'currency': validated_data['currency'],
-    #         'payment_status': validated_data['payment_status'],
-    #         'payment_date': validated_data['payment_date']
-    #     }
-    #     route = client.route.create(data=data)
 
-    #     # Save the route details in your database
-    #     validated_data['razorpay_payment_id'] = route['payment_id']
-    #     validated_data['razorpay_order_id'] = route['order_id']
 
-    #     return super().create(validated_data)
+class AddressSerializer(serializers.Serializer):
+    street1 = serializers.CharField()
+    street2 = serializers.CharField()
+    city = serializers.CharField()
+    state = serializers.CharField()
+    postal_code = serializers.CharField()
+    country = serializers.CharField()
+
+class ProfileSerializer(serializers.Serializer):
+    category = serializers.CharField()
+    subcategory = serializers.CharField()
+    addresses = AddressSerializer()
+
+class CustomClientBankingSerializer(ClientBankingSerializer):
+    profile = ProfileSerializer()
+    def get_default_type(self):
+        return 'route'
+
+    def get_default_business_type(self):
+        return 'partnership'
+
+    def to_internal_value(self, data):
+        internal_value = super().to_internal_value(data)
+
+        internal_value['type'] = self.get_default_type()
+        internal_value['business_type'] = self.get_default_business_type()
+
+        profile_data = data.get('profile')
+        if profile_data:
+            internal_value['profile'] = self.fields['profile'].to_internal_value(profile_data)
+
+        return internal_value

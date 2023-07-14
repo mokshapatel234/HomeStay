@@ -138,7 +138,7 @@ class BookPropertySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BookProperty
-        fields = ['id', 'start_date', 'end_date', 'amount', 'currency']
+        fields = ['id', 'start_date', 'end_date', 'amount']
     
 
 class TermsAndPolicySerializer(serializers.ModelSerializer):
@@ -198,3 +198,32 @@ class RegisterSerializer(serializers.Serializer):
         token = generate_token(str(user.id))
         user.token = token.decode("utf-8")
         return user
+
+
+
+class TransferSerializer(serializers.Serializer):
+    account = serializers.CharField()
+    amount = serializers.IntegerField()
+    currency = serializers.CharField()
+    linked_account_notes = serializers.ListField(child=serializers.CharField(), required=False)
+    on_hold = serializers.IntegerField(required=False)
+    on_hold_until = serializers.IntegerField(required=False)
+
+class OrderCreateSerializer(serializers.Serializer):
+    amount = serializers.IntegerField()
+    currency = serializers.CharField()
+    transfers = TransferSerializer(many=True)
+
+    def create(self, validated_data):
+        transfers_data = validated_data.pop('transfers')
+        order_data = super().create(validated_data)
+
+        transfers = []
+        for transfer_data in transfers_data:
+            notes_data = transfer_data.pop('notes')
+            transfer = Transfer(**transfer_data)
+            transfer.notes = NoteSerializer().create(notes_data)
+            transfers.append(transfer)
+
+        order_data.transfers = transfers
+        return order_data

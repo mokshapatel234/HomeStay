@@ -5,6 +5,7 @@ from rest_framework import status, generics
 from django.template.loader import render_to_string
 from rest_framework.response import Response
 import random
+from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from superadmin.models import *
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
@@ -21,7 +22,7 @@ from rest_framework.parsers import MultiPartParser
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import update_session_auth_hash
 import razorpay
-
+from .models import BookProperty
 # Create your views here.
 
 
@@ -362,7 +363,7 @@ class BookPropertyApi(generics.GenericAPIView):
     def get(self, request):
         try:
             user = request.user
-            bookings = Bookings.objects.filter(customer=user)
+            bookings = BookProperty.objects.filter(customer=user)
             serializer = BookPropertySerializer(bookings, many=True)
             return Response({
                 'result': True,
@@ -391,34 +392,23 @@ class BookPropertyApi(generics.GenericAPIView):
                         'message': 'Property is already booked'
                     }, status=status.HTTP_400_BAD_REQUEST)
 
-                # start_date_str = data.get('start_date')
-                # current_date = datetime.now().date()
-
-                # # Check if the start_date is before the current_date
-                # start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-
-                # if start_date < current_date:
-                #     return Response({
-                #         'result': False,
-                #         'message': 'Invalid start date. Please select a date from today or later.'
-                #     }, status=status.HTTP_400_BAD_REQUEST)
 
                 serializer.validated_data['start_date'] = data.get('start_date')
                 serializer.validated_data['end_date'] = data.get('end_date')
                 serializer.validated_data['property'] = property
 
-                instance = serializer.save()
+                instance = serializer.save(customer=request.user, currency="INR")
 
                 property.status = 'inactive'
                 property.save()
 
-                client = razorpay.Client(auth=("rzp_test_Ty890qcC85nq5I", "eVt3lBv03IrVki8dBkoSnrsb"))
+                client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
                 amount = int(instance.amount * 100)  
                 currency = instance.currency
 
                 order_data = {
                     "amount": amount,
-                    "currency": currency,
+                    "currency": "INR",
                     "notes": {
                         "property_id": str(property.id),
                         "booking_id": str(instance.id)
@@ -428,11 +418,9 @@ class BookPropertyApi(generics.GenericAPIView):
                 order = client.order.create(order_data)
                 order_id = order.get('id', '')
 
-                # Update the order_id field in the instance
                 instance.order_id = order_id
                 instance.save()
 
-                # Prepare response data
                 response_data = {
                     'result': True,
                     'data': serializer.data,
