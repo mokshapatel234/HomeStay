@@ -445,7 +445,7 @@ class DashboardApi(generics.GenericAPIView):
             user = request.user
 
             properties = user.properties.order_by('-created_at')[:10]
-            bookings = Bookings.objects.filter(property__owner=user).order_by('-created_at')[:10]
+            bookings = BookProperty.objects.filter(property__owner=user).order_by('-created_at')[:10]
 
             property_serializer = PropertiesListSerializer(properties, many=True)
             booking_serializer = BookPropertySerializer(bookings, many=True)
@@ -461,7 +461,7 @@ class DashboardApi(generics.GenericAPIView):
                 "contact_no":user.contact_no,
             }
             if user.profile_image:
-                data["profile_image"] = user.profile_image
+                data['profile_image'] = user.profile_image.url
 
             return Response({
                 "result": True,
@@ -537,7 +537,7 @@ class BookingDetailApi(generics.GenericAPIView):
 
     def get(self, request, id):
         try:
-            booking = Bookings.objects.get(id=id)
+            booking = BookProperty.objects.get(id=id)
             property = booking.property
             customer = booking.customer
 
