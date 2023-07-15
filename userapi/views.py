@@ -432,9 +432,9 @@ class BookPropertyApi(generics.GenericAPIView):
     def get(self, request):
         try:
             user = request.user
-            bookings = BookProperty.objects.filter(customer=user)
+            bookings = BookProperty.objects.filter(customer=user, status=True)  # Update the condition for the status field
             serializer = BookPropertyListSerializer(bookings, many=True)
-            
+
             data = []
             for booking in bookings:
                 property_id = booking.property_id
@@ -450,7 +450,7 @@ class BookPropertyApi(generics.GenericAPIView):
                     'end_date': booking.end_date,
                     'amount': booking.amount
                 }
-            data.append(item)# Placeholder value, replace with your logic
+                data.append(item)
 
             return Response({
                 'result': True,
@@ -647,15 +647,6 @@ class VerifyApi(generics.GenericAPIView):
             booking = BookProperty.objects.get(order_id=order_id)
             booking.status = status_value
             booking.save()
-
-            if status_value is True:
-                    property_obj = booking.property
-                    property_obj.status = 'inactive'
-                    property_obj.save()
-            if status_value is False:
-                    property_obj = booking.property
-                    property_obj.status = 'active'
-                    property_obj.save()
 
 
             return Response({
