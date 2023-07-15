@@ -282,6 +282,7 @@ class PropertyApi(generics.GenericAPIView):
 
     def get(self, request):
         try:
+            
             query = request.GET.get('query')  # Get the search query from the request
             properties = request.user.properties.all()
 
@@ -299,7 +300,25 @@ class PropertyApi(generics.GenericAPIView):
 
             paginated_properties = self.paginate_queryset(properties)
             serializer = PropertiesSerializer(paginated_properties, many=True)
-            return self.get_paginated_response(serializer.data)
+            response_data = serializer.data
+
+        # Get the area, city, and state names for each property
+            for property_data in response_data:
+                area_id = property_data['area_id']
+                area = Area.objects.filter(id=area_id).first()
+                if area:
+                    city = area.city
+                    state = city.state
+                    property_data['area'] = {
+                        'area_name': area.name,
+                        'area_id': area.id,
+                        'city_name': city.name,
+                        'city_id': city.id,
+                        'state_name': state.name,
+                        'state_id': state.id,
+                    }
+
+            return self.get_paginated_response(response_data)
         except:
             return Response({"result": False, "message": "Property not available"}, status=status.HTTP_400_BAD_REQUEST)
 
