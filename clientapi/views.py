@@ -442,14 +442,32 @@ class PropertyDetailApi(generics.GenericAPIView):
    
     def get(self, request, id):
         try:
-            properties = Properties.objects.get(id=id)
-            serializer = PropertiesDetailSerializer(properties)
-            return Response({'result':True,
-                            'data':serializer.data,
-                            "message":"property found successfully"}, status=status.HTTP_200_OK)
-        except:
+            property = Properties.objects.get(id=id)
+            serializer = PropertiesDetailSerializer(property)
+
+            area = property.area_id
+            city = area.city
+            state = city.state
+
+            response_data = serializer.data
+            response_data['area'] = {
+                'name': area.name,
+                'id': area.id,
+                'city': city.name,
+                'city_id': city.id,
+                'state': state.name,
+                'state_id': state.id,
+            }
+
+            return Response({
+                'result': True,
+                'data': response_data,
+                'message': 'Property found successfully'
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
             return Response({"result":False,
-                            "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
+                            "message":"Property not found"}, status=status.HTTP_400_BAD_REQUEST)  
     
 
 

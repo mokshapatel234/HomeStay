@@ -1,6 +1,6 @@
 from rest_framework import serializers 
 from superadmin.models import Customer, Area, City, State, Properties, PropertyImage, PropertyTerms,\
-      PropertyVideo, Bookings, TermsandPolicy, Wishlist
+      PropertyVideo, Bookings, TermsandPolicy, Wishlist, Commission
 from django.core.validators import RegexValidator
 from .utils import generate_token
 from .models import BookProperty
@@ -203,26 +203,27 @@ class RegisterSerializer(serializers.Serializer):
 
 class TransferSerializer(serializers.Serializer):
     account = serializers.CharField()
-    amount = serializers.IntegerField()
-    currency = serializers.CharField()
+
+    def get_commission_amount(self, property):
+        commission = Commission.objects.get(client=property.owner)
+        amount = self.context['amount']  # assuming you pass the amount as context data
+        commission_percent = commission.commission_percent
+        commission_amount = amount * (commission_percent / 100)
+        return commission_amount
+
+    def validate(self, data):
+        property = data['property']
+        commission_amount = self.get_commission_amount(property)
+        data['amount'] = commission_amount
+        data['currency'] = "INR"
+        return data
+
+
 class OrderCreateSerializer(serializers.Serializer):
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
     amount = serializers.IntegerField()
     currency = serializers.CharField()
     transfers = TransferSerializer(many=True)
-    
+
    
-    def create(self, validated_data):
-        transfers_data = validated_data.pop('transfers', [])
-        instance = super().create(validated_data)
-
-        commission_percent = 10  # Assuming commission percentage is 10%
-        amount = instance.amount
-        commission_amount = amount * commission_percent / 100
-        transfer_amount = amount - commission_amount
-
-        for transfer_data in transfers_data:
-            transfer_data['amount'] = transfer_amount
-            transfer_data['currency'] = 'INR'  # Set the currency as 'INR' (static)
-
-        instance.transfers = transfers_data
-        return instance
