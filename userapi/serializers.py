@@ -201,29 +201,27 @@ class RegisterSerializer(serializers.Serializer):
 
 
 
-class TransferSerializer(serializers.Serializer):
-    account = serializers.CharField()
+# class TransferSerializer(serializers.Serializer):
+#     account = serializers.CharField()
 
-    def get_commission_amount(self, property):
-        commission = Commission.objects.get(client=property.owner)
-        amount = self.context['amount']  # assuming you pass the amount as context data
-        commission_percent = commission.commission_percent
-        commission_amount = amount * (commission_percent / 100)
-        return commission_amount
+#     def get_commission_amount(self, property):
+#         commission = Commission.objects.get(client=property.owner)
+#         amount = self.context['amount']  # assuming you pass the amount as context data
+#         commission_percent = commission.commission_percent
+#         commission_amount = amount * (commission_percent / 100)
+#         return commission_amount
 
-    def validate(self, data):
-        property = data['property']
-        commission_amount = self.get_commission_amount(property)
-        data['amount'] = commission_amount
-        data['currency'] = "INR"
-        return data
+#     def validate(self, data):
+#         property = data['property']
+#         commission_amount = self.get_commission_amount(property)
+#         data['amount'] = commission_amount
+#         data['currency'] = "INR"
+#         return data
 
 
-class OrderCreateSerializer(serializers.Serializer):
-    start_date = serializers.DateField()
-    end_date = serializers.DateField()
-    amount = serializers.IntegerField()
-    currency = serializers.CharField()
-    transfers = TransferSerializer(many=True)
+# class OrderCreateSerializer(serializers.ModelSerializer):
+#     transfers = TransferSerializer(many=True)
 
-   
+#     class Meta:
+#         model = BookProperty
+#         fields = ['start_date', 'end_date', 'amount', 'currency', 'transfers']

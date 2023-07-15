@@ -12,7 +12,7 @@ from superadmin.models import *
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
-from userapi.serializers import OrderCreateSerializer, RegisterSerializer, LoginSerializer, ResetPasswordSerializer,\
+from userapi.serializers import RegisterSerializer, LoginSerializer, ResetPasswordSerializer,\
       DashboardPropertiesSerializer,\
           CustomerProfileSerializer, PropertiesDetailSerializer, BookPropertySerializer,\
               TermsAndPolicySerializer, WishlistSerializer
@@ -377,6 +377,31 @@ class BookPropertyApi(generics.GenericAPIView):
                 'message': 'History not available'
             }, status=status.HTTP_400_BAD_REQUEST)
 
+    # def post(self, request, id):
+    #     serializer = OrderCreateSerializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     validated_data = serializer.validated_data
+
+    #     # Save the order_id to the BookProperty model
+    #     booking = BookProperty.objects.create(
+    #         order_id=validated_data['order_id']
+    #     )
+
+    #     # Create Razorpay order
+    #     client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
+    #     order_data = {
+    #         "amount": validated_data['amount'],
+    #         "currency": validated_data['currency'],
+    #         "transfers": validated_data['transfers']
+    #     }
+    #     order_response = client.order.create(order_data)
+
+    #     # Return order_id in the response
+    #     response_data = {
+    #         'order_id': booking.order_id,
+    #         'order_data':order_response
+    #     }
+    #     return Response(response_data)
 
 
 
@@ -450,10 +475,10 @@ class BookPropertyApi(generics.GenericAPIView):
             user = request.user
             data = request.data.copy()
             data['customer'] = user.id
-            property = Properties.objects.get(id=id)
-            serializer = OrderCreateSerializer(data=data, context={'amount': data['amount']})
+            serializer = BookPropertySerializer(data=data, context={'amount': data['amount']})
             if serializer.is_valid():
-                
+                property = Properties.objects.get(id=id)
+
 
                 if property.status == 'inactive':
                     return Response({
@@ -463,7 +488,6 @@ class BookPropertyApi(generics.GenericAPIView):
 
                 serializer.validated_data['start_date'] = data.get('start_date')
                 serializer.validated_data['end_date'] = data.get('end_date')
-                serializer.validated_data['property'] = property
 
                 instance = serializer.save(customer=request.user, currency="INR")
 
@@ -476,10 +500,6 @@ class BookPropertyApi(generics.GenericAPIView):
                 order_data = {
                     "amount": amount,
                     "currency": currency,
-                    "notes": {
-                        "property_id": str(property.id),
-                        "booking_id": str(instance.id)
-                    }
                 }
 
                 order = client.order.create(order_data)
