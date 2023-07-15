@@ -134,7 +134,7 @@ class PropertiesDetailSerializer(serializers.ModelSerializer):
 
 
 
-class BookPropertySerializer(serializers.ModelSerializer):
+class BookPropertyListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BookProperty
@@ -225,3 +225,44 @@ class RegisterSerializer(serializers.Serializer):
 #     class Meta:
 #         model = BookProperty
 #         fields = ['start_date', 'end_date', 'amount', 'currency', 'transfers']
+
+
+
+class CommissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Commission
+        fields = ('id', 'client', 'commission_percent')
+
+class BookPropertySerializer(serializers.ModelSerializer):
+    commission = CommissionSerializer(source='property.owner.client_commission', read_only=True)
+    transfers = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BookProperty
+        fields = ('id', 'start_date', 'end_date', 'amount', 'transfers', 'commission')
+
+    def create(self, validated_data):
+        transfers_data = self.get_transfers(validated_data)
+        validated_data.pop('transfers', None)
+        instance = super().create(validated_data)
+        setattr(instance, 'transfers', transfers_data)
+        return instance
+
+    def get_transfers(self, validated_data):
+        owner = validated_data['property'].owner
+        commission = owner.client_commission.order_by('id').first() if owner else None
+        commission_percent = commission.commission_percent if commission else None
+
+        if commission_percent is None:
+            raise serializers.ValidationError("Commission percentage is not available for the property owner.")
+
+        amount = validated_data['amount']
+        commission_amount = amount * commission_percent / 100
+
+        transfers_data = [{
+            "account": owner.banking_details.first().account_id,
+            "amount": commission_amount,
+            "currency": "INR"
+        }]
+        return transfers_data
+

@@ -201,7 +201,7 @@ class BookingDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BookProperty
-        fields = ['id', 'status', 'amount', 'start_date', 'end_date']
+        fields = ['id', 'amount', 'start_date', 'end_date']
 
 
 class ClientBankingSerializer(serializers.ModelSerializer):

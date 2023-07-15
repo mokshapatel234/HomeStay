@@ -416,12 +416,12 @@ class PropertyApi(generics.GenericAPIView):
             else:
                 return Response({
                     "result": False,
-                    "message": 'Error'
+                    "message": 'Error in property updation'
                 }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({
                 "result": False,
-                "message": str(e)
+                "message": 'Error in property updation'
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -508,7 +508,7 @@ class DashboardApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 "result": False,
-                "message": str(e)
+                "message":"Error in getting data"
             }, status=status.HTTP_400_BAD_REQUEST)
 
 class BookPropertyApi(generics.GenericAPIView):
@@ -546,7 +546,7 @@ class BookPropertyApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 'result': False,
-                'message': str(e)
+                'message': "Error in booking history"
             }, status=status.HTTP_400_BAD_REQUEST)
 
         #   if len(serializer.data) > 0:
@@ -653,7 +653,7 @@ class ClientBankingApi(generics.GenericAPIView):
     
         except Exception as e:
             return Response({"result":False,
-                            "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                            "message": "Error in razorpay account"}, status=status.HTTP_400_BAD_REQUEST)
  
     
 
@@ -702,7 +702,7 @@ class CreateProductApi(APIView):
         except Exception as e:
             return Response({
                 "result": False,
-                "message": str(e)
+                "message": "Error in product create"
             }, status=status.HTTP_400_BAD_REQUEST)
         
 
@@ -751,7 +751,7 @@ class CreateProductApi(APIView):
         except Exception as e:
             return Response({
                 "result": False,
-                "message": str(e)
+                "message": "Error in product update"
             }, status=status.HTTP_400_BAD_REQUEST)
 
              
