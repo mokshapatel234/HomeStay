@@ -49,3 +49,6 @@ class ClientBanking(models.Model):
 #     def __str__(self):
 #         return f"ClientBanking {self.id} - Account {self.account_id}"
 
+
+class Product(models.Model):
+    product_id = models.CharField(max_length=20)

@@ -17,6 +17,10 @@ urlpatterns = [
     path('termsPolicy/', TermsAndPolicyApi.as_view(), name='terms_and_policy'),
     path('dashboard/', DashboardApi.as_view(), name='dashboard'),
     path('bankDetail/', ClientBankingApi.as_view(), name='client_bank_detail'),
+    path('accounts/<str:account_id>/products', CreateProductApi.as_view(), name='create-product'),
+    path('accounts/<str:account_id>/products/<str:product_id>/', CreateProductApi.as_view(), name='add_bank_detail'),
+
+
 
 
 

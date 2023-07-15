@@ -1,3 +1,4 @@
+from rest_framework import filters
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions
 from rest_framework.response import Response
@@ -15,7 +16,7 @@ from superadmin.models import *
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
-from clientapi.serializers import RegisterSerializer, LoginSerializer,\
+from clientapi.serializers import PatchRequestSerializer, RegisterSerializer, LoginSerializer,\
       ResetPasswordSerializer, ClientProfileSerializer,PropertiesListSerializer, PropertiesSerializer,\
       BookPropertySerializer, TermsAndPolicySerializer, BookingDetailSerializer, CustomerSerializer, \
       ClientBankingSerializer, PropertiesUpdateSerializer, PropertiesDetailSerializer
@@ -27,7 +28,7 @@ from .paginator import ClientPagination
 from django.db.models import Q
 import razorpay
 import base64
-from .models import ClientBanking
+from .models import ClientBanking, Product
 from rest_framework.views import APIView
 
 
@@ -276,6 +277,8 @@ class PropertyApi(generics.GenericAPIView):
     pagination_class = ClientPagination
     page_size = 5
     page = 1
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'address', 'price', 'status']  # Add the fields you want to search by
 
     def get(self, request):
         try:
@@ -291,39 +294,14 @@ class PropertyApi(generics.GenericAPIView):
                     Q(status__icontains=query)  
                 )
 
-            serializer = PropertiesListSerializer(properties, many=True)
+            serializer = PropertiesSerializer(properties, many=True)
+            
 
-            if len(serializer.data) > 0:
-                page = self.paginate_queryset(serializer.data)
-                if page is not None:
-                    serializer = PropertiesListSerializer(page, many=True)
-                    return self.get_paginated_response(serializer.data)
-
-            return Response({
-                'result': True,
-                'data': serializer.data,
-                'message': 'Property found successfully'
-            }, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({
-                'result': False,
-                'message': 'cannot find data'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-
-    # def get(self, request):
-    #     try:
-    #         properties = request.user.properties.all()
-    #         serializer = PropertiesSerializer(properties, many=True)
-    #         return Response({'result':True,
-    #                         'data':serializer.data,
-    #                         "message":"property found successfully"}, status=status.HTTP_200_OK)
-    #     except:
-    #         return Response({"result":False,
-    #                         "message":"Property not available"}, status=status.HTTP_400_BAD_REQUEST)  
-
-
-     
+            paginated_properties = self.paginate_queryset(properties)
+            serializer = PropertiesSerializer(paginated_properties, many=True)
+            return self.get_paginated_response(serializer.data)
+        except:
+            return Response({"result": False, "message": "Property not available"}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         try: 
@@ -402,8 +380,11 @@ class PropertyApi(generics.GenericAPIView):
                 updated_property_data = updated_property_serializer.data
                 updated_property_data['area'] = {
                 'name': area.name,
+                'id':area.id,
                 'city': city.name,
-                'state': state.name
+                'city_id':city.id,
+                'state': state.name,
+                'state_id':state.id,
             }
 
 
@@ -416,12 +397,12 @@ class PropertyApi(generics.GenericAPIView):
             else:
                 return Response({
                     "result": False,
-                    "message": 'Error in data updation'
+                    "message": 'Error'
                 }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({
                 "result": False,
-                "message": 'Error in data updation'
+                "message": str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -589,7 +570,9 @@ class ClientBankingApi(generics.GenericAPIView):
             endpoint = "/accounts" 
             
             url = base_url + endpoint
-            
+
+            request.data['type'] = 'route'
+            request.data['business_type'] = 'partnership'
             serializer = ClientBankingSerializer(data=request.data)
             if serializer.is_valid():
      
@@ -608,6 +591,8 @@ class ClientBankingApi(generics.GenericAPIView):
                         client=request.user,
                         status='active',
                         account_id=account_data.get('id', ''),
+                        type='route',
+                        business_type='partnership'
                         
                     )
                     return Response({
@@ -636,6 +621,101 @@ class ClientBankingApi(generics.GenericAPIView):
     
 
 
+class CreateProductApi(APIView):
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, account_id):
+        try:
+            base_url = "https://api.razorpay.com/v2"
+            endpoint = f"/accounts/{account_id}/products"
+
+            url = base_url + endpoint
+
+            product_data = {
+                "product_name": "route"
+            }
+
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic cnpwX3Rlc3RfVHk4OTBxY0M4NW5xNUk6ZVZ0M2xCdjAzSXJWa2k4ZEJrb1NucnNi'
+            }
+
+            response = requests.post(url, json=product_data, headers=headers)
+
+            if response.status_code == 200:
+                product_data = response.json()
+                # Process the product data as needed
+                product_id = product_data.get("id")
+                product = Product(product_id=product_id)
+                product.save()
+
+                return Response({
+                    "result": True,
+                    "data": product_data,
+                    "message": "Product created successfully",
+                }, status=status.HTTP_201_CREATED)
+
+            return Response({
+                "result": False,
+                "message": "Failed to create product in Razorpay",
+                "api_response": response.json()
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                "result": False,
+                "message": str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+
+    
+    def patch(self, request, account_id, product_id):
+        try:
+            base_url = "https://api.razorpay.com/v2"
+            endpoint = f"/accounts/{account_id}/products/{product_id}/"
+            url = base_url + endpoint
+
+            serializer = PatchRequestSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            data = serializer.validated_data
+
+            # Save the data in your database or update the existing product
+            product = Product.objects.get(product_id=product_id)
+            product.settlements_account_number = data['settlements']['account_number']
+            product.settlements_ifsc_code = data['settlements']['ifsc_code']
+            product.settlements_beneficiary_name = data['settlements']['beneficiary_name']
+            product.tnc_accepted = data['tnc_accepted']
+            product.save()
+
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic cnpwX3Rlc3RfVHk4OTBxY0M4NW5xNUk6ZVZ0M2xCdjAzSXJWa2k4ZEJrb1NucnNi'
+            }
+
+            response = requests.patch(url, json=request.data, headers=headers)
+
+            if response.status_code == 200:
+                updated_product_data = response.json()
+
+                return Response({
+                    "result": True,
+                    "data": updated_product_data,
+                    "message": "Product updated successfully",
+                }, status=status.HTTP_200_OK)
+
+            return Response({
+                "result": False,
+                "message": "Failed to update product in Razorpay",
+                "api_response": response.json()
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                "result": False,
+                "message": str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
              
             

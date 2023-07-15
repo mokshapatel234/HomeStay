@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -11,7 +12,7 @@ from superadmin.models import *
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
-from userapi.serializers import RegisterSerializer, LoginSerializer, ResetPasswordSerializer,\
+from userapi.serializers import OrderCreateSerializer, RegisterSerializer, LoginSerializer, ResetPasswordSerializer,\
       DashboardPropertiesSerializer,\
           CustomerProfileSerializer, PropertiesDetailSerializer, BookPropertySerializer,\
               TermsAndPolicySerializer, WishlistSerializer
@@ -440,6 +441,69 @@ class BookPropertyApi(generics.GenericAPIView):
                 'message': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
+
+    # def post(self, request, id):
+    #     try:
+    #         user = request.user
+    #         data = request.data.copy()
+    #         data['customer'] = user.id
+
+    #         serializer = OrderCreateSerializer(data=data)
+    #         if serializer.is_valid():
+    #             property = Properties.objects.get(id=id)
+
+    #             if property.status == 'inactive':
+    #                 return Response({
+    #                     'result': False,
+    #                     'message': 'Property is already booked'
+    #                 }, status=status.HTTP_400_BAD_REQUEST)
+
+    #             serializer.validated_data['start_date'] = data.get('start_date')
+    #             serializer.validated_data['end_date'] = data.get('end_date')
+    #             serializer.validated_data['property'] = property
+
+    #             instance = serializer.save(customer=request.user, currency="INR")
+
+    #             property.status = 'inactive'
+    #             property.save()
+
+    #             client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
+    #             amount = int(instance.amount * 100)
+    #             currency = 'INR'
+
+    #             order_data = {
+    #                 "amount": amount,
+    #                 "currency": currency,
+    #                 "notes": {
+    #                     "property_id": str(property.id),
+    #                     "booking_id": str(instance.id)
+    #                 }
+    #             }
+
+    #             order = client.order.create(order_data)
+    #             order_id = order.get('id', '')
+
+    #             instance.order_id = order_id
+    #             instance.save()
+
+    #             response_data = {
+    #                 'result': True,
+    #                 'data': serializer.data,
+    #                 'message': 'Property is booked',
+    #                 'order_id': order_id
+    #             }
+    #             return Response(response_data, status=status.HTTP_200_OK)
+    #         else:
+    #             return Response({
+    #                 'result': False,
+    #                 'message': 'Property is not booked yet',
+    #                 'errors': serializer.errors
+    #             }, status=status.HTTP_400_BAD_REQUEST)
+    #     except Exception as e:
+    #         return Response({
+    #             'result': False,
+    #             'message': str(e)
+    #         }, status=status.HTTP_400_BAD_REQUEST)
 
 class wishlistApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )

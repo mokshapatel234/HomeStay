@@ -205,25 +205,24 @@ class TransferSerializer(serializers.Serializer):
     account = serializers.CharField()
     amount = serializers.IntegerField()
     currency = serializers.CharField()
-    linked_account_notes = serializers.ListField(child=serializers.CharField(), required=False)
-    on_hold = serializers.IntegerField(required=False)
-    on_hold_until = serializers.IntegerField(required=False)
-
 class OrderCreateSerializer(serializers.Serializer):
     amount = serializers.IntegerField()
     currency = serializers.CharField()
     transfers = TransferSerializer(many=True)
-
+    
+   
     def create(self, validated_data):
-        transfers_data = validated_data.pop('transfers')
-        order_data = super().create(validated_data)
+        transfers_data = validated_data.pop('transfers', [])
+        instance = super().create(validated_data)
 
-        transfers = []
+        commission_percent = 10  # Assuming commission percentage is 10%
+        amount = instance.amount
+        commission_amount = amount * commission_percent / 100
+        transfer_amount = amount - commission_amount
+
         for transfer_data in transfers_data:
-            notes_data = transfer_data.pop('notes')
-            transfer = Transfer(**transfer_data)
-            transfer.notes = NoteSerializer().create(notes_data)
-            transfers.append(transfer)
+            transfer_data['amount'] = transfer_amount
+            transfer_data['currency'] = 'INR'  # Set the currency as 'INR' (static)
 
-        order_data.transfers = transfers
-        return order_data
+        instance.transfers = transfers_data
+        return instance

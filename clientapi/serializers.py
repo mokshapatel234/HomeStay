@@ -250,3 +250,13 @@ class CustomClientBankingSerializer(ClientBankingSerializer):
             internal_value['profile'] = self.fields['profile'].to_internal_value(profile_data)
 
         return internal_value
+    
+
+class SettlementSerializer(serializers.Serializer):
+    account_number = serializers.CharField()
+    ifsc_code = serializers.CharField()
+    beneficiary_name = serializers.CharField()
+
+class PatchRequestSerializer(serializers.Serializer):
+    settlements = SettlementSerializer()
+    tnc_accepted = serializers.BooleanField()
