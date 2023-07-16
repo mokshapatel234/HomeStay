@@ -50,6 +50,37 @@
       <div class="container page-header">
         <h3 class="mb-0">Area Management</h3><br>
       </div>
+      <table cellpadding="15px">
+        <tr>
+          <th scope="row">
+            <div class="col-lg-12">
+              <div class="form-group">
+                <label for="form-control-label">State*</label>
+                <select name="state" id="state-select" class="form-control" style="height: 3rem;">
+                  <option value="">All State</option>
+                  {% for state in states %}
+                  <option value="{{ state.id }}" {% if state.id|stringformat:"state" == selected_state %}selected{% endif %}>{{ state.name }}</option>                 {% endfor %}
+                </select>
+              </div>
+            </div>
+          </th> 
+          <th scope="row">
+            <div class="col-lg-12">
+              <div class="form-group">
+                <label for="city-select">City*</label>
+                <select name="city" id="city-select" class="form-control" style="height: 3rem;">
+                  <option value="">All City</option>
+                  {% for city in cities %}
+                    <option value="{{ city.id }}" {% if city.id|stringformat:"city" == selected_city %}selected{% endif %}>{{ city.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </th>
+          
+        </tr>
+      </table>
+
       {% if messages %}
       <ul class="messages">
         {% for message in messages %}
@@ -141,4 +172,59 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script> 
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 <script src="{%static 'assets/js/datatables.min.js'%}"> </script>
-</body>{% endblock javascripts %}
+
+<script>
+  $(document).ready(function () {
+    // Retrieve the selected state and city from the URL query string
+    var selectedState = getQueryStringValue('state');
+    var selectedCity = getQueryStringValue('city');
+  
+    // Set the selected state and city in the dropdowns
+    $('#state-select').val(selectedState);
+    $('#city-select').val(selectedCity);
+  
+    // Disable city filter if state is not selected
+    if (!selectedState) {
+      $('#city-select').prop('disabled', true);
+    } else {
+      $('#city-select').prop('disabled', false);
+    }
+  
+    // Handle state filter
+    $('#state-select').on('change', function () {
+      var selectedState = $(this).val();
+      var url = '{% url "list_areas" %}';
+      if (selectedState) {
+        url += '?state=' + selectedState;
+        $('#city-select').prop('disabled', false);
+      } else {
+        url += '?state=';
+        $('#city-select').val('');
+        $('#city-select').prop('disabled', true);
+      }
+      window.location.href = url;
+    });
+  
+    // Handle city filter
+    $('#city-select').on('change', function () {
+      var selectedCity = $(this).val();
+      var url = '{% url "list_areas" %}';
+      var stateParam = getQueryStringValue('state');
+      if (selectedCity) {
+        url += '?state=' + stateParam + '&city=' + selectedCity;
+      } else {
+        url += '?state=' + stateParam + '&city=';
+      }
+      window.location.href = url;
+    });
+  
+    // Function to retrieve query string parameter value
+    function getQueryStringValue(key) {
+      var urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(key);
+    }
+  });
+  
+</script>
+
+{% endblock javascripts %}

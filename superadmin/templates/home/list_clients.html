@@ -58,46 +58,49 @@
        <div class="container page-header">
          <h3 class="mb-0">Client Management</h3><br>
        </div>
-       <tab<th scope="row">
-        <div class="col-lg-12">
-          <div class="form-group">
-            <label for="form-control-label">State*</label>
-            <select name="state" id="state-select" class="form-control" style="height: 3rem;">
-              <option value="">All State</option>
-              {% for state in states %}
-              <option value="{{ state.id }}" {% if state.id|stringformat:"state" == selected_state %}selected{% endif %}>{{ state.name }}</option>                 {% endfor %}
-            </select>
-          </div>
-        </div>
-      </th> 
-      <th scope="row">
-        <div class="col-lg-12">
-          <div class="form-group">
-            <label for="city-select">City*</label>
-            <select name="city" id="city-select" class="form-control" style="height: 3rem;">
-              <option value="">All City</option>
-              {% for city in cities %}
-                <option value="{{ city.id }}" {% if city.id|stringformat:"city" == selected_city %}selected{% endif %}>{{ city.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-      </th>
-      <th scope="row">
-        <div class="col-lg-12">
-          <div class="form-group">
-            <label for="area-select">Area*</label>
-            <select name="area" id="area-select" class="form-control" style="height: 3rem;">
-              <option value="">All Area</option>
-              {% for area in areas %}
-                <option value="{{ area.id }}" {% if area.id|stringformat:"area" == selected_area %}selected{% endif %}>{{ area.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-      </th>
-         </tr>
-       </table>
+       <table cellpadding="15px">
+        <tr>
+          <th scope="row">
+            <div class="col-lg-12">
+              <div class="form-group">
+                <label for="form-control-label">State*</label>
+                <select name="state" id="state-select" class="form-control" style="height: 3rem;">
+                  <option value="">All State</option>
+                  {% for state in states %}
+                  <option value="{{ state.id }}" {% if state.id|stringformat:"state" == selected_state %}selected{% endif %}>{{ state.name }}</option>                 {% endfor %}
+                </select>
+              </div>
+            </div>
+          </th> 
+          <th scope="row">
+            <div class="col-lg-12">
+              <div class="form-group">
+                <label for="city-select">City*</label>
+                <select name="city" id="city-select" class="form-control" style="height: 3rem;">
+                  <option value="">All City</option>
+                  {% for city in cities %}
+                    <option value="{{ city.id }}" {% if city.id|stringformat:"city" == selected_city %}selected{% endif %}>{{ city.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </th>
+          <th scope="row">
+            <div class="col-lg-12">
+              <div class="form-group">
+                <label for="area-select">Area*</label>
+                <select name="area" id="area-select" class="form-control" style="height: 3rem;">
+                  <option value="">All Area</option>
+                  {% for area in areas %}
+                    <option value="{{ area.id }}" {% if area.id|stringformat:"area" == selected_area %}selected{% endif %}>{{ area.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </th>
+        </tr>
+      </table>
+      
  
 
 
@@ -204,85 +207,91 @@
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-{% comment %} <script>
-  $(document).ready(function() {
-    $('select[name="state"], select[name="city"], select[name="area"]').on('change', function() {
-      var stateId = $('select[name="state"]').val();
-      var cityId = $('select[name="city"]').val();
-      var areaId = $('select[name="area"]').val();
-      var url = "{% url 'list_clients' %}?state_id=" + stateId + "&city_id=" + cityId + "&area_id=" + areaId;
-      window.location.href = url;
-    });
 
-   
-  });
-</script> {% endcomment %}
 
 <script>
   $(document).ready(function () {
-     // Retrieve the selected state, city, and area from the URL query string
-     var selectedState = getQueryStringValue('state');
-     var selectedCity = getQueryStringValue('city');
-     var selectedArea = getQueryStringValue('area');
- 
-     $('#dtBasicExample').DataTable({
-         lengthChange: true,
-         searching: true,
-         paging: false,
-         columnDefs: [
-             { searchable: false, targets: 0 }
-         ],
-         order: [[0, "desc"]],
-     });
- 
-     // Set the selected state, city, and area in the dropdowns
-     $('#state-select').val(selectedState);
-     $('#city-select').val(selectedCity);
-     $('#area-select').val(selectedArea);
- 
-     // Handle state filter
-     $('#state-select').on('change', function () {
-         var selectedState = $(this).val();
-         var url = '{% url "list_clients" %}';
-         if (selectedState) {
-             url += '?state=' + selectedState;
-         }
-         window.location.href = url;
-     });
- 
-     // Handle city filter
-     $('#city-select').on('change', function () {
-         var selectedCity = $(this).val();
-         var url = '{% url "list_clients" %}';
-         var stateParam = getQueryStringValue('state');
-         if (selectedCity) {
-             url += '?state=' + stateParam + '&city=' + selectedCity;
-         } else {
-             url += '?state=' + stateParam;
-         }
-         window.location.href = url;
-     });
- 
-     // Handle area filter
-     $('#area-select').on('change', function () {
-         var selectedArea = $(this).val();
-         var url = '{% url "list_clients" %}';
-         var stateParam = getQueryStringValue('state');
-         var cityParam = getQueryStringValue('city');
-         if (selectedArea) {
-             url += '?state=' + stateParam + '&city=' + cityParam + '&area=' + selectedArea;
-         } else {
-             url += '?state=' + stateParam + '&city=' + cityParam;
-         }
-         window.location.href = url;
-     });
- 
-     // Function to retrieve query string parameter value
-     function getQueryStringValue(key) {
-         var urlParams = new URLSearchParams(window.location.search);
-         return urlParams.get(key);
-     }
- });
+    // Retrieve the selected state, city, and area from the URL query string
+    var selectedState = getQueryStringValue('state');
+    var selectedCity = getQueryStringValue('city');
+    var selectedArea = getQueryStringValue('area');
+  
+    // Set the selected state, city, and area in the dropdowns
+    $('#state-select').val(selectedState);
+    $('#city-select').val(selectedCity);
+    $('#area-select').val(selectedArea);
+  
+    // Disable city and area filters if state is not selected
+    if (!selectedState) {
+      $('#city-select').prop('disabled', true);
+      $('#area-select').prop('disabled', true);
+    } else {
+      $('#city-select').prop('disabled', false);
+    }
+  
+    // Disable area filter if city is not selected
+    if (!selectedCity) {
+      $('#area-select').prop('disabled', true);
+    } else {
+      $('#area-select').prop('disabled', false);
+    }
+  
+    // Handle state filter
+    $('#state-select').on('change', function () {
+      var selectedState = $(this).val();
+      var url = '{% url "list_clients" %}';
+      if (selectedState) {
+        url += '?state=' + selectedState;
+        $('#city-select').prop('disabled', false);
+        $('#area-select').prop('disabled', true);
+        $('#area-select').val('');
+      } else {
+        url += '?state=';
+        $('#city-select').val('');
+        $('#city-select').prop('disabled', true);
+        $('#area-select').val('');
+        $('#area-select').prop('disabled', true);
+      }
+      window.location.href = url;
+    });
+  
+    // Handle city filter
+    $('#city-select').on('change', function () {
+      var selectedCity = $(this).val();
+      var url = '{% url "list_clients" %}';
+      var stateParam = getQueryStringValue('state');
+      if (selectedCity) {
+        url += '?state=' + stateParam + '&city=' + selectedCity;
+        $('#area-select').prop('disabled', false);
+      } else {
+        url += '?state=' + stateParam + '&city=';
+        $('#area-select').val('');
+        $('#area-select').prop('disabled', true);
+      }
+      window.location.href = url;
+    });
+  
+    // Handle area filter
+    $('#area-select').on('change', function () {
+      var selectedArea = $(this).val();
+      var url = '{% url "list_clients" %}';
+      var stateParam = getQueryStringValue('state');
+      var cityParam = getQueryStringValue('city');
+      if (selectedArea) {
+        url += '?state=' + stateParam + '&city=' + cityParam + '&area=' + selectedArea;
+      } else {
+        url += '?state=' + stateParam + '&city=' + cityParam + '&area=';
+      }
+      window.location.href = url;
+    });
+  
+    // Function to retrieve query string parameter value
+    function getQueryStringValue(key) {
+      var urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(key);
+    }
+  });
+  
 </script>
 
 {% endblock javascripts %}

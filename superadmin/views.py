@@ -214,9 +214,23 @@ def add_city(request):
 
 
 def list_cities(request):
-    cities  = City.objects.all()
-    return render(request, 'home/list_cities.html', {'cities':cities})
+    cities = City.objects.all()
+    states = State.objects.all()
+    state_id = request.GET.get('state')
+    selected_state = None
 
+    if state_id:
+        cities = cities.filter(state_id=state_id)
+        selected_state = State.objects.get(id=state_id).name
+
+    context = {
+        'states': states,
+        'cities': cities,
+        'selected_state_id': state_id,
+        'selected_state': selected_state,
+    }
+
+    return render(request, 'home/list_cities.html', context)
 
 def update_city(request, id):
     try:
@@ -267,10 +281,36 @@ def add_area(request):
         print(e)
     return render(request, 'home/add_area.html', {'cities':cities})
 
-
 def list_areas(request):
-    areas  = Area.objects.all()
-    return render(request, 'home/list_areas.html', {'areas':areas})
+    areas = Area.objects.all()
+    states = State.objects.all()
+    cities = City.objects.all()
+    state_id = request.GET.get('state')
+    city_id = request.GET.get('city')
+    selected_state = None
+    selected_city = None
+
+    if state_id:
+        areas = areas.filter(city__state=state_id)
+        cities = cities.filter(state_id=state_id)
+        selected_state = State.objects.get(id=state_id).name
+
+    if city_id:
+        areas = areas.filter(city_id=city_id)
+        selected_city = City.objects.get(id=city_id).name
+
+    context = {
+        'states': states,
+        'cities': cities,
+        'areas':areas,
+        'selected_state': selected_state,
+        'selected_city': selected_city,
+        'selected_state_id': state_id,
+        'selected_city_id': city_id,
+    }
+
+    return render(request, 'home/list_areas.html', context)
+
 
 def update_area(request, id):
     try:
@@ -671,9 +711,9 @@ def list_properties(request):
     areas  = Area.objects.all()
 
 
-    state_id = request.GET.get('state_id')
-    city_id = request.GET.get('city_id')
-    area_id = request.GET.get('area_id')
+    state_id = request.GET.get('state')
+    city_id = request.GET.get('city')
+    area_id = request.GET.get('area')
 
     selected_state = None
     selected_city = None

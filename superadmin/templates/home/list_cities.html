@@ -51,6 +51,25 @@
         
         <h3 class="mb-0">City Management</h3><br>
       </div>
+
+      <table cellpadding="15px">
+        <tr>
+          <th scope="row">
+            <div class="col-lg-12">
+              <div class="form-group">
+                <label for="form-control-label">State*</label>
+                <select name="state" id="state-select" class="form-control" style="height: 3rem;">
+                  <option value="">All State</option>
+                  {% for state in states %}
+                  <option value="{{ state.id }}" {% if state.id|stringformat:"state" == selected_state %}selected{% endif %}>{{ state.name }}</option>                 {% endfor %}
+                </select>
+              </div>
+            </div>
+          </th> 
+         
+        </tr>
+      </table>
+      
       {% if messages %}
         <ul class="messages">
           {% for message in messages %}
@@ -141,4 +160,42 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script> 
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 <script src="{%static 'assets/js/datatables.min.js'%}"> </script>
-</body>{% endblock javascripts %}
+
+<script>
+  $(document).ready(function () {
+    // Retrieve the selected state from the URL query string
+    var selectedState = getQueryStringValue('state');
+
+    // Set the selected state in the dropdown
+    $('#state-select').val(selectedState);
+
+    $('#dtBasicExample').DataTable({
+      "lengthChange": true,
+      "searching": true,
+      "columnDefs": [
+        { "searchable": true, "targets": 0 }
+      ],
+      "order":[[ 0, "desc" ]],
+    });
+
+    // Handle state filter
+    $('#state-select').on('change', function () {
+      var selectedState = $(this).val();
+      var url = '{% url "list_cities" %}';
+      if (selectedState) {
+        url += '?state=' + selectedState;
+      } else {
+        url += '?state=';
+      }
+      window.location.href = url;
+    });
+
+    // Function to retrieve query string parameter value
+    function getQueryStringValue(key) {
+      var urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(key);
+    }
+  });
+</script>
+
+{% endblock javascripts %}

@@ -24,6 +24,7 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth import update_session_auth_hash
 import razorpay
 from .models import BookProperty
+from clientapi.models import ClientBanking
 # Create your views here.
 
 
@@ -432,7 +433,7 @@ class BookPropertyApi(generics.GenericAPIView):
     def get(self, request):
         try:
             user = request.user
-            bookings = BookProperty.objects.filter(customer=user, status=True)  # Update the condition for the status field
+            bookings = BookProperty.objects.filter(customer=user) 
             serializer = BookPropertyListSerializer(bookings, many=True)
 
             data = []
@@ -523,48 +524,62 @@ class BookPropertyApi(generics.GenericAPIView):
 
 
     # def post(self, request, id):
-    #     property = get_object_or_404(Properties, id=id)
-    #     serializer = BookPropertySerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         owner = property.owner
-    #         commission = owner.client_commission.first() if owner else None
-    #         commission_percent = commission.commission_percent if commission else None
+    #     try:
+    #         property = get_object_or_404(Properties, id=id)
+    #         serializer = BookPropertySerializer(data=request.data)
+    #         if serializer.is_valid():
+    #             owner = property.owner
+    #             commission = Commission.objects.filter(client=owner).first()
+    #             commission_percent = commission.commission_percent if commission else None
 
-    #         if commission_percent is None:
-    #             return Response("Commission percentage is not available for the property owner.", status=400)
+    #             if commission_percent is None:
+    #                 return Response("Commission percentage is not available for the property owner.", status=400)
 
-    #         banking_details = owner.banking_details.first() if owner else None
-    #         account_id = banking_details.account_id if banking_details else None
+    #             banking_details = ClientBanking.objects.filter(client=owner).first()
+    #             account_id = banking_details.account_id if banking_details else None
 
-    #         if account_id is None:
-    #             return Response("Account ID is not available for the property owner.", status=400)
+    #             if account_id is None:
+    #                 return Response("Account ID is not available for the property owner.", status=400)
 
-    #         serializer.validated_data['property'] = property
-    #         serializer.validated_data['customer'] = request.user
-    #         serializer.validated_data['currency'] = 'INR'
+    #             serializer.validated_data['property'] = property
+    #             serializer.validated_data['customer'] = request.user
+    #             serializer.validated_data['currency'] = 'INR'
 
-    #         instance = serializer.save()
-    #         instance.transfers = [{
-    #             "account": account_id,
-    #             "amount": instance.amount * commission_percent / 100,
-    #             "currency":"INR"
-    #         }]
-    #         instance.save()
+    #             instance = serializer.save()
+    #             instance.transfers = [{
+    #                 "account": account_id,
+    #                 "amount": max(instance.amount * commission_percent / 100, 1),  # Ensure the minimum amount is 1
+    #                 "currency": "INR"
+    #             }]
+    #             instance.save()
 
-    #         # Create an order in Razorpay
-    #         client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
-    #         order_data = {
-    #             "amount": instance.amount,
-    #             "transfers": instance.transfers
-    #         }
-    #         order = client.order.create(order_data)
 
-    #         # Update the order_id in the serializer
-    #         instance.order_id = order['id']
-    #         instance.save()
+    #             # Create an order in Razorpay
+    #             client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
+    #             order_data = {
+    #                 "amount": max(instance.amount, 1),  # Ensure the minimum amount is 1
+    #                 "transfers": instance.transfers
+    #             }
+    #             order_data['currency'] = 'INR'
+    #             order = client.order.create(order_data)
 
-    #         return Response(serializer.data, status=201)
-    #     return Response(serializer.errors, status=400)
+    #             # Update the order_id in the serializer
+    #             instance.order_id = order['id']
+    #             instance.save()
+
+    #             return Response(serializer.data, status=201)
+    #         else:
+    #             return Response({
+    #                 'result': False,
+    #                 'message': 'Property is not booked yet',
+    #                 'errors': serializer.errors
+    #             }, status=status.HTTP_400_BAD_REQUEST)
+    #     except Exception as e:
+    #         return Response({
+    #             'result': False,
+    #             'message': str(e)
+    #         }, status=status.HTTP_400_BAD_REQUEST)
+
     def post(self, request, id):
         try:
             user = request.user

@@ -215,70 +215,88 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 <script src="{%static 'assets/js/datatables.min.js'%}"> </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
 <script>
   $(document).ready(function () {
-     // Retrieve the selected state, city, and area from the URL query string
-     var selectedState = getQueryStringValue('state');
-     var selectedCity = getQueryStringValue('city');
-     var selectedArea = getQueryStringValue('area');
- 
-     $('#dtBasicExample').DataTable({
-         lengthChange: true,
-         searching: true,
-         paging: false,
-         columnDefs: [
-             { searchable: false, targets: 0 }
-         ],
-         order: [[0, "desc"]],
-     });
- 
-     // Set the selected state, city, and area in the dropdowns
-     $('#state-select').val(selectedState);
-     $('#city-select').val(selectedCity);
-     $('#area-select').val(selectedArea);
- 
-     // Handle state filter
-     $('#state-select').on('change', function () {
-         var selectedState = $(this).val();
-         var url = '{% url "list_properties" %}';
-         if (selectedState) {
-             url += '?state=' + selectedState;
-         }
-         window.location.href = url;
-     });
- 
-     // Handle city filter
-     $('#city-select').on('change', function () {
-         var selectedCity = $(this).val();
-         var url = '{% url "list_properties" %}';
-         var stateParam = getQueryStringValue('state');
-         if (selectedCity) {
-             url += '?state=' + stateParam + '&city=' + selectedCity;
-         } else {
-             url += '?state=' + stateParam;
-         }
-         window.location.href = url;
-     });
- 
-     // Handle area filter
-     $('#area-select').on('change', function () {
-         var selectedArea = $(this).val();
-         var url = '{% url "list_properties" %}';
-         var stateParam = getQueryStringValue('state');
-         var cityParam = getQueryStringValue('city');
-         if (selectedArea) {
-             url += '?state=' + stateParam + '&city=' + cityParam + '&area=' + selectedArea;
-         } else {
-             url += '?state=' + stateParam + '&city=' + cityParam;
-         }
-         window.location.href = url;
-     });
- 
-     // Function to retrieve query string parameter value
-     function getQueryStringValue(key) {
-         var urlParams = new URLSearchParams(window.location.search);
-         return urlParams.get(key);
-     }
- });
+    // Retrieve the selected state, city, and area from the URL query string
+    var selectedState = getQueryStringValue('state');
+    var selectedCity = getQueryStringValue('city');
+    var selectedArea = getQueryStringValue('area');
+  
+    // Set the selected state, city, and area in the dropdowns
+    $('#state-select').val(selectedState);
+    $('#city-select').val(selectedCity);
+    $('#area-select').val(selectedArea);
+  
+    // Disable city and area filters if state is not selected
+    if (!selectedState) {
+      $('#city-select').prop('disabled', true);
+      $('#area-select').prop('disabled', true);
+    } else {
+      $('#city-select').prop('disabled', false);
+    }
+  
+    // Disable area filter if city is not selected
+    if (!selectedCity) {
+      $('#area-select').prop('disabled', true);
+    } else {
+      $('#area-select').prop('disabled', false);
+    }
+  
+    // Handle state filter
+    $('#state-select').on('change', function () {
+      var selectedState = $(this).val();
+      var url = '{% url "list_properties" %}';
+      if (selectedState) {
+        url += '?state=' + selectedState;
+        $('#city-select').prop('disabled', false);
+        $('#area-select').prop('disabled', true);
+        $('#area-select').val('');
+      } else {
+        url += '?state=';
+        $('#city-select').val('');
+        $('#city-select').prop('disabled', true);
+        $('#area-select').val('');
+        $('#area-select').prop('disabled', true);
+      }
+      window.location.href = url;
+    });
+  
+    // Handle city filter
+    $('#city-select').on('change', function () {
+      var selectedCity = $(this).val();
+      var url = '{% url "list_properties" %}';
+      var stateParam = getQueryStringValue('state');
+      if (selectedCity) {
+        url += '?state=' + stateParam + '&city=' + selectedCity;
+        $('#area-select').prop('disabled', false);
+      } else {
+        url += '?state=' + stateParam + '&city=';
+        $('#area-select').val('');
+        $('#area-select').prop('disabled', true);
+      }
+      window.location.href = url;
+    });
+  
+    // Handle area filter
+    $('#area-select').on('change', function () {
+      var selectedArea = $(this).val();
+      var url = '{% url "list_properties" %}';
+      var stateParam = getQueryStringValue('state');
+      var cityParam = getQueryStringValue('city');
+      if (selectedArea) {
+        url += '?state=' + stateParam + '&city=' + cityParam + '&area=' + selectedArea;
+      } else {
+        url += '?state=' + stateParam + '&city=' + cityParam + '&area=';
+      }
+      window.location.href = url;
+    });
+  
+    // Function to retrieve query string parameter value
+    function getQueryStringValue(key) {
+      var urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(key);
+    }
+  });
 </script>
 {% endblock javascripts %}
