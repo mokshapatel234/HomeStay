@@ -167,19 +167,20 @@ def update_state(request, id):
             state.status = request.POST.get('status')
             
             state.save()
-            return redirect('list_state',  {'msg': 'State updated successfully'})
+            return redirect('list_state')
         
         else:
                 return render(request, 'home/update_state.html', {'msg': 'Invalid Credentials'})
                    
-    except:
+    except Exception as e:
+        print(e)
         return render(request, 'home/update_state.html', {'msg': 'Invalid Credentials'})
 
 def delete_state(request, id):
     try:
         state = State.objects.get(id=id)
         state.delete()
-        return redirect('list_state',  {'msg': 'State deleted successfully'})
+        return redirect('list_state')
     except:
         return render(request, 'home/list_state.html', {'msg': 'State is not deleted yet'})
 

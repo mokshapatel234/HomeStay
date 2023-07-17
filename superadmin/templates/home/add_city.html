@@ -27,18 +27,17 @@
                  
                 </div>
                 <div class="row">
-
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label">State*</label>
-                      <select name="state" class="form-control" style="height: 3rem;">
-                          {% for state in states %}
-                            <option value="{{ state.id }}">{{ state.name }}</option>
-                          {% endfor %}
-                        
+                      <select name="state" class="form-control select2" style="height: 3rem;">
+                        <option value=""></option>
+                        {% for state in states %}
+                          <option value="{{ state.id }}">{{ state.name }}</option>
+                        {% endfor %}
                       </select>
-                   </div>
-                 </div>
+                    </div>
+                  </div>
 
                   <div class="col-lg-6">
                     <div class="form-group">
@@ -65,4 +64,16 @@
 {% endblock content %}
 
 <!-- Specific JS goes HERE --> 
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+    $('select[name="state"]').select2({
+      placeholder: "Search and select a states",
+      allowClear: true,
+      
+    });
+  });
+</script>
+{% endblock javascripts %}

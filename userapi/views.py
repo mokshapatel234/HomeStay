@@ -530,13 +530,16 @@ class BookPropertyApi(generics.GenericAPIView):
     #         if serializer.is_valid():
     #             owner = property.owner
     #             commission = Commission.objects.filter(client=owner).first()
-    #             commission_percent = commission.commission_percent if commission else None
+    #             print(commission)
+    #             if commission :
+    #                 commission_percent = commission.commission_percent 
 
     #             if commission_percent is None:
     #                 return Response("Commission percentage is not available for the property owner.", status=400)
 
     #             banking_details = ClientBanking.objects.filter(client=owner).first()
-    #             account_id = banking_details.account_id if banking_details else None
+    #             if banking_details :
+    #                 account_id = banking_details.account_id 
 
     #             if account_id is None:
     #                 return Response("Account ID is not available for the property owner.", status=400)
@@ -552,7 +555,6 @@ class BookPropertyApi(generics.GenericAPIView):
     #                 "currency": "INR"
     #             }]
     #             instance.save()
-
 
     #             # Create an order in Razorpay
     #             client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))

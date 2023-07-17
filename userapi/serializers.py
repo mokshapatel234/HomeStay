@@ -1,4 +1,5 @@
-from rest_framework import serializers 
+from rest_framework import serializers
+from clientapi.models import ClientBanking 
 from superadmin.models import Customer, Area, City, State, Properties, PropertyImage, PropertyTerms,\
       PropertyVideo, Bookings, TermsandPolicy, Wishlist, Commission
 from django.core.validators import RegexValidator
@@ -250,18 +251,18 @@ class BookPropertySerializer(serializers.ModelSerializer):
 
     def get_transfers(self, validated_data):
         owner = validated_data['property'].owner
-        commission = owner.client_commission.order_by('id').first() if owner else None
-        commission_percent = commission.commission_percent if commission else None
+        commission = Commission.objects.filter(client=owner).first()
+        print(commission)
+        if commission:
+            commission_percent = int(commission.commission_percent)  # Convert to integer
 
-        if commission_percent is None:
-            raise serializers.ValidationError("Commission percentage is not available for the property owner.")
-
-        amount = validated_data['amount']
-        commission_amount = amount * commission_percent / 100
+        banking_details = ClientBanking.objects.filter(client=owner).first()
+        if banking_details:
+            account_id = banking_details.account_id
 
         transfers_data = [{
-            "account": owner.banking_details.first().account_id,
-            "amount": commission_amount,
+            "account": account_id,
+            "amount": commission_percent,
             "currency": "INR"
         }]
         return transfers_data
