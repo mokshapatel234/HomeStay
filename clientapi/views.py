@@ -52,6 +52,11 @@ class RegisterApi(generics.GenericAPIView):
         
             if serializer.is_valid():
                 user = serializer.save()
+                # area = request.data.get('area')
+                # area = get_object_or_404(Area, id=area)
+                # city = area.city
+                # state = area.city.state
+                # print(area, city, state)
                 token = generate_token(str(user.id))
                 user_token = token.decode("utf-8")
                 
