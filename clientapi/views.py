@@ -888,6 +888,10 @@ class BankingAndProductApi(generics.GenericAPIView):
             serializer = ClientBankingSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
+            # Extract settlement data from the request payload
+            settlements_data = request.data.pop('settlements', {})
+            tnc_accepted = request.data.pop('tnc_accepted', False)
+
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': 'Basic cnpwX3Rlc3RfVHk4OTBxY0M4NW5xNUk6ZVZ0M2xCdjAzSXJWa2k4ZEJrb1NucnNi'
@@ -924,7 +928,13 @@ class BankingAndProductApi(generics.GenericAPIView):
                     endpoint = f"/accounts/{account_data.get('id', '')}/products/{product_id}/"
                     url = base_url + endpoint
 
-                    serializer = PatchRequestSerializer(data=request.data)
+                    # Create the payload for the patch request
+                    patch_data = {
+                        'settlements': settlements_data,
+                        'tnc_accepted': tnc_accepted
+                    }
+
+                    serializer = PatchRequestSerializer(data=patch_data)
                     serializer.is_valid(raise_exception=True)
 
                     data = serializer.validated_data
@@ -935,7 +945,7 @@ class BankingAndProductApi(generics.GenericAPIView):
                     product.tnc_accepted = data['tnc_accepted']
                     product.save()
 
-                    response = requests.patch(url, json=request.data, headers=headers)
+                    response = requests.patch(url, json=patch_data, headers=headers)
 
                     if response.status_code == 200:
                         updated_product_data = response.json()
@@ -967,5 +977,5 @@ class BankingAndProductApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 "result": False,
-                "message": "Error in Razorpay API"
+                "message": str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
