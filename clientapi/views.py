@@ -515,7 +515,7 @@ class BookPropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
     pagination_class = ClientPagination
-    filter_backends = [filters.SearchFilter]
+  
 
 
     def get(self, request):
@@ -873,99 +873,99 @@ class BookingDetailApi(generics.GenericAPIView):
 #             }, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class BankingAndProductApi(generics.GenericAPIView):
-#     authentication_classes = (JWTAuthentication,)
-#     permission_classes = (permissions.IsAuthenticated,)
+class BankingAndProductApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
 
-#     def post(self, request):
-#         try:
-#             base_url = "https://api.razorpay.com/v2"
-#             endpoint = "/accounts"
-#             url = base_url + endpoint
+    def post(self, request):
+        try:
+            base_url = "https://api.razorpay.com/v2"
+            endpoint = "/accounts"
+            url = base_url + endpoint
 
-#             request.data['type'] = 'route'
-#             request.data['business_type'] = 'partnership'
-#             serializer = ClientBankingSerializer(data=request.data)
-#             serializer.is_valid(raise_exception=True)
+            request.data['type'] = 'route'
+            request.data['business_type'] = 'partnership'
+            serializer = ClientBankingSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
 
-#             headers = {
-#                 'Content-Type': 'application/json',
-#                 'Authorization': 'Basic cnpwX3Rlc3RfVHk4OTBxY0M4NW5xNUk6ZVZ0M2xCdjAzSXJWa2k4ZEJrb1NucnNi'
-#             }
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic cnpwX3Rlc3RfVHk4OTBxY0M4NW5xNUk6ZVZ0M2xCdjAzSXJWa2k4ZEJrb1NucnNi'
+            }
 
-#             response = requests.post(url, json=request.data, headers=headers)
+            response = requests.post(url, json=request.data, headers=headers)
 
-#             if response.status_code == 200:
-#                 account_data = response.json()
-#                 serializer.save(
-#                     client=request.user,
-#                     status='active',
-#                     account_id=account_data.get('id', ''),
-#                     type='route',
-#                     business_type='partnership'
-#                 )
+            if response.status_code == 200:
+                account_data = response.json()
+                serializer.save(
+                    client=request.user,
+                    status='active',
+                    account_id=account_data.get('id', ''),
+                    type='route',
+                    business_type='partnership'
+                )
 
-#                 product_data = {
-#                     "product_name": "route"
-#                 }
+                product_data = {
+                    "product_name": "route"
+                }
 
-#                 endpoint = f"/accounts/{account_data.get('id', '')}/products"
-#                 url = base_url + endpoint
+                endpoint = f"/accounts/{account_data.get('id', '')}/products"
+                url = base_url + endpoint
 
-#                 response = requests.post(url, json=product_data, headers=headers)
+                response = requests.post(url, json=product_data, headers=headers)
 
-#                 if response.status_code == 200:
-#                     product_data = response.json()
-#                     product_id = product_data.get("id")
-#                     product = Product(product_id=product_id)
-#                     product.save()
+                if response.status_code == 200:
+                    product_data = response.json()
+                    product_id = product_data.get("id")
+                    product = Product(product_id=product_id)
+                    product.save()
 
-#                     # Update bank details with patch method
-#                     endpoint = f"/accounts/{account_data.get('id', '')}/products/{product_id}/"
-#                     url = base_url + endpoint
+                    # Update bank details with patch method
+                    endpoint = f"/accounts/{account_data.get('id', '')}/products/{product_id}/"
+                    url = base_url + endpoint
 
-#                     serializer = PatchRequestSerializer(data=request.data)
-#                     serializer.is_valid(raise_exception=True)
+                    serializer = PatchRequestSerializer(data=request.data)
+                    serializer.is_valid(raise_exception=True)
 
-#                     data = serializer.validated_data
+                    data = serializer.validated_data
 
-#                     product.settlements_account_number = data['settlements']['account_number']
-#                     product.settlements_ifsc_code = data['settlements']['ifsc_code']
-#                     product.settlements_beneficiary_name = data['settlements']['beneficiary_name']
-#                     product.tnc_accepted = data['tnc_accepted']
-#                     product.save()
+                    product.settlements_account_number = data['settlements']['account_number']
+                    product.settlements_ifsc_code = data['settlements']['ifsc_code']
+                    product.settlements_beneficiary_name = data['settlements']['beneficiary_name']
+                    product.tnc_accepted = data['tnc_accepted']
+                    product.save()
 
-#                     response = requests.patch(url, json=request.data, headers=headers)
+                    response = requests.patch(url, json=request.data, headers=headers)
 
-#                     if response.status_code == 200:
-#                         updated_product_data = response.json()
+                    if response.status_code == 200:
+                        updated_product_data = response.json()
 
-#                         return Response({
-#                             "result": True,
-#                             "data": updated_product_data,
-#                             "message": "Product and bank details updated successfully",
-#                         }, status=status.HTTP_200_OK)
+                        return Response({
+                            "result": True,
+                            "data": updated_product_data,
+                            "message": "Product and bank details updated successfully",
+                        }, status=status.HTTP_200_OK)
 
-#                     return Response({
-#                         "result": False,
-#                         "message": "Failed to update product and bank details in Razorpay",
-#                         "api_response": response.json()
-#                     }, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({
+                        "result": False,
+                        "message": "Failed to update product and bank details in Razorpay",
+                        "api_response": response.json()
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
-#                 return Response({
-#                     "result": False,
-#                     "message": "Failed to create product in Razorpay",
-#                     "api_response": response.json()
-#                 }, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    "result": False,
+                    "message": "Failed to create product in Razorpay",
+                    "api_response": response.json()
+                }, status=status.HTTP_400_BAD_REQUEST)
 
-#             return Response({
-#                 "result": False,
-#                 "message": "Failed to create account in Razorpay",
-#                 "api_response": response.json()
-#             }, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "result": False,
+                "message": "Failed to create account in Razorpay",
+                "api_response": response.json()
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-#         except Exception as e:
-#             return Response({
-#                 "result": False,
-#                 "message": "Error in Razorpay API"
-#             }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                "result": False,
+                "message": "Error in Razorpay API"
+            }, status=status.HTTP_400_BAD_REQUEST)
