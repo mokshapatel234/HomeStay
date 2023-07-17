@@ -52,14 +52,32 @@ class RegisterApi(generics.GenericAPIView):
         
             if serializer.is_valid():
                 user = serializer.save()
-                # area = request.data.get('area')
-                # area = get_object_or_404(Area, id=area)
-                # city = area.city
-                # state = area.city.state
-                # print(area, city, state)
+                area = request.data.get('area')
+                area = get_object_or_404(Area, id=area)
+                city = area.city
+                state = area.city.state
+               
                 token = generate_token(str(user.id))
                 user_token = token.decode("utf-8")
+                response_data = {
+                    "result": True,
+                    "data": {
+                        **serializer.data,
+                        "area": {
+                            "area_id": area.id,
+                            "area_name": area.name,
+                            "city_id": city.id,
+                            "city_name": city.name,
+                            "state_id": state.id,
+                            "statename": state.name
+                        }
+                    },
+                    "token": user_token,
+                    "message": "Customer created successfully",
+                }
                 
+                response = Response(response_data, status=status.HTTP_201_CREATED)
+                return response
                 response = Response({"result":True,
                                     "data":serializer.data,
                                     "token":user_token,
