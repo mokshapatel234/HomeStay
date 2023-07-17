@@ -926,6 +926,7 @@ def update_commission(request, id):
         commission = Commission.objects.get(id=id)
         if request.method == 'POST':
             client_id = request.POST.get('client')
+            print(client_id)
             client = Client.objects.get(id=client_id)
            
            

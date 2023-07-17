@@ -202,52 +202,13 @@ class RegisterSerializer(serializers.Serializer):
 
 
 
-# class TransferSerializer(serializers.Serializer):
-#     account = serializers.CharField()
-
-#     def get_commission_amount(self, property):
-#         commission = Commission.objects.get(client=property.owner)
-#         amount = self.context['amount']  # assuming you pass the amount as context data
-#         commission_percent = commission.commission_percent
-#         commission_amount = amount * (commission_percent / 100)
-#         return commission_amount
-
-#     def validate(self, data):
-#         property = data['property']
-#         commission_amount = self.get_commission_amount(property)
-#         data['amount'] = commission_amount
-#         data['currency'] = "INR"
-#         return data
-
-
-# class OrderCreateSerializer(serializers.ModelSerializer):
-#     transfers = TransferSerializer(many=True)
-
-#     class Meta:
-#         model = BookProperty
-#         fields = ['start_date', 'end_date', 'amount', 'currency', 'transfers']
-
-
-
-class CommissionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Commission
-        fields = ('id', 'client', 'commission_percent')
 
 class BookPropertySerializer(serializers.ModelSerializer):
-    # transfers = serializers.SerializerMethodField()
 
     class Meta:
         model = BookProperty
-        fields = ('id', 'start_date', 'end_date', 'amount',)
+        fields = ('id', 'start_date', 'end_date', 'amount')
         
-
-    # def create(self, validated_data):
-    #     transfers_data = self.get_transfers(validated_data)
-    #     validated_data.pop('transfers', None)
-    #     instance = super().create(validated_data)
-    #     setattr(instance, 'transfers', transfers_data)
-    #     return instance
 
    
 

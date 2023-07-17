@@ -96,9 +96,20 @@ class LoginApi(generics.GenericAPIView):
                     "password":client.password,
                     "contact_no":client.contact_no,
                     "borded":client.borded,
-                    "otp_verified":client.otp_verified
+                    "otp_verified":client.otp_verified,
+                    "area":{
+                   
+                        'area_name': client.area.name,
+                        'area_id': client.area.id,
+                        'city_name': client.area.city.name,
+                        'city_id': client.area.city.id,
+                        'state_name': client.area.city.state.name,
+                        'state_id': client.area.city.state.id,
+                    }
+                    
                     
                 }
+                
                 return Response({"result":True, 
                                     "data":user_data,
                                     "token":user_token,
@@ -524,25 +535,21 @@ class BookPropertyApi(generics.GenericAPIView):
     def get(self, request):
         try:
             user = request.user
-            query = request.GET.get('query')  # Get the search query from the request
+            query = request.GET.get('query') 
 
 
             bookings = BookProperty.objects.filter(property__owner=user)
             if query:
-                # Apply search filter using Q objects
                 bookings = bookings.filter(
                     Q(property__name__icontains=query) |
                     Q(customer__first_name__icontains=query) 
                   )
 
-            page = self.paginate_queryset(bookings)  # Apply pagination to bookings queryset
-
-                
-            page = self.paginate_queryset(bookings)  # Apply pagination to bookings queryset
+            page = self.paginate_queryset(bookings) 
 
             if page:
                 serializer = BookPropertySerializer(page, many=True)
-                return self.get_paginated_response(serializer.data)  # Use get_paginated_response for paginated response
+                return self.get_paginated_response(serializer.data)  
             else:
                 return Response({
                     'result': True,
@@ -555,25 +562,7 @@ class BookPropertyApi(generics.GenericAPIView):
                 'message': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        #   if len(serializer.data) > 0:
-        #         page = self.paginate_queryset(serializer.data)
-        #         if page is not None:
-        #             serializer = BookPropertySerializer(page, many=True)
-        #             return self.get_paginated_response(serializer.data)
-            
-        #     else:
-        #         return Response({
-        #             'result': True,
-        #             'data': [],
-        #             'message': 'Empty booking history'
-        #         }, status=status.HTTP_200_OK)
-        # except Exception as e:
-        #     return Response({
-        #         'result': False,
-        #         'message': str(e)
-        #     }, status=status.HTTP_400_BAD_REQUEST)
-
-
+       
 class BookingDetailApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
@@ -618,7 +607,6 @@ class BankingAndProductApi(generics.GenericAPIView):
             serializer = ClientBankingSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
-            # Extract settlement data from the request payload
             settlements_data = request.data.pop('settlements', {})
             tnc_accepted = request.data.pop('tnc_accepted', False)
 
