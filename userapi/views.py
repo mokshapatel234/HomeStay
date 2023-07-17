@@ -16,7 +16,7 @@ from userapi.serializers import BookPropertyListSerializer, RegisterSerializer, 
       DashboardPropertiesSerializer,\
           CustomerProfileSerializer, PropertiesDetailSerializer, BookPropertySerializer,\
               TermsAndPolicySerializer, WishlistSerializer
-from .utils import generate_token
+from .utils import generate_token,get_transfers
 from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication
 from rest_framework.parsers import MultiPartParser
@@ -464,15 +464,64 @@ class BookPropertyApi(generics.GenericAPIView):
                 'message': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
+
+    def post(self, request, id):
+        try:
+            property = get_object_or_404(Properties, id=id)
+            serializer = BookPropertySerializer(data=request.data)
+            if serializer.is_valid():
+                validated_data = serializer.validated_data
+
+                validated_data['property'] = property
+                validated_data['customer'] = request.user
+                validated_data['currency'] = 'INR'
+
+                instance = serializer.save()
+
+                
+                client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
+                order_data = {
+                    "amount": instance.amount*100,
+                    "transfers":get_transfers(validated_data),
+                    "currency":'INR'
+                }
+                print("instance amount", instance.amount)
     
+                order = client.order.create(order_data)
+                order_id = order.get('id', '')
+                # Update the order_id in the serializer
+                instance.order_id = order['id']
+                instance.save()
+    
+                # print(serializer.data,"dataa")
+                response_data = {
+                    'result': True,
+                    'data': serializer.data,
+                    'message': 'Property is booked',
+                    'order_id': order_id
+                }
+                return Response(response_data, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'result': False,
+                    'message': 'Property is not booked yet',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                'result': False,
+                'message': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
     # def post(self, request, id):
     #     try:
     #         user = request.user
     #         data = request.data.copy()
     #         data['customer'] = user.id
-    #         serializer = BookPropertySerializer(data=data, context={'amount': data['amount']})
+    #         property = Properties.objects.get(id=id)
+    #         serializer = BookPropertyListSerializer(data=data, context={'amount': data['amount']})
     #         if serializer.is_valid():
-    #             property = Properties.objects.get(id=id)
 
 
     #             if property.status == 'inactive':
@@ -483,10 +532,11 @@ class BookPropertyApi(generics.GenericAPIView):
 
     #             serializer.validated_data['start_date'] = data.get('start_date')
     #             serializer.validated_data['end_date'] = data.get('end_date')
+    #             serializer.validated_data['property'] = property
 
     #             instance = serializer.save(customer=request.user, currency="INR")
 
-                
+
 
     #             client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
     #             amount = int(instance.amount * 100)
@@ -495,6 +545,10 @@ class BookPropertyApi(generics.GenericAPIView):
     #             order_data = {
     #                 "amount": amount,
     #                 "currency": currency,
+    #                 "notes": {
+    #                     "property_id": str(property.id),
+    #                     "booking_id": str(instance.id)
+    #                 }
     #             }
 
     #             order = client.order.create(order_data)
@@ -521,128 +575,6 @@ class BookPropertyApi(generics.GenericAPIView):
     #             'result': False,
     #             'message': str(e)
     #         }, status=status.HTTP_400_BAD_REQUEST)
-
-
-    # def post(self, request, id):
-    #     try:
-    #         property = get_object_or_404(Properties, id=id)
-    #         serializer = BookPropertySerializer(data=request.data)
-    #         if serializer.is_valid():
-    #             owner = property.owner
-    #             commission = Commission.objects.filter(client=owner).first()
-    #             print(commission)
-    #             if commission :
-    #                 commission_percent = commission.commission_percent 
-
-    #             if commission_percent is None:
-    #                 return Response("Commission percentage is not available for the property owner.", status=400)
-
-    #             banking_details = ClientBanking.objects.filter(client=owner).first()
-    #             if banking_details :
-    #                 account_id = banking_details.account_id 
-
-    #             if account_id is None:
-    #                 return Response("Account ID is not available for the property owner.", status=400)
-
-    #             serializer.validated_data['property'] = property
-    #             serializer.validated_data['customer'] = request.user
-    #             serializer.validated_data['currency'] = 'INR'
-
-    #             instance = serializer.save()
-    #             instance.transfers = [{
-    #                 "account": account_id,
-    #                 "amount": max(instance.amount * commission_percent / 100, 1),  # Ensure the minimum amount is 1
-    #                 "currency": "INR"
-    #             }]
-    #             instance.save()
-
-    #             # Create an order in Razorpay
-    #             client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
-    #             order_data = {
-    #                 "amount": max(instance.amount, 1),  # Ensure the minimum amount is 1
-    #                 "transfers": instance.transfers
-    #             }
-    #             order_data['currency'] = 'INR'
-    #             order = client.order.create(order_data)
-
-    #             # Update the order_id in the serializer
-    #             instance.order_id = order['id']
-    #             instance.save()
-
-    #             return Response(serializer.data, status=201)
-    #         else:
-    #             return Response({
-    #                 'result': False,
-    #                 'message': 'Property is not booked yet',
-    #                 'errors': serializer.errors
-    #             }, status=status.HTTP_400_BAD_REQUEST)
-    #     except Exception as e:
-    #         return Response({
-    #             'result': False,
-    #             'message': str(e)
-    #         }, status=status.HTTP_400_BAD_REQUEST)
-
-    def post(self, request, id):
-        try:
-            user = request.user
-            data = request.data.copy()
-            data['customer'] = user.id
-            property = Properties.objects.get(id=id)
-            serializer = BookPropertyListSerializer(data=data, context={'amount': data['amount']})
-            if serializer.is_valid():
-
-
-                if property.status == 'inactive':
-                    return Response({
-                        'result': False,
-                        'message': 'Property is already booked'
-                    }, status=status.HTTP_400_BAD_REQUEST)
-
-                serializer.validated_data['start_date'] = data.get('start_date')
-                serializer.validated_data['end_date'] = data.get('end_date')
-                serializer.validated_data['property'] = property
-
-                instance = serializer.save(customer=request.user, currency="INR")
-
-
-
-                client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
-                amount = int(instance.amount * 100)
-                currency = 'INR'
-
-                order_data = {
-                    "amount": amount,
-                    "currency": currency,
-                    "notes": {
-                        "property_id": str(property.id),
-                        "booking_id": str(instance.id)
-                    }
-                }
-
-                order = client.order.create(order_data)
-                order_id = order.get('id', '')
-
-                instance.order_id = order_id
-                instance.save()
-
-                response_data = {
-                    'result': True,
-                    'data': serializer.data,
-                    'message': 'Property is booked',
-                    'order_id': order_id
-                }
-                return Response(response_data, status=status.HTTP_200_OK)
-            else:
-                return Response({
-                    'result': False,
-                    'message': 'Property is not booked yet',
-                    'errors': serializer.errors
-                }, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({
-                'result': False,
-                'message': str(e)
-            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 

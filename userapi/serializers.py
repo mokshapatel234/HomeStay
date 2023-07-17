@@ -235,35 +235,19 @@ class CommissionSerializer(serializers.ModelSerializer):
         fields = ('id', 'client', 'commission_percent')
 
 class BookPropertySerializer(serializers.ModelSerializer):
-    commission = CommissionSerializer(source='property.owner.client_commission', read_only=True)
-    transfers = serializers.SerializerMethodField()
+    # transfers = serializers.SerializerMethodField()
 
     class Meta:
         model = BookProperty
-        fields = ('id', 'start_date', 'end_date', 'amount', 'transfers', 'commission')
+        fields = ('id', 'start_date', 'end_date', 'amount',)
+        
 
-    def create(self, validated_data):
-        transfers_data = self.get_transfers(validated_data)
-        validated_data.pop('transfers', None)
-        instance = super().create(validated_data)
-        setattr(instance, 'transfers', transfers_data)
-        return instance
+    # def create(self, validated_data):
+    #     transfers_data = self.get_transfers(validated_data)
+    #     validated_data.pop('transfers', None)
+    #     instance = super().create(validated_data)
+    #     setattr(instance, 'transfers', transfers_data)
+    #     return instance
 
-    def get_transfers(self, validated_data):
-        owner = validated_data['property'].owner
-        commission = Commission.objects.filter(client=owner).first()
-        print(commission)
-        if commission:
-            commission_percent = int(commission.commission_percent)  # Convert to integer
-
-        banking_details = ClientBanking.objects.filter(client=owner).first()
-        if banking_details:
-            account_id = banking_details.account_id
-
-        transfers_data = [{
-            "account": account_id,
-            "amount": commission_percent,
-            "currency": "INR"
-        }]
-        return transfers_data
+   
 
