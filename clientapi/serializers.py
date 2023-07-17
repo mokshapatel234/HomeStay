@@ -23,6 +23,8 @@ class RegisterSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=128)
     area = serializers.PrimaryKeyRelatedField(queryset=Area.objects.all())
     contact_no = serializers.CharField(validators=[RegexValidator(regex=r"^\+?1?\d{10}$")])
+    borded = serializers.BooleanField(default=False)
+    otp_verified = serializers.BooleanField(default=False)
 
     def validate(self, attrs):
         email = attrs.get('email')

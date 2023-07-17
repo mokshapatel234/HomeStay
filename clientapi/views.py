@@ -95,6 +95,9 @@ class LoginApi(generics.GenericAPIView):
                     "email":client.email,
                     "password":client.password,
                     "contact_no":client.contact_no,
+                    "borded":client.borded,
+                    "otp_verified":client.otp_verified
+                    
                 }
                 return Response({"result":True, 
                                     "data":user_data,
@@ -600,279 +603,6 @@ class BookingDetailApi(generics.GenericAPIView):
     
 
 
-# class ClientBankingApi(generics.GenericAPIView):
-#     authentication_classes = (JWTAuthentication, )
-#     permission_classes = (permissions.IsAuthenticated, )
-
-#     def post(self, request):
-#         try:
-#             base_url = "https://api.razorpay.com/v2" 
-#             endpoint = "/accounts" 
-            
-#             url = base_url + endpoint
-
-#             request.data['type'] = 'route'
-#             request.data['business_type'] = 'partnership'
-#             serializer = ClientBankingSerializer(data=request.data)
-#             if serializer.is_valid():
-     
-                
-#                 headers = {
-#                     'Content-Type': 'application/json',
-#                     'Authorization': 'Basic cnpwX3Rlc3RfVHk4OTBxY0M4NW5xNUk6ZVZ0M2xCdjAzSXJWa2k4ZEJrb1NucnNi'
-#                 }
-
-
-#                 response = requests.post(url, json=request.data, headers=headers)
-                
-#                 if response.status_code == 200:
-#                     account_data = response.json()
-#                     serializer.save(
-#                         client=request.user,
-#                         status='active',
-#                         account_id=account_data.get('id', ''),
-#                         type='route',
-#                         business_type='partnership'
-                        
-#                     )
-#                     return Response({
-#                         "result": True,
-#                         "data": serializer.data,
-#                         "message": "Bank-detail added successfully",
-#                         "api_response": account_data
-#                     }, status=status.HTTP_201_CREATED)
-                
-#                 return Response({
-#                     "result": False,
-#                     "message": "Failed to create account in Razorpay",
-#                     "api_response": response.json()
-#                 }, status=status.HTTP_400_BAD_REQUEST)
-            
-            
-#             errors = [str(error[0]) for error in serializer.errors.values()]
-#             response = Response({"result": False,
-#                                 "message": ", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
-#             return response
-    
-#         except Exception as e:
-#             return Response({"result":False,
-#                             "message": "Error in razorpay account"}, status=status.HTTP_400_BAD_REQUEST)
- 
-    
-
-
-# class CreateProductApi(APIView):
-#     authentication_classes = (JWTAuthentication,)
-#     permission_classes = (permissions.IsAuthenticated,)
-
-#     def post(self, request, account_id):
-#         try:
-#             base_url = "https://api.razorpay.com/v2"
-#             endpoint = f"/accounts/{account_id}/products"
-
-#             url = base_url + endpoint
-
-#             product_data = {
-#                 "product_name": "route"
-#             }
-
-#             headers = {
-#                 'Content-Type': 'application/json',
-#                 'Authorization': 'Basic cnpwX3Rlc3RfVHk4OTBxY0M4NW5xNUk6ZVZ0M2xCdjAzSXJWa2k4ZEJrb1NucnNi'
-#             }
-
-#             response = requests.post(url, json=product_data, headers=headers)
-
-#             if response.status_code == 200:
-#                 product_data = response.json()
-#                 # Process the product data as needed
-#                 product_id = product_data.get("id")
-#                 product = Product(product_id=product_id)
-#                 product.save()
-
-#                 return Response({
-#                     "result": True,
-#                     "data": product_data,
-#                     "message": "Product created successfully",
-#                 }, status=status.HTTP_201_CREATED)
-
-#             return Response({
-#                 "result": False,
-#                 "message": "Failed to create product in Razorpay",
-#                 "api_response": response.json()
-#             }, status=status.HTTP_400_BAD_REQUEST)
-
-#         except Exception as e:
-#             return Response({
-#                 "result": False,
-#                 "message": "Error in product create"
-#             }, status=status.HTTP_400_BAD_REQUEST)
-        
-
-    
-#     def patch(self, request, account_id, product_id):
-#         try:
-#             base_url = "https://api.razorpay.com/v2"
-#             endpoint = f"/accounts/{account_id}/products/{product_id}/"
-#             url = base_url + endpoint
-
-#             serializer = PatchRequestSerializer(data=request.data)
-#             serializer.is_valid(raise_exception=True)
-
-#             data = serializer.validated_data
-
-#             # Save the data in your database or update the existing product
-#             product = Product.objects.get(product_id=product_id)
-#             product.settlements_account_number = data['settlements']['account_number']
-#             product.settlements_ifsc_code = data['settlements']['ifsc_code']
-#             product.settlements_beneficiary_name = data['settlements']['beneficiary_name']
-#             product.tnc_accepted = data['tnc_accepted']
-#             product.save()
-
-#             headers = {
-#                 'Content-Type': 'application/json',
-#                 'Authorization': 'Basic cnpwX3Rlc3RfVHk4OTBxY0M4NW5xNUk6ZVZ0M2xCdjAzSXJWa2k4ZEJrb1NucnNi'
-#             }
-
-#             response = requests.patch(url, json=request.data, headers=headers)
-
-#             if response.status_code == 200:
-#                 updated_product_data = response.json()
-
-#                 return Response({
-#                     "result": True,
-#                     "data": updated_product_data,
-#                     "message": "Product updated successfully",
-#                 }, status=status.HTTP_200_OK)
-
-#             return Response({
-#                 "result": False,
-#                 "message": "Failed to update product in Razorpay",
-#                 "api_response": response.json()
-#             }, status=status.HTTP_400_BAD_REQUEST)
-
-#         except Exception as e:
-#             return Response({
-#                 "result": False,
-#                 "message": "Error in product update"
-#             }, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class BankingAndProductApi(generics.GenericAPIView):
-#     authentication_classes = (JWTAuthentication, )
-#     permission_classes = (permissions.IsAuthenticated, )
-
-#     def post(self, request):
-#         try:
-#             base_url = "https://api.razorpay.com/v2" 
-            
-#             # API 1: Client Banking API
-#             endpoint = "/accounts" 
-#             url = base_url + endpoint
-#             request.data['type'] = 'route'
-#             request.data['business_type'] = 'partnership'
-#             serializer = ClientBankingSerializer(data=request.data)
-#             if serializer.is_valid():
-#                 headers = {
-#                     'Content-Type': 'application/json',
-#                     'Authorization': 'Basic cnpwX3Rlc3RfVHk4OTBxY0M4NW5xNUk6ZVZ0M2xCdjAzSXJWa2k4ZEJrb1NucnNi'
-#                 }
-#                 response = requests.post(url, json=request.data, headers=headers)
-#                 if response.status_code == 200:
-#                     account_data = response.json()
-#                     serializer.save(
-#                         client=request.user,
-#                         status='active',
-#                         account_id=account_data.get('id', ''),
-#                         type='route',
-#                         business_type='partnership'
-#                     )
-#                 else:
-#                     return Response({
-#                         "result": False,
-#                         "message": "Failed to create account in Razorpay",
-#                         "api_response": response.json()
-#                     }, status=status.HTTP_400_BAD_REQUEST)
-#             else:
-#                 errors = [str(error[0]) for error in serializer.errors.values()]
-#                 response = Response({"result": False, "message": ", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
-#                 return response
-            
-#             # API 2: Create Product API
-#             if account_data:
-#                 endpoint = f"/accounts/{account_data.get('id')}/products"
-#                 url = base_url + endpoint
-#                 product_data = {
-#                     "product_name": "route"
-#                 }
-#                 response = requests.post(url, json=product_data, headers=headers)
-#                 if response.status_code == 200:
-#                     product_data = response.json()
-#                     # Process the product data as needed
-#                     product_id = product_data.get("id")
-#                     product = Product(product_id=product_id)
-#                     product.save()
-#                 else:
-#                     return Response({
-#                         "result": False,
-#                         "message": "Failed to create product in Razorpay",
-#                         "api_response": response.json()
-#                     }, status=status.HTTP_400_BAD_REQUEST)
-#             else:
-#                 return Response({
-#                     "result": False,
-#                     "message": "Account data not available",
-#                 }, status=status.HTTP_400_BAD_REQUEST)
-
-#             # API 3: Update Product API
-#             if product_id:
-#                 endpoint = f"/accounts/{account_data.get('id')}/products/{product_id}/"
-#                 url = base_url + endpoint
-#                 serializer = PatchRequestSerializer(data=request.data)
-#                 serializer.is_valid(raise_exception=True)
-#                 data = serializer.validated_data
-
-#                 product = Product.objects.get(product_id=product_id)
-#                 product.settlements_account_number = data['settlements']['account_number']
-#                 product.settlements_ifsc_code = data['settlements']['ifsc_code']
-#                 product.settlements_beneficiary_name = data['settlements']['beneficiary_name']
-#                 product.tnc_accepted = data['tnc_accepted']
-#                 product.save()
-
-#                 response = requests.patch(url, json=request.data, headers=headers)
-#                 if response.status_code == 200:
-#                     updated_product_data = response.json()
-#                     return Response({
-#                         "result": True,
-#                         "data": updated_product_data,
-#                         "message": "Product updated successfully",
-#                     }, status=status.HTTP_200_OK)
-#                 else:
-#                     return Response({
-#                         "result": False,
-#                         "message": "Failed to update product in Razorpay",
-#                         "api_response": response.json()
-#                     }, status=status.HTTP_400_BAD_REQUEST)
-#             else:
-#                 return Response({
-#                     "result": False,
-#                     "message": "Product ID not available",
-#                 }, status=status.HTTP_400_BAD_REQUEST)
-
-#             return Response({
-#                 "result": True,
-#                 "data": serializer.data,
-#                 "message": "Bank-detail added successfully",
-#                 "api_response": account_data
-#             }, status=status.HTTP_201_CREATED)
-
-#         except Exception as e:
-#             return Response({
-#                 "result": False,
-#                 "message": "Error in API request"
-#             }, status=status.HTTP_400_BAD_REQUEST)
-
-
 class BankingAndProductApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
@@ -950,9 +680,14 @@ class BankingAndProductApi(generics.GenericAPIView):
                     if response.status_code == 200:
                         updated_product_data = response.json()
 
+                        user = request.user
+                        user.borded = True
+                        user.save()
+
                         return Response({
                             "result": True,
                             "data": updated_product_data,
+                            "borded":user.borded,
                             "message": "Product and bank details updated successfully",
                         }, status=status.HTTP_200_OK)
 
