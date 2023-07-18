@@ -390,7 +390,8 @@ class CustomerProfileApi(generics.GenericAPIView):
                         'state_name': user.area.city.state.name,
                         'state_id': user.area.city.state.id,
                     }}
-
+            if user.profile_image:
+                user_data['profile_image'] = user.profile_image.url
             return Response({
                 "result": True,
                 "data": user_data,
@@ -552,22 +553,23 @@ class BookPropertyApi(generics.GenericAPIView):
 #     permission_classes = (permissions.IsAuthenticated,)
 #     pagination_class = CustomerPagination
 #     filter_backends = [filters.SearchFilter]
-#     search_fields = ['property__name', 'book_status', 'order_id']
+#     search_fields = ['property__name', 'order_id']
 #     def get(self, request):
 #         try:
 #             user = request.user
 
 #             bookings = BookProperty.objects.filter(customer=user, book_status=True)
+#             print(bookings)
 #             query = request.GET.get('query')
 
 #             if query:
 #                 # Apply search filter using Q objects
 #                 bookings = bookings.filter(
 #                     Q(property__name__icontains=query) |
-#                     Q(book_status__icontains=query) |
 #                     Q(order_id__icontains=query)
 #                 )
-
+#             else:
+#                 print('hhheh')
 #             paginated_bookings = self.paginate_queryset(bookings)
 #             serializer = BookPropertyListSerializer(paginated_bookings, many=True)
 
