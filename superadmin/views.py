@@ -460,8 +460,8 @@ def update_client(request, id):
         areas  = Area.objects.all()
 
         if request.method == 'POST':
-            selected_state_id = client.area_id.city.state.id
-            selected_city_id = client.area_id.city.id
+            selected_state_id = client.area.city.state.id
+            selected_city_id = client.area.city.id
             client.first_name = request.POST.get('first_name')
             client.last_name = request.POST.get('last_name')
             client.email = request.POST.get('email')
@@ -607,8 +607,8 @@ def update_customer(request, id):
     cities = City.objects.all()
     areas = Area.objects.all()
     if request.method == 'POST':
-        selected_state_id = customer.area_id.city.state.id
-        selected_city_id = customer.area_id.city.id
+        selected_state_id = customer.area.city.state.id
+        selected_city_id = customer.area.city.id
         customer.first_name = request.POST.get('first_name')
         customer.last_name = request.POST.get('last_name')
         customer.email = request.POST.get('email')
@@ -862,6 +862,7 @@ def add_commission(request):
         if request.method == 'POST':
             client_id = request.POST.get('client')
             client = Client.objects.get(id=client_id)
+            print(client)
             existing_commission = Commission.objects.filter(client=client).exists()
 
             if existing_commission:

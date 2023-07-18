@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from clientapi.models import ClientBanking 
 from superadmin.models import Customer, Area, City, State, Properties, PropertyImage, PropertyTerms,\
-      PropertyVideo, Bookings, TermsandPolicy, Wishlist, Commission
+      PropertyVideo, Bookings, TermsandPolicy, Wishlist, Commission, Client
 from django.core.validators import RegexValidator
 from .utils import generate_token
 from .models import BookProperty
@@ -123,15 +123,21 @@ class PropertyTermsSerializer(serializers.ModelSerializer):
         model = PropertyTerms
         fields = ['id', 'terms'] 
 
+class ClientSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model= Client
+        fields = ['id', 'first_name', 'last_name', 'profile_image', 'contact_no']
 
 class PropertiesDetailSerializer(serializers.ModelSerializer):
+    owner = ClientSerializer()
     images = PropertyImageSerializer(many=True)
     videos = PropertyVideoSerializer(many=True)
     terms = PropertyTermsSerializer(many=True)
 
     class Meta:
         model = Properties
-        fields = ['name', 'root_image', 'price', 'status', 'description', 'area_id', 'address', 'images', 'videos', 'terms']
+        fields = ['name', 'root_image', 'price', 'status', 'description', 'area_id', 'address', 'images', 'videos', 'terms', 'owner']
 
 
 

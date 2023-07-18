@@ -78,11 +78,8 @@ class RegisterApi(generics.GenericAPIView):
                 
                 response = Response(response_data, status=status.HTTP_201_CREATED)
                 return response
-                response = Response({"result":True,
-                                    "data":serializer.data,
-                                    "token":user_token,
-                                    "message": "Customer created successfully",}, status=status.HTTP_201_CREATED)
-                return response
+                
+              
             
             errors = [str(error[0]) for error in serializer.errors.values()]
             response = Response({"result":False,

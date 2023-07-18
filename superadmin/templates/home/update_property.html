@@ -123,7 +123,7 @@
                       <select name="state" class="form-control" id="state-dropdown" style="height: 3rem;" required>
                         <option value="">Select a state</option>
                           {% for state in states %}
-                          <option value="{{ state.id }}" {% if state.id == property.area_id.city.state.id %}selected{% endif %}>
+                          <option value="{{ state.id }}" >
                             {{ state.name }}</option>
                         {% endfor %}
                       </select>
