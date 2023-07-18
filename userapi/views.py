@@ -1,3 +1,4 @@
+from rest_framework import filters
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions
 from rest_framework.exceptions import PermissionDenied
@@ -23,8 +24,10 @@ from rest_framework.parsers import MultiPartParser
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import update_session_auth_hash
 import razorpay
+from django.db.models import Q
 from .models import BookProperty
 from clientapi.models import ClientBanking
+from .paginator import CustomerPagination
 # Create your views here.
 
 
@@ -259,50 +262,52 @@ class ChangePasswordApi(generics.GenericAPIView):
 class DashboardPropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = CustomerPagination
     
+
     def get(self, request):
         try:
+            query = request.GET.get('query')  # Get the search query from the request
+            properties = Properties.objects.all()
+            if query:
+                # Apply search filter using Q objects
+                properties = properties.filter(
+                    Q(name__icontains=query) |
+                    Q(price__icontains=query) |
+                    Q(status__icontains=query)
+                )
+
             state = request.query_params.get('state', None)
             city = request.query_params.get('city', None)
             area = request.query_params.get('area', None)
-            
+
             if area:
                 try:
                     area_obj = Area.objects.get(id=area)
-                    properties = Properties.objects.filter(area_id=area_obj)
+                    properties = properties.filter(area_id=area_obj)
                 except Area.DoesNotExist:
-                    return Response({"result": False,
-                                     "message": "No area found"},
-                                    status=status.HTTP_404_NOT_FOUND)
-            
+                    return Response({"result": False, "message": "No area found"}, status=status.HTTP_404_NOT_FOUND)
             elif city:
                 try:
                     city_obj = City.objects.get(id=city)
-                    properties = Properties.objects.filter(area_id__city=city_obj)
+                    properties = properties.filter(area_id__city=city_obj)
                 except City.DoesNotExist:
-                    return Response({"result": False,
-                                     "message": "No city found"},
-                                    status=status.HTTP_404_NOT_FOUND)
-
+                    return Response({"result": False, "message": "No city found"}, status=status.HTTP_404_NOT_FOUND)
             elif state:
                 try:
                     state_obj = State.objects.get(id=state)
-                    properties = Properties.objects.filter(area_id__city__state=state_obj)
+                    properties = properties.filter(area_id__city__state=state_obj)
                 except State.DoesNotExist:
-                    return Response({"result": False,
-                                     "message": "No state found"},
-                                    status=status.HTTP_404_NOT_FOUND)
-            else:
-                properties = Properties.objects.all()
-            
-            serializer = DashboardPropertiesSerializer(properties, many=True)
-            return Response({"result":True,
-                            "data":serializer.data,
-                            "message":"Property found successfully"}, status=status.HTTP_200_OK)
-        
-        except:
-            return Response({"result":False,
-                            "message": "Error in getting data"}, status=status.HTTP_404_NOT_FOUND)
+                    return Response({"result": False, "message": "No state found"}, status=status.HTTP_404_NOT_FOUND)
+
+            # Use the filtered queryset for serialization and pagination
+            paginated_properties = self.paginate_queryset(properties)
+            serializer = DashboardPropertiesSerializer(paginated_properties, many=True)
+            response_data = serializer.data
+            return self.get_paginated_response(response_data)
+
+        except Exception as e:
+            return Response({"result": False, "message": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
 
 
@@ -427,21 +432,31 @@ class wishlistApi(generics.GenericAPIView):
                         status=status.HTTP_400_BAD_REQUEST)
 
 class BookPropertyApi(generics.GenericAPIView):
-    authentication_classes = (JWTAuthentication, )
-    permission_classes = (permissions.IsAuthenticated, )
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = CustomerPagination
 
     def get(self, request):
         try:
             user = request.user
-            bookings = BookProperty.objects.filter(customer=user) 
-            serializer = BookPropertyListSerializer(bookings, many=True)
+            bookings = BookProperty.objects.filter(customer=user)
+            query = request.GET.get('query')
+
+            if query:
+                # Apply search filter using Q objects
+                bookings = bookings.filter(
+                    Q(property__name__icontains=query) |
+                    Q(amount__icontains=query)
+                )
+
+            paginated_bookings = self.paginate_queryset(bookings)
+            serializer = BookPropertyListSerializer(paginated_bookings, many=True)
 
             data = []
-            for booking in bookings:
-                property_id = booking.property_id
-                property_name = Properties.objects.get(id=property_id).name
-                property_image = Properties.objects.get(id=property_id).root_image.url
-                payment_status = 'Paid'  
+            for booking in paginated_bookings:
+                property_name = booking.property.name
+                property_image = booking.property.root_image.url
+                payment_status = 'Paid'  # Assuming payment status is always 'Paid' for simplicity
 
                 item = {
                     'property_name': property_name,
@@ -453,16 +468,18 @@ class BookPropertyApi(generics.GenericAPIView):
                 }
                 data.append(item)
 
-            return Response({
+            return self.get_paginated_response({
                 'result': True,
                 'data': data,
                 'message': 'Booking history'
-            }, status=status.HTTP_200_OK)
+            })
+
         except Exception as e:
             return Response({
                 'result': False,
                 'message': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
+
 
 
     def post(self, request, id):
