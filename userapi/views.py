@@ -505,78 +505,23 @@ class wishlistApi(generics.GenericAPIView):
                         'message': 'Error in property remove'},
                         status=status.HTTP_400_BAD_REQUEST)
 
-# class BookPropertyApi(generics.GenericAPIView):
-#     authentication_classes = (JWTAuthentication, )
-#     permission_classes = (permissions.IsAuthenticated, )
-
-#     def get(self, request):
-#         try:
-#             user = request.user
-#             bookings = BookProperty.objects.filter(customer=user, book_status=True)  # Filter by status=True
-#             serializer = BookPropertyListSerializer(bookings, many=True)
-
-#             data = []
-#             for booking in bookings:
-#                 property_id = booking.property_id
-#                 property_name = Properties.objects.get(id=property_id).name
-#                 property_image = Properties.objects.get(id=property_id).root_image.url
-#                 payment_status = 'Paid'  
-
-#                 item = {
-#                     'property_name': property_name,
-#                     'root_image': property_image,
-#                     'payment_status': payment_status,
-#                     'start_date': booking.start_date,
-#                     'end_date': booking.end_date,
-#                     'amount': booking.amount,
-#                     'book_status':booking.book_status
-#                 }
-#                 data.append(item)
-
-#             return Response({
-#                 'result': True,
-#                 'data': data,
-#                 'message': 'Booking history'
-#             }, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response({
-#                 'result': False,
-#                 'message': str(e)
-#             }, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
 class BookPropertyApi(generics.GenericAPIView):
-    authentication_classes = (JWTAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = CustomerPagination
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['property__name', 'book_status', 'order_id']
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
+
     def get(self, request):
         try:
             user = request.user
-
-            bookings = BookProperty.objects.filter(customer=user, book_status=True)
-            query = request.GET.get('query')
-
-            if query:
-                # Apply search filter using Q objects
-                bookings = bookings.filter(
-                    Q(property__name__icontains=query) |
-                    Q(book_status__icontains=query) |
-                    Q(order_id__icontains=query)
-                )
-
-            paginated_bookings = self.paginate_queryset(bookings)
-            serializer = BookPropertyListSerializer(paginated_bookings, many=True)
+            bookings = BookProperty.objects.filter(customer=user, book_status=True)  # Filter by status=True
+            serializer = BookPropertyListSerializer(bookings, many=True)
 
             data = []
-            for booking in paginated_bookings:
-                property_name = booking.property.name
-                property_image = booking.property.root_image.url
-                payment_status = 'Paid'  # Assuming payment status is always 'Paid' for simplicity
-            
+            for booking in bookings:
+                property_id = booking.property_id
+                property_name = Properties.objects.get(id=property_id).name
+                property_image = Properties.objects.get(id=property_id).root_image.url
+                payment_status = 'Paid'  
+
                 item = {
                     'property_name': property_name,
                     'root_image': property_image,
@@ -584,17 +529,72 @@ class BookPropertyApi(generics.GenericAPIView):
                     'start_date': booking.start_date,
                     'end_date': booking.end_date,
                     'amount': booking.amount,
-                    'order_id': booking.order_id,
-                    'book_status': booking.book_status
+                    'book_status':booking.book_status
                 }
                 data.append(item)
-                
-            return self.get_paginated_response({'data': data})
+
+            return Response({
+                'result': True,
+                'data': data,
+                'message': 'Booking history'
+            }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({
                 'result': False,
                 'message': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+# class BookPropertyApi(generics.GenericAPIView):
+#     authentication_classes = (JWTAuthentication,)
+#     permission_classes = (permissions.IsAuthenticated,)
+#     pagination_class = CustomerPagination
+#     filter_backends = [filters.SearchFilter]
+#     search_fields = ['property__name', 'book_status', 'order_id']
+#     def get(self, request):
+#         try:
+#             user = request.user
+
+#             bookings = BookProperty.objects.filter(customer=user, book_status=True)
+#             query = request.GET.get('query')
+
+#             if query:
+#                 # Apply search filter using Q objects
+#                 bookings = bookings.filter(
+#                     Q(property__name__icontains=query) |
+#                     Q(book_status__icontains=query) |
+#                     Q(order_id__icontains=query)
+#                 )
+
+#             paginated_bookings = self.paginate_queryset(bookings)
+#             serializer = BookPropertyListSerializer(paginated_bookings, many=True)
+
+#             data = []
+#             for booking in paginated_bookings:
+#                 property_name = booking.property.name
+#                 property_image = booking.property.root_image.url
+#                 payment_status = 'Paid'  # Assuming payment status is always 'Paid' for simplicity
+            
+#                 item = {
+#                     'property_name': property_name,
+#                     'root_image': property_image,
+#                     'payment_status': payment_status,
+#                     'start_date': booking.start_date,
+#                     'end_date': booking.end_date,
+#                     'amount': booking.amount,
+#                     'order_id': booking.order_id,
+#                     'book_status': booking.book_status
+#                 }
+#                 data.append(item)
+                
+#             return self.get_paginated_response({'data': data})
+#         except Exception as e:
+#             return Response({
+#                 'result': False,
+#                 'message': str(e)
+#             }, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, id):
         try:
