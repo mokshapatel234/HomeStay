@@ -127,7 +127,7 @@ class ClientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model= Client
-        fields = ['id', 'first_name', 'last_name', 'profile_image', 'contact_no']
+        fields = ['id', 'first_name', 'last_name', 'profile_image', 'contact_no', 'email']
 
 class PropertiesDetailSerializer(serializers.ModelSerializer):
     owner = ClientSerializer()
@@ -145,7 +145,7 @@ class BookPropertyListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BookProperty
-        fields = ['id', 'start_date', 'end_date', 'amount']
+        fields = ['id', 'start_date', 'end_date', 'amount', 'order_id','book_status']
     
 
 class TermsAndPolicySerializer(serializers.ModelSerializer):

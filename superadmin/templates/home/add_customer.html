@@ -58,7 +58,7 @@
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label" >contact_no*</label>
-                      <input type="text" class="form-control" placeholder="Contact No" pattern="[0-9]{10}" name="contact_no">
+                      <input type="number" class="form-control" placeholder="Contact No"  oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);" maxlength="10" name="contact_no">
                     </div>
                   </div>
                   <div class="col-lg-6">

@@ -17,7 +17,11 @@
 
 
       });
-   });
+      function getQueryStringValue(key) {
+        var urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(key);
+    }
+  });
 </script>
 {% endblock head %}
 

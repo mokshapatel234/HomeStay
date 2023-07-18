@@ -857,29 +857,26 @@ def delete_property(request, id):
 
 
 def add_commission(request):
-    try:
-        clients = Client.objects.all()
-        if request.method == 'POST':
-            client_id = request.POST.get('client')
-            client = Client.objects.get(id=client_id)
-            print(client)
-            existing_commission = Commission.objects.filter(client=client).exists()
+    clients = Client.objects.all()
+    if request.method == 'POST':
+        client_id = request.POST.get('client')
+        commission_percent = request.POST.get('commission_percent')
+        client = Client.objects.get(id=client_id)
+        
+        # Check if a commission already exists for the client
+        existing_commission = Commission.objects.filter(client=client).exists()
 
-            if existing_commission:
-                commission.commission_percent = request.POST.get('commission_percent')
-                commission.save()
-            else:
-                commission = Commission(
-                    client=client,
-                    commission_percent = request.POST.get('commission_percent')
-                )
-                commission.save()
-            return redirect('list_commission')
-    except Exception as e:
-        print(e)
+        if existing_commission:
+            commission = Commission.objects.get(client=client)
+            commission.commission_percent = commission_percent
+            commission.save()
+        else:
+            commission = Commission(client=client, commission_percent=commission_percent)
+            commission.save()
 
-    return render(request, 'home/add_commission.html', {'clients':clients, 'segment':'commission'})
-
+        return redirect('list_commission')
+    
+    return render(request, 'home/add_commission.html', {'clients': clients, 'segment': 'commission'})
 
 def list_commission(request):
     commissions = Commission.objects.all()
@@ -923,24 +920,19 @@ def list_commission(request):
 
 def update_commission(request, id):
     try:
-        clients = Client.objects.all()
         commission = Commission.objects.get(id=id)
+        clients = Client.objects.all()
+
         if request.method == 'POST':
-            client_id = request.POST.get('client')
-            print(client_id)
-            client = Client.objects.get(id=client_id)
-           
-           
-            commission.client=client,
-            commission.commission_percent = request.POST.get('commission_percent')
-            
+            commission_percent = request.POST.get('commission_percent')
+            commission.commission_percent = commission_percent
             commission.save()
             return redirect('list_commission')
-    except Exception as e:
-        print(e)
 
-    return render(request, 'home/update_commission.html', {'clients':clients, "commission":commission, 'segment':'commission'})
+    except Commission.DoesNotExist:
+        return redirect('list_commission')
 
+    return render(request, 'home/update_commission.html', {'commission': commission, 'clients': clients})
 
 def delete_commission(request, id):
     commission = Commission.objects.get(id=id)

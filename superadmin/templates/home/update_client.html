@@ -56,7 +56,7 @@
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label" >contact_no</label>
-                      <input type="text" class="form-control" placeholder="Contact No" name="contact_no" value="{{client.contact_no}}">
+                      <input type="text" class="form-control" placeholder="Contact No" name="contact_no" value="{{client.contact_no}}" oninput="javascript: if (this.value.length > 10) this.value = this.value.slice(0, 10);">
                     </div>
                   </div>
             
@@ -66,7 +66,7 @@
                     <label class="form-control-label" >Status</label>
                     <select id="input-status" name="status" class="form-control" style="height: 3rem;" value="{{property.status}}">
                       <option value="active">Active</option>
-                      <option value="deactive">Deactive</option>
+                      <option value="inactive">Inactive</option>
                     </select>
                   </div>
                 </div>

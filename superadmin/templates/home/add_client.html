@@ -1,23 +1,7 @@
 {% extends 'layouts/base.html' %}
 
 {% block head %}
-{% comment %} <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-<script>
-   $(document).ready(function () {
-      $('#dtBasicExample').DataTable({
-         "lengthChange": true,
-         "searching": true,
-         "columnDefs": [
-         { "searchable": true, "targets": 0 }
-         ],
-         "order":[[ 0,"desc" ]],
-         // "columnDefs" : [{"targets":, "type":"date-eu"}], 
 
-
-      });
-   });
-</script> {% endcomment %}
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 
@@ -87,7 +71,7 @@
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label" >Contact_no*</label>
-                      <input type="number" class="form-control" placeholder="Contact No" pattern="[0-9]{10}" maxlength="10" name="contact_no" required>
+                      <input type="number" class="form-control" placeholder="Contact No"  oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);" minlength="10" maxlength="10" name="contact_no" required>
                     </div>
                   </div>
                 

@@ -14,5 +14,6 @@ class CustomerPagination(PageNumberPagination):
                 "per_page": self.page_size,
                 "total_docs": self.page.paginator.count,
                 "total_pages": self.page.paginator.num_pages
-            }
+            },
+            "message":"Data found successfully"
         })

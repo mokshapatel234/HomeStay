@@ -2,9 +2,10 @@
 
 {% block head %}
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+
+  
 {% endblock head %}
 
 {% block title %} Profile {% endblock title %}
@@ -65,13 +66,14 @@
                     <div class="form-group">
                       <label class="form-control-label">Owner*</label>
                       <select name="owner" class="form-control select2" style="height: 3rem;">
-                        <option value=""></option>
+                        <option value="">Select owner</option>
                         {% for client in clients %}
                           <option value="{{ client.id }}">{{ client.first_name }} {{ client.last_name }}</option>
                         {% endfor %}
                       </select>
                     </div>
                   </div>
+                  
 
                   <div class="col-lg-6">
                     <div class="form-group">
@@ -100,7 +102,7 @@
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label">State*</label>
-                      <select name="state" class="form-control" id="state-dropdown" style="height: 3rem;" required>
+                      <select name="state" class="form-control select2" id="state-dropdown" style="height: 3rem;" required>
                         <option value="">Select a state</option>
                         {% for state in states %}
                           <option value="{{ state.id }}">{{ state.name }}</option>
@@ -112,7 +114,7 @@
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label">City*</label>
-                      <select name="city" class="form-control" id="city-dropdown" style="height: 3rem;" required disabled>
+                      <select name="city" class="form-control select2" id="city-dropdown" style="height: 3rem;" required disabled>
                         <option value="">Select a city</option>
                         {% for city in cities %}
                         <option value="{{ city.id }}">{{ city.name }}</option>
@@ -124,7 +126,7 @@
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label">Area*</label>
-                      <select name="area" class="form-control" id="area-dropdown" style="height: 3rem;" required disabled>
+                      <select name="area" class="form-control select2" id="area-dropdown" style="height: 3rem;" required disabled>
                         <option value="">Select an area</option>
                         {% for area in areas %}
                         <option value="{{ area.id }}">{{ area.name }}</option>
