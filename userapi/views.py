@@ -303,10 +303,11 @@ class ChangePasswordApi(generics.GenericAPIView):
 #                     return Response({"result": False, "message": "No state found"}, status=status.HTTP_404_NOT_FOUND)
 
 #             # Use the filtered queryset for serialization and pagination
-#             paginated_properties = self.paginate_queryset(properties)
+#             paginator = self.pagination_class()
+#             paginated_properties = paginator.paginate_queryset(properties,request)
 #             serializer = DashboardPropertiesSerializer(paginated_properties, many=True)
-#             response_data = serializer.data
-#             return self.get_paginated_response(response_data)
+#             return paginator.get_paginated_response(serializer.data)
+
 
 #         except Exception as e:
 #             return Response({"result": False, "message": str(e)}, status=status.HTTP_404_NOT_FOUND)
@@ -516,7 +517,7 @@ class BookPropertyApi(generics.GenericAPIView):
     def get(self, request):
         try:
             user = request.user
-            bookings = BookProperty.objects.filter(customer=user, book_status=True)  # Filter by status=True
+            bookings = BookProperty.objects.filter(customer=user, book_status__in=[True])  
             serializer = BookPropertyListSerializer(bookings, many=True)
 
             data = []
@@ -550,56 +551,39 @@ class BookPropertyApi(generics.GenericAPIView):
 
 
 
-
 # class BookPropertyApi(generics.GenericAPIView):
 #     authentication_classes = (JWTAuthentication,)
 #     permission_classes = (permissions.IsAuthenticated,)
 #     pagination_class = CustomerPagination
-#     filter_backends = [filters.SearchFilter]
-#     search_fields = ['property__name', 'order_id']
+ 
 #     def get(self, request):
 #         try:
-#             user = request.user
-
-#             bookings = BookProperty.objects.filter(customer=user, book_status=True)
-#             print(bookings)
+#             user = request.user      
+#             properties = BookProperty.objects.filter(book_status__in=[True], customer=user)
+              
 #             query = request.GET.get('query')
 
 #             if query:
-#                 # Apply search filter using Q objects
-#                 bookings = bookings.filter(
+#                 properties = properties.filter(
 #                     Q(property__name__icontains=query) |
 #                     Q(order_id__icontains=query)
 #                 )
 #             else:
-#                 print('hhheh')
-#             paginated_bookings = self.paginate_queryset(bookings)
-#             serializer = BookPropertyListSerializer(paginated_bookings, many=True)
-
-#             data = []
-#             for booking in paginated_bookings:
-#                 property_name = booking.property.name
-#                 property_image = booking.property.root_image.url
-#                 payment_status = 'Paid'  # Assuming payment status is always 'Paid' for simplicity
+#                 print('error')
+#             paginator = self.pagination_class()
+#             paginated_properties = paginator.paginate_queryset(properties,request)
+#             serializer = BookPropertyListSerializer(paginated_properties, many=True)
+           
             
-#                 item = {
-#                     'property_name': property_name,
-#                     'root_image': property_image,
-#                     'payment_status': payment_status,
-#                     'start_date': booking.start_date,
-#                     'end_date': booking.end_date,
-#                     'amount': booking.amount,
-#                     'order_id': booking.order_id,
-#                     'book_status': booking.book_status
-#                 }
-#                 data.append(item)
-                
-#             return self.get_paginated_response({'data': data})
+#             return paginator.get_paginated_response(serializer.data)
+        
 #         except Exception as e:
 #             return Response({
 #                 'result': False,
 #                 'message': str(e)
 #             }, status=status.HTTP_400_BAD_REQUEST)
+
+
 
     def post(self, request, id):
         try:
@@ -668,13 +652,13 @@ class VerifyApi(generics.GenericAPIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             booking = BookProperty.objects.get(order_id=order_id)
-            booking.status = status_value
+            booking.book_status = status_value
             booking.save()
 
 
             return Response({
                 'result': True,
-                'message': f"Order {order_id} status updated successfully"
+                'message': f"Order {order_id} status {status_value}updated successfully"
             }, status=status.HTTP_200_OK)
         except BookProperty.DoesNotExist:
             return Response({

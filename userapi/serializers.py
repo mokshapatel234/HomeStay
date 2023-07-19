@@ -142,11 +142,20 @@ class PropertiesDetailSerializer(serializers.ModelSerializer):
 
 
 class BookPropertyListSerializer(serializers.ModelSerializer):
+    property_root_image = serializers.SerializerMethodField()
+    property_name = serializers.SerializerMethodField()
+    
+    def get_property_root_image(self, obj):
+        return obj.property.root_image.url if obj.property.root_image else None
+
+    def get_property_name(self, obj):
+        return obj.property.name if obj.property else None
 
     class Meta:
         model = BookProperty
-        fields = ['id', 'start_date', 'end_date', 'amount', 'order_id','book_status']
-    
+        fields = ('id','property_name', 'property_root_image', 'book_status','start_date', 'end_date', 'amount','order_id')
+        
+
 
 class TermsAndPolicySerializer(serializers.ModelSerializer):
 
@@ -213,7 +222,7 @@ class BookPropertySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BookProperty
-        fields = ('id', 'start_date', 'end_date', 'amount')
+        fields = ('id', 'book_status','start_date', 'end_date', 'amount')
         
 
    

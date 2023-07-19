@@ -309,8 +309,8 @@ class PropertyApi(generics.GenericAPIView):
     permission_classes = (permissions.IsAuthenticated, )
     parser_classes = (MultiPartParser, )
     pagination_class = ClientPagination
-    page_size = 5
-    page = 1
+    # page_size = 5
+    # page = 1
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'address', 'price', 'status']  # Add the fields you want to search by
 
@@ -558,7 +558,7 @@ class BookPropertyApi(generics.GenericAPIView):
             query = request.GET.get('query') 
 
 
-            bookings = BookProperty.objects.filter(property__owner=user, book_status=True)
+            bookings = BookProperty.objects.filter(property__owner=user, book_status__in=[True])
             if query:
                 bookings = bookings.filter(
                     Q(property__name__icontains=query) |

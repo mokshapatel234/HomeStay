@@ -30,7 +30,7 @@ class ClientBanking(models.Model):
   
   
     def __str__(self):
-        return f"{self.username}({self.password})"
+        return f"{self.email}"
     
     def delete(self, hard=False, **kwargs):
         if hard:

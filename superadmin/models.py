@@ -190,7 +190,7 @@ class Customer(models.Model):
     objects = ParanoidModelManager() 
 
     def __str__(self):
-        return f"{self.username}({self.password})"
+        return f"{self.first_name}({self.password})"
     
     def delete(self, hard=False, **kwargs):
         if hard:

@@ -1,4 +1,4 @@
-from django.db import models
+# from django.db import models
 from djongo import models
 from superadmin.models import Client, Properties, Customer
 import uuid
@@ -25,6 +25,9 @@ class BookProperty(models.Model):
     deleted_at = models.DateTimeField(blank=True,null=True ,default=None)
     objects = ParanoidModelManager() 
     
+    def __str__(self):
+        return f"{self.id}"
+
     def delete(self, hard=False, **kwargs):
         if hard:
             super(BookProperty, self).delete()
