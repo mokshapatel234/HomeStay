@@ -39,28 +39,30 @@
                       <input type="text" id="input-first-name" class="form-control" placeholder="Property Name" name="property_name" required>
                     </div>
                   </div>
+
+
                   <div class="col-lg-6">
-                    <div class="form-group" id="root-image-preview">
-                      <label class="form-control-label" for="root-input-image">Root Image*</label>
-                      <input type="file" id="root-input-image" class="form-control" placeholder="Root Images" name="root_image" required accept=".jpg, .jpeg, .png, .webp">
+                    <div class="form-group">
+                      <label class="form-control-label" for="root-input-images">Root Image*</label>
+                      <input type="file" id="root-image-input" accept="image/*" onchange="previewImage(this)" class="form-control" placeholder="Root Images" name="root_image" required >
                       <!-- Display the root image preview -->
-                      <img id="root-image" class="img-thumbnail" style="max-width: 200px; margin-right: 10px;">
+                      <div id="img-preview-container"></div>
                     </div>
                   </div>
                   
                   <div class="col-lg-6">
-                    <div class="form-group" id="images-preview">
+                    <div class="form-group" >
                       <label class="form-control-label" for="input-images"> Images*</label>
-                      <input type="file" multiple id="input-images" class="form-control" placeholder="Images" name="images" required accept=".jpg, .jpeg, .png, .webp">
+                      <input type="file" multiple id="image-input" accept="image/*" onchange="previewImages(this)" class="form-control" placeholder="Images" name="images" required >
                       <div id="image-preview-container"></div>
                     </div>
                   </div>
 
                   
                   <div class="col-lg-6">
-                    <div class="form-group" id="video-preview">
+                    <div class="form-group">
                       <label class="form-control-label" for="input-videos">Videos*</label>
-                      <input type="file" multiple id="input-videos" class="form-control" placeholder="Videos" name="videos" required accept=".mpeg4, .mp4">
+                      <input type="file" multiple id="video-input" accept="video/*" onchange="previewVideos(this)" class="form-control" placeholder="Videos" name="videos" required>
                       <div id="video-preview-container"></div>
                     </div>
                   </div>
@@ -172,105 +174,244 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
+  function previewImage(input) {
+    if (input.files && input.files[0]) {
+      const previewContainer = document.getElementById("img-preview-container");
+      previewContainer.innerHTML = ""; // Clear previous preview
+  
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const imagePreviewItem = document.createElement("div");
+        const fileId = generateUniqueId(); // Generate unique ID for the file
+  
+        imagePreviewItem.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
+        imagePreviewItem.classList.add("image-preview-item");
+  
+        const imagePreview = document.createElement("img");
+        imagePreview.src = e.target.result;
+        imagePreview.classList.add("m-1", "img-thumbnail");
+        imagePreview.style.maxWidth = "200px";
+        imagePreview.style.maxHeight = "200px";
+  
+        const viewButton = document.createElement("button");
+        viewButton.setAttribute("type", "button"); // Set the button type to "button"
+        viewButton.classList.add("btn", "btn-sm", "btn-primary", "view-image-btn");
+        viewButton.textContent = "View";
+        viewButton.addEventListener("click", function () {
+          const win = window.open("", "_blank");
+          win.document.write(
+            `<img src="${e.target.result}" style="width: 500px; height: 900px; object-fit: contain; position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;">`
+
+          );
+        });
+  
+        const deleteButton = document.createElement("button");
+        deleteButton.classList.add("btn", "btn-sm", "btn-danger", "delete-image-btn");
+        deleteButton.textContent = "Delete";
+        deleteButton.addEventListener("click", function () {
+          const imageContainer = document.querySelector(`[data-file-id="${fileId}"]`);
+          imageContainer.remove();
+          // Clear the file field by resetting the input value
+          input.value = null;
+        });
+  
+        imagePreviewItem.appendChild(imagePreview);
+        imagePreviewItem.appendChild(viewButton);
+        imagePreviewItem.appendChild(deleteButton);
+  
+        previewContainer.appendChild(imagePreviewItem);
+      };
+  
+      reader.readAsDataURL(file);
+    }
+  }
+  
+  // Generate a unique ID
+  function generateUniqueId() {
+    return Math.random().toString(36).substr(2, 9);
+  }
+  
+</script>
+
+
+<script>
+  function previewImages(input) {
+    if (input.files && input.files.length > 0) {
+      const previewContainer = document.getElementById("image-preview-container");
+      previewContainer.innerHTML = ""; // Clear previous previews
+  
+      const newFiles = Array.from(input.files); // Convert the FileList object to an array
+      console.log(newFiles);
+  
+      newFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const imagePreviewItem = document.createElement("div");
+          const fileId = generateUniqueId(); // Generate unique ID for the file
+  
+          imagePreviewItem.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
+          imagePreviewItem.classList.add("image-preview-item");
+  
+          const imagePreview = document.createElement("img");
+          imagePreview.src = e.target.result;
+          imagePreview.classList.add("m-1", "img-thumbnail");
+          imagePreview.style.maxWidth = "200px";
+          imagePreview.style.maxHeight = "200px";
+  
+          const viewButton = document.createElement("button");
+          viewButton.setAttribute("type", "button"); // Set the button type to "button"
+          viewButton.classList.add("btn", "btn-sm", "btn-primary", "view-image-btn");
+          viewButton.textContent = "View";
+          viewButton.addEventListener("click", function () {
+            const win = window.open("", "_blank");
+            win.document.write(
+              `<img src="${e.target.result}" style="width: 500px; height: 900px; object-fit: contain; position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;">`
+              );
+          });
+  
+          const deleteButton = document.createElement("button");
+          deleteButton.classList.add("btn", "btn-sm", "btn-danger", "delete-image-btn");
+          deleteButton.textContent = "Delete";
+          deleteButton.addEventListener("click", function () {
+            const imageContainer = document.querySelector(`[data-file-id="${fileId}"]`);
+            imageContainer.remove();
+            // Remove the file from the newFiles array
+            const fileIndex = newFiles.findIndex(file => file.name === file.name);
+            if (fileIndex !== -1) {
+              newFiles.splice(fileIndex, 1);
+            }
+            // Check if newFiles array is empty
+            console.log(newFiles.length);
+            if (newFiles.length === 0) {
+              // Clear the file field by resetting the input value
+              input.value = null;
+            } else {
+              // Update the input.files property with the updated newFiles array
+              input.files = new FileListWrapper(newFiles);
+            }
+          });
+  
+          imagePreviewItem.appendChild(imagePreview);
+          imagePreviewItem.appendChild(viewButton);
+          imagePreviewItem.appendChild(deleteButton);
+  
+          previewContainer.appendChild(imagePreviewItem);
+        };
+  
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+  
+  // Custom wrapper for FileList object
+  function FileListWrapper(files) {
+    const dataTransfer = new DataTransfer();
+    files.forEach(file => {
+      dataTransfer.items.add(file);
+    });
+    return dataTransfer.files;
+  }
+  
+  // Generate a unique ID
+  function generateUniqueId() {
+    return Math.random().toString(36).substr(2, 9);
+  }
+  
+</script>
+
+<script>
+
+  function previewVideos(input) {
+    if (input.files && input.files.length > 0) {
+      const previewContainer = document.getElementById("video-preview-container");
+      previewContainer.innerHTML = ""; // Clear previous previews
+  
+      const newFiles = Array.from(input.files); // Convert the FileList object to an array
+      console.log(newFiles);
+  
+      newFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const videoPreviewItem = document.createElement("div");
+          const fileId = generateUniqueId(); // Generate unique ID for the file
+  
+          videoPreviewItem.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
+          videoPreviewItem.classList.add("video-preview-item");
+  
+          const videoPreview = document.createElement("video");
+          videoPreview.src = e.target.result;
+          videoPreview.classList.add("m-1", "video-thumbnail");
+          videoPreview.style.maxWidth = "200px";
+          videoPreview.style.maxHeight = "200px";
+          videoPreview.controls = true;
+  
+          const viewButton = document.createElement("button");
+          viewButton.setAttribute("type", "button"); // Set the button type to "button"
+          viewButton.classList.add("btn", "btn-sm", "btn-primary", "view-video-btn");
+          viewButton.textContent = "View";
+          viewButton.addEventListener("click", function () {
+            const win = window.open("", "_blank");
+            win.document.write(
+              `<video src="${e.target.result}" style="width: 900px; height: 900px; object-fit: contain; position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;" controls></video>`
+              );
+          });
+  
+          const deleteButton = document.createElement("button");
+          deleteButton.classList.add("btn", "btn-sm", "btn-danger", "delete-video-btn");
+          deleteButton.textContent = "Delete";
+          deleteButton.addEventListener("click", function () {
+            const videoContainer = document.querySelector(`[data-file-id="${fileId}"]`);
+            videoContainer.remove();
+            // Remove the file from the newFiles array
+            const fileIndex = newFiles.findIndex(file => file.name === file.name);
+            if (fileIndex !== -1) {
+              newFiles.splice(fileIndex, 1);
+            }
+            // Check if newFiles array is empty
+            console.log(newFiles.length);
+            if (newFiles.length === 0) {
+              // Clear the file field by resetting the input value
+              input.value = null;
+            } else {
+              // Update the input.files property with the updated newFiles array
+              input.files = new FileListWrapper(newFiles);
+            }
+          });
+  
+          videoPreviewItem.appendChild(videoPreview);
+          videoPreviewItem.appendChild(viewButton);
+          videoPreviewItem.appendChild(deleteButton);
+  
+          previewContainer.appendChild(videoPreviewItem);
+        };
+  
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+  
+  // Custom wrapper for FileList object
+  function FileListWrapper(files) {
+    const dataTransfer = new DataTransfer();
+    files.forEach(file => {
+      dataTransfer.items.add(file);
+    });
+    return dataTransfer.files;
+  }
+  
+  // Generate a unique ID
+  function generateUniqueId() {
+    return Math.random().toString(36).substr(2, 9);
+  }
   
 
-  $(document).ready(function() {
-    // Function to read and display image files
-    function readImage(input, containerId) {
-      if (input.files && input.files.length > 0) {
-        $('#' + containerId).empty();
+</script>
 
-        for (let i = 0; i < input.files.length; i++) {
-          const reader = new FileReader();
-
-          reader.onload = function(e) {
-            const imagePreview = $('<img>');
-            imagePreview.attr('src', e.target.result);
-            imagePreview.addClass('img-thumbnail');
-            imagePreview.css({
-              'max-width': '200px',
-              'margin-right': '10px'
-            });
-            const imagePreviewItem = $('<div class="image-preview-item"></div>');
-            imagePreviewItem.append(imagePreview);
-            
-            // Create buttons for the image preview item
-            const buttonsContainer = $('<div class="image-preview-buttons"></div>');
-            const viewButton = $('<button class="btn btn-sm btn-primary view-image-btn">View</button>');
-            const deleteButton = $('<button class="btn btn-sm btn-danger delete-image-btn">Delete</button>');
-            buttonsContainer.append(viewButton, deleteButton);
-            
-            // Add click handlers to the buttons
-            viewButton.on('click', function() {
-              const file = input.files[i];
-              const imageUrl = URL.createObjectURL(file);
-              window.open(imageUrl, '_blank');
-            });
-            
-
-            deleteButton.on('click', function() {
-              imagePreviewItem.remove();
-            });
-            
-            imagePreviewItem.append(buttonsContainer);
-            
-            $('#' + containerId).append(imagePreviewItem);
-          };
-
-          reader.readAsDataURL(input.files[i]);
-        }
-      }
-    }
-          
-
-    // Function to read and display video files
-    function readVideo(input, containerId) {
-      if (input.files && input.files.length > 0) {
-        $('#' + containerId).empty();
-
-        for (let i = 0; i < input.files.length; i++) {
-          const reader = new FileReader();
-
-          reader.onload = function(e) {
-            const videoPreview = $('<video controls>');
-            videoPreview.attr('src', e.target.result);
-            videoPreview.addClass('video-thumbnail');
-            videoPreview.css({
-              'max-width': '200px',
-              'margin-right': '10px'
-            });
-            const videoPreviewItem = $('<div class="video-preview-item"></div>');
-            videoPreviewItem.append(videoPreview);
-            
-            // Create buttons for the video preview item
-            const buttonsContainer = $('<div class="video-preview-buttons"></div>');
-            const viewButton = $('<button class="btn btn-sm btn-primary view-video-btn">View</button>');
-            const deleteButton = $('<button class="btn btn-sm btn-danger delete-video-btn">Delete</button>');
-            buttonsContainer.append(viewButton, deleteButton);
-            
-            // Add click handlers to the buttons
-            viewButton.on('click', function() {
-              const file = input.files[i];
-              const videoUrl = URL.createObjectURL(file);
-              window.open(videoUrl, '_blank');
-            });
-            
-            
-            deleteButton.on('click', function() {
-              videoPreviewItem.remove();
-            });
-            
-            videoPreviewItem.append(buttonsContainer);
-            
-            $('#' + containerId).append(videoPreviewItem);
-          };
-
-          reader.readAsDataURL(input.files[i]);
-        }
-      }
-    }
-
+<script>
+  
 
     $(document).ready(function() {
       // Function to read and display root image file
@@ -367,7 +508,6 @@
     });
   });
   });
-});
 
 </script>
 

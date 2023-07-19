@@ -581,12 +581,12 @@ def add_customer(request):
             city_id = request.GET.get('city_id')
             areas = Area.objects.filter(city_id=city_id)
 
-        return render(request, 'home/add_customer.html', {'segment': 'index', 'states': states, 'cities': cities, 'areas': areas})
+        return render(request, 'home/add_customer.html', {'segment': 'add_customer', 'states': states, 'cities': cities, 'areas': areas})
 
     except Exception as e:
         print(e)
         messages.error(request, 'Invalid Credentials')
-    return render(request, 'home/add_customer.html', {'segment': 'index', 'states': states, 'cities': cities, 'areas': areas})
+    return render(request, 'home/add_customer.html', {'segment': 'add_customer', 'states': states, 'cities': cities, 'areas': areas})
 
 
 def list_customers(request):
@@ -626,6 +626,7 @@ def list_customers(request):
         'selected_state_id': state_id,
         'selected_city_id': city_id,
         'selected_area_id': area_id,
+        'segment':'add_customer'
     }
 
     return render(request, 'home/list_customers.html', context)
@@ -823,6 +824,11 @@ def update_property(request, id):
                 property_obj.address = request.POST.get('address')
             if 'status' in request.POST:
                 property_obj.status = request.POST.get('status')
+            if 'area' in request.POST:
+                area_id = request.POST.get('area')
+                area = Area.objects.get(id=area_id)
+                property_obj.area_id = area
+                print(property_obj.area_id)
             property_obj.save()
 
             # Update property images
@@ -872,7 +878,6 @@ def update_property(request, id):
             )
     except Exception as e:
         print(e)
-        messages.error(request, 'Invalid Credentials')
     return render(request, 'home/update_property.html',
                   {'property': property_obj,
                    'property_images': property_images,

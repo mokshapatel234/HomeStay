@@ -4,6 +4,7 @@
 
 {% block content %}
 
+
 <!-- Page content -->
     <div class="col-xl-12">
       <div class="card">
@@ -36,42 +37,58 @@
                   </div>
                   <div class="col-lg-6">
                     <div class="form-group">
-                      <label class="form-control-label" for="input-images">Root Image</label>
-                      <input type="file" multiple id="input-images" class="form-control" placeholder="Images" name="root_image">
+                      <label class="form-control-label" for="root-input-images">Root Image*</label>
+                      <input type="file" id="root-image-input" accept="image/*" onchange="previewImage(this)" class="form-control" placeholder="Root Images" name="root_image"  >
+                      <!-- Display the root image preview -->
+                      <div id="img-preview-container"></div>
+                    
+                      <p>1 image stored</p>
                       {% if property.root_image %}
-                      <img style="height: 150px; width: 200px;" src="{{ property.root_image.url }}" alt="Root Image">
+                      <div style="position: relative; display: inline-block;">
+                        <img style="height: 150px; width: 200px;" src="{{ property.root_image.url }}" alt="Root Image">
+                        <button class="btn btn-sm btn-primary view-image-btn" onclick="viewImage('{{ property.root_image.url }}')">View</button>
+                      </div>
                       {% else %}
-                        <p>No root image found.</p>
+                      <p>No root image found.</p>
                       {% endif %}
                     </div>
                   </div>
+                  
                   <div class="col-lg-6">
-                    <div class="form-group">
-                      <label class="form-control-label" for="input-images"> Images</label>
-                      <input type="file" multiple id="input-images" class="form-control" placeholder="Images" name="images">
-                      <p data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">{{ num_images }} images stored</p>
+                    <div class="form-group" >
+                      <label class="form-control-label" for="input-images"> Images*</label>
+                      <input type="file" multiple id="image-input" accept="image/*" onchange="previewImages(this)" class="form-control" placeholder="Images" name="images"  >
+                      <div id="image-preview-container"></div>
                     </div>
+                  
                     {% for image in property_images %}
-                    <div id="collapseFour">
-                     <img style="height: 150px; width: 200px;" src="{{ image.image.url }}" alt="Image">
-                     </div>
+                    <div id="collapseFour" style="position: relative; display: inline-block;">
+                      <img style="height: 150px; width: 200px;" src="{{ image.image.url }}" alt="Image">
+                      <button class="btn btn-sm btn-primary view-image-btn" onclick="viewImage('{{ image.image.url }}')">View</button>
+                    </div>
                     {% endfor %}
                   </div>
+                  
+                  
                   <div class="col-lg-6">
                     <div class="form-group">
-                      <label class="form-control-label" for="input-videos">Videos</label>
-                      <input type="file" multiple id="input-videos" class="form-control" placeholder="Videos" name="videos">
-                      <p data-toggle="collapse" data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">{{ num_videos }} videos stored</p>
+                      <label class="form-control-label" for="input-videos">Videos*</label>
+                      <input type="file" multiple id="video-input" accept="video/*" onchange="previewVideos(this)" class="form-control" placeholder="Videos" name="videos" >
+                      <div id="video-preview-container"></div>
                     </div>
-                    
+                
+                  
                     {% for video in property_videos %}
                     <div id="collapseFive">
-                        <video controls style="height: 200px; width: 300px;">
-                        <source   src="{{ video.video.url }}" type="video/mp4">
+                      <video controls style="height: 150px; width: 200px;">
+                        <source src="{{ video.video.url }}" type="video/mp4">
                       </video>
+                      <button class="btn btn-sm btn-primary view-image-btn" onclick="viewVideo('{{ video.video.url }}')">View</button>
                     </div>
-                  {% endfor %}
+                    {% endfor %}
                   </div>
+                  
+                  
 
                   <div class="col-lg-6">
                     <div class="form-group">
@@ -113,7 +130,7 @@
                       <label class="form-control-label" >Status</label>
                       <select id="input-status" name="status" class="form-control" style="height: 3rem;" value="{{property.status}}">
                         <option value="active">Active</option>
-                        <option value="deactive">Inactive</option>
+                        <option value="inactive">Inactive</option>
                       </select>
                     </div>
                   </div>
@@ -123,7 +140,7 @@
                       <select name="state" class="form-control" id="state-dropdown" style="height: 3rem;" required>
                         <option value="">Select a state</option>
                           {% for state in states %}
-                          <option value="{{ state.id }}" >
+                          <option value="{{ state.id }}" {% if state.id == property.area_id.city.state.id %}selected{% endif %}>
                             {{ state.name }}</option>
                         {% endfor %}
                       </select>
@@ -145,7 +162,8 @@
                     <div class="form-group">
                       <label class="form-control-label">Area*</label>
                       <select name="area" class="form-control" id="area-dropdown" style="height: 3rem;" required disabled>
-                        <option value="">Select an area</option>                        {% for area in areas %}
+                        <option value="">Select an area</option>                     
+                           {% for area in areas %}
                           <option value="{{ area.id }}" {% if area.id == property.area_id.id %}selected{% endif %}>
                             {{ area.name }}</option>
                         {% endfor %}
@@ -184,6 +202,254 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+  function viewImage(imageUrl) {
+    window.open(imageUrl);
+  }
+</script>
+
+<script>
+  function viewVideo(videoUrl) {
+    window.open(videoUrl);
+  }
+</script>
+
+
+<script>
+  function previewImage(input) {
+    if (input.files && input.files[0]) {
+      const previewContainer = document.getElementById("img-preview-container");
+      previewContainer.innerHTML = ""; // Clear previous preview
+  
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const imagePreviewItem = document.createElement("div");
+        const fileId = generateUniqueId(); // Generate unique ID for the file
+  
+        imagePreviewItem.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
+        imagePreviewItem.classList.add("image-preview-item");
+  
+        const imagePreview = document.createElement("img");
+        imagePreview.src = e.target.result;
+        imagePreview.classList.add("m-1", "img-thumbnail");
+        imagePreview.style.maxWidth = "200px";
+        imagePreview.style.maxHeight = "200px";
+  
+        const viewButton = document.createElement("button");
+        viewButton.setAttribute("type", "button"); // Set the button type to "button"
+        viewButton.classList.add("btn", "btn-sm", "btn-primary", "view-image-btn");
+        viewButton.textContent = "View";
+        viewButton.addEventListener("click", function () {
+          const win = window.open("", "_blank");
+          win.document.write(
+            `<img src="${e.target.result}" style="width: 500px; height: 900px; object-fit: contain; position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;">`
+
+          );
+        });
+  
+        const deleteButton = document.createElement("button");
+        deleteButton.classList.add("btn", "btn-sm", "btn-danger", "delete-image-btn");
+        deleteButton.textContent = "Delete";
+        deleteButton.addEventListener("click", function () {
+          const imageContainer = document.querySelector(`[data-file-id="${fileId}"]`);
+          imageContainer.remove();
+          // Clear the file field by resetting the input value
+          input.value = null;
+        });
+  
+        imagePreviewItem.appendChild(imagePreview);
+        imagePreviewItem.appendChild(viewButton);
+        imagePreviewItem.appendChild(deleteButton);
+  
+        previewContainer.appendChild(imagePreviewItem);
+      };
+  
+      reader.readAsDataURL(file);
+    }
+  }
+  
+  // Generate a unique ID
+  function generateUniqueId() {
+    return Math.random().toString(36).substr(2, 9);
+  }
+  
+</script>
+
+
+<script>
+  function previewImages(input) {
+    if (input.files && input.files.length > 0) {
+      const previewContainer = document.getElementById("image-preview-container");
+      previewContainer.innerHTML = ""; // Clear previous previews
+  
+      const newFiles = Array.from(input.files); // Convert the FileList object to an array
+      console.log(newFiles);
+  
+      newFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const imagePreviewItem = document.createElement("div");
+          const fileId = generateUniqueId(); // Generate unique ID for the file
+  
+          imagePreviewItem.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
+          imagePreviewItem.classList.add("image-preview-item");
+  
+          const imagePreview = document.createElement("img");
+          imagePreview.src = e.target.result;
+          imagePreview.classList.add("m-1", "img-thumbnail");
+          imagePreview.style.maxWidth = "200px";
+          imagePreview.style.maxHeight = "200px";
+  
+          const viewButton = document.createElement("button");
+          viewButton.setAttribute("type", "button"); // Set the button type to "button"
+          viewButton.classList.add("btn", "btn-sm", "btn-primary", "view-image-btn");
+          viewButton.textContent = "View";
+          viewButton.addEventListener("click", function () {
+            const win = window.open("", "_blank");
+            win.document.write(
+              `<img src="${e.target.result}" style="width: 500px; height: 900px; object-fit: contain; position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;">`
+              );
+          });
+  
+          const deleteButton = document.createElement("button");
+          deleteButton.classList.add("btn", "btn-sm", "btn-danger", "delete-image-btn");
+          deleteButton.textContent = "Delete";
+          deleteButton.addEventListener("click", function () {
+            const imageContainer = document.querySelector(`[data-file-id="${fileId}"]`);
+            imageContainer.remove();
+            // Remove the file from the newFiles array
+            const fileIndex = newFiles.findIndex(file => file.name === file.name);
+            if (fileIndex !== -1) {
+              newFiles.splice(fileIndex, 1);
+            }
+            // Check if newFiles array is empty
+            console.log(newFiles.length);
+            if (newFiles.length === 0) {
+              // Clear the file field by resetting the input value
+              input.value = null;
+            } else {
+              // Update the input.files property with the updated newFiles array
+              input.files = new FileListWrapper(newFiles);
+            }
+          });
+  
+          imagePreviewItem.appendChild(imagePreview);
+          imagePreviewItem.appendChild(viewButton);
+          imagePreviewItem.appendChild(deleteButton);
+  
+          previewContainer.appendChild(imagePreviewItem);
+        };
+  
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+  
+  // Custom wrapper for FileList object
+  function FileListWrapper(files) {
+    const dataTransfer = new DataTransfer();
+    files.forEach(file => {
+      dataTransfer.items.add(file);
+    });
+    return dataTransfer.files;
+  }
+  
+  // Generate a unique ID
+  function generateUniqueId() {
+    return Math.random().toString(36).substr(2, 9);
+  }
+  
+</script>
+
+<script>
+
+  function previewVideos(input) {
+    if (input.files && input.files.length > 0) {
+      const previewContainer = document.getElementById("video-preview-container");
+      previewContainer.innerHTML = ""; // Clear previous previews
+  
+      const newFiles = Array.from(input.files); // Convert the FileList object to an array
+      console.log(newFiles);
+  
+      newFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const videoPreviewItem = document.createElement("div");
+          const fileId = generateUniqueId(); // Generate unique ID for the file
+  
+          videoPreviewItem.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
+          videoPreviewItem.classList.add("video-preview-item");
+  
+          const videoPreview = document.createElement("video");
+          videoPreview.src = e.target.result;
+          videoPreview.classList.add("m-1", "video-thumbnail");
+          videoPreview.style.maxWidth = "200px";
+          videoPreview.style.maxHeight = "200px";
+          videoPreview.controls = true;
+  
+          const viewButton = document.createElement("button");
+          viewButton.setAttribute("type", "button"); // Set the button type to "button"
+          viewButton.classList.add("btn", "btn-sm", "btn-primary", "view-video-btn");
+          viewButton.textContent = "View";
+          viewButton.addEventListener("click", function () {
+            const win = window.open("", "_blank");
+            win.document.write(
+              `<video src="${e.target.result}" style="width: 900px; height: 900px; object-fit: contain; position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;" controls></video>`
+              );
+          });
+  
+          const deleteButton = document.createElement("button");
+          deleteButton.classList.add("btn", "btn-sm", "btn-danger", "delete-video-btn");
+          deleteButton.textContent = "Delete";
+          deleteButton.addEventListener("click", function () {
+            const videoContainer = document.querySelector(`[data-file-id="${fileId}"]`);
+            videoContainer.remove();
+            // Remove the file from the newFiles array
+            const fileIndex = newFiles.findIndex(file => file.name === file.name);
+            if (fileIndex !== -1) {
+              newFiles.splice(fileIndex, 1);
+            }
+            // Check if newFiles array is empty
+            console.log(newFiles.length);
+            if (newFiles.length === 0) {
+              // Clear the file field by resetting the input value
+              input.value = null;
+            } else {
+              // Update the input.files property with the updated newFiles array
+              input.files = new FileListWrapper(newFiles);
+            }
+          });
+  
+          videoPreviewItem.appendChild(videoPreview);
+          videoPreviewItem.appendChild(viewButton);
+          videoPreviewItem.appendChild(deleteButton);
+  
+          previewContainer.appendChild(videoPreviewItem);
+        };
+  
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+  
+  // Custom wrapper for FileList object
+  function FileListWrapper(files) {
+    const dataTransfer = new DataTransfer();
+    files.forEach(file => {
+      dataTransfer.items.add(file);
+    });
+    return dataTransfer.files;
+  }
+  
+  // Generate a unique ID
+  function generateUniqueId() {
+    return Math.random().toString(36).substr(2, 9);
+  }
+  
+
+</script>
 <script>
   $(document).ready(function() {
     // Disable city and area dropdowns initially
@@ -250,5 +516,5 @@
   });
 
 
-</script
+</script>
 {% endblock javascripts %}

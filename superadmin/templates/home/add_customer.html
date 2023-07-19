@@ -49,10 +49,10 @@
                   </div>
                   <div class="col-lg-6">
                     <div class="form-group" id="root-image-preview">
-                      <label class="form-control-label" for="root-input-image">Profile Image*</label>
-                      <input type="file" id="root-input-image" class="form-control" placeholder="Root Images" name="profile_image" required accept=".jpg, .jpeg, .png, .webp">
+                      <label class="form-control-label" for="root-input-images">Profile Image*</label>
+                      <input type="file" id="root-image-input" accept="image/*" onchange="previewImage(this)" class="form-control" placeholder="Root Images" name="profile_image" required >
                       <!-- Display the root image preview -->
-                      <img id="root-image" class="img-thumbnail" style="max-width: 200px; margin-right: 10px;">
+                      <div id="img-preview-container"></div>
                     </div>
                   </div>
                   <div class="col-lg-6">
@@ -117,30 +117,72 @@
 <!-- Specific JS goes HERE --> 
 {% block javascripts %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
 <script>
-  $(document).ready(function() {
-    // Function to read and display root image file
-    function readRootImage(input) {
-      if (input.files && input.files[0]) {
-        var reader = new FileReader();
+  function previewImage(input) {
+    if (input.files && input.files[0]) {
+      const previewContainer = document.getElementById("img-preview-container");
+      previewContainer.innerHTML = ""; // Clear previous preview
+  
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const imagePreviewItem = document.createElement("div");
+        const fileId = generateUniqueId(); // Generate unique ID for the file
+  
+        imagePreviewItem.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
+        imagePreviewItem.classList.add("image-preview-item");
+  
+        const imagePreview = document.createElement("img");
+        imagePreview.src = e.target.result;
+        imagePreview.classList.add("m-1", "img-thumbnail");
+        imagePreview.style.maxWidth = "200px";
+        imagePreview.style.maxHeight = "200px";
+  
+        const viewButton = document.createElement("button");
+        viewButton.setAttribute("type", "button"); // Set the button type to "button"
+        viewButton.classList.add("btn", "btn-sm", "btn-primary", "view-image-btn");
+        viewButton.textContent = "View";
+        viewButton.addEventListener("click", function () {
+          const win = window.open("", "_blank");
+          win.document.write(
+            `<img src="${e.target.result}" style="width: 500px; height: 900px; object-fit: contain; position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;">`
 
-        reader.onload = function(e) {
-          $('#root-image').attr('src', e.target.result);
-        }
-
-        reader.readAsDataURL(input.files[0]);
-      }
+          );
+        });
+  
+        const deleteButton = document.createElement("button");
+        deleteButton.classList.add("btn", "btn-sm", "btn-danger", "delete-image-btn");
+        deleteButton.textContent = "Delete";
+        deleteButton.addEventListener("click", function () {
+          const imageContainer = document.querySelector(`[data-file-id="${fileId}"]`);
+          imageContainer.remove();
+          // Clear the file field by resetting the input value
+          input.value = null;
+        });
+  
+        imagePreviewItem.appendChild(imagePreview);
+        imagePreviewItem.appendChild(viewButton);
+        imagePreviewItem.appendChild(deleteButton);
+  
+        previewContainer.appendChild(imagePreviewItem);
+      };
+  
+      reader.readAsDataURL(file);
     }
+  }
+  
+  // Generate a unique ID
+  function generateUniqueId() {
+    return Math.random().toString(36).substr(2, 9);
+  }
+  
+</script>
 
-    // Handle root image file change event
-    $('#root-input-image').on('change', function() {
-      readRootImage(this);
-    });
 
-
-   
-
-
+<script>
+  
   $(document).ready(function() {
     // Disable city and area dropdowns initially
     $('#city-dropdown').prop('disabled', true);
@@ -204,6 +246,5 @@
       });
     });
   });
-});
 </script>
 {% endblock javascripts %}
