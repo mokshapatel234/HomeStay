@@ -194,7 +194,7 @@ class BookPropertySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BookProperty
-        fields = ['id', 'property_name', 'property_root_image', 'customer_name', 'customer_profile_image', 'amount', 'start_date', 'end_date'] 
+        fields = ['id', 'property_name', 'property_root_image', 'customer_name', 'customer_profile_image','book_status', 'amount', 'start_date', 'end_date'] 
   
 
 class BookingDetailSerializer(serializers.ModelSerializer):

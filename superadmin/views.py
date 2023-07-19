@@ -136,12 +136,13 @@ def add_state(request):
 
         if request.method == 'POST':
             name = request.POST.get('name')
-            state = State(
-                name=name,
-            )
+            state = State(name=name)
             state.save()
+            messages.success(request, 'State added successfully.')
             return redirect('list_state')
         else:
+            messages.error(request, 'Error while adding state')
+
             return render(request, 'home/add_state.html')
                    
     except:
@@ -167,10 +168,13 @@ def update_state(request, id):
             state.status = request.POST.get('status')
             
             state.save()
+            messages.success(request, 'State updated successfully.')
+
             return redirect('list_state')
         
         else:
-                return render(request, 'home/update_state.html', {'msg': 'Invalid Credentials'})
+                messages.error(request, 'Error while updating state')
+                return render(request, 'home/update_state.html')
                    
     except Exception as e:
         print(e)
@@ -180,9 +184,12 @@ def delete_state(request, id):
     try:
         state = State.objects.get(id=id)
         state.delete()
+        messages.error(request, 'State deleted successfully.')
+
         return redirect('list_state')
     except:
-        return render(request, 'home/list_state.html', {'msg': 'State is not deleted yet'})
+        messages.error(request, 'Error while deleting state')
+        return render(request, 'home/list_state.html')
 
 #City
 
@@ -203,12 +210,16 @@ def add_city(request):
                 state=state,
             )
             city.save()
+            messages.success(request, 'City added successfully.')
+
             return redirect('list_cities')
         else:
-            return render(request, 'home/add_city.html', {'msg': 'Invalid Credentials'})
+            messages.error(request, 'Invalid Credentials')
+
+            return render(request, 'home/add_city.html')
                    
     except:
-        return render(request, 'home/add_city.html', {'msg': 'Invalid Credentials'})
+        return render(request, 'home/add_city.html')
         
  
         
@@ -250,15 +261,19 @@ def update_city(request, id):
             return redirect('list_cities') 
     except Exception as e:
         print(e)
+        messages.error(request, 'Invalid Credentials')
     return render(request, 'home/update_city.html', {"states": states, "city": city})
 
 
 def delete_city(request, id):
-    city = City.objects.get(id=id)
-    city.delete()
-    messages.success(request, 'City deleted successfully')
-    return redirect('list_cities') 
-
+    try:
+        city = City.objects.get(id=id)
+        city.delete()
+        messages.error(request, 'City deleted successfully')
+        return redirect('list_cities') 
+    except:
+        messages.error(request, 'Invalid Credentials')
+        return render(request, 'home/list_state.html')
     
 
 # Area
@@ -276,10 +291,13 @@ def add_area(request):
                 city=city,
             )
             area.save()
+            messages.success(request, 'Area added successfully.')
+
             return redirect('list_areas')
         
     except Exception as e:
-        print(e)
+        messages.error(request, 'Invalid Credentials')
+
     return render(request, 'home/add_area.html', {'cities':cities})
 
 def list_areas(request):
@@ -326,17 +344,23 @@ def update_area(request, id):
             area.city = city
             
             area.save()
+            messages.success(request, 'Area updated successfully.')
             return redirect('list_areas')
     except Exception as e:
         print(e)
+        messages.error(request, 'Invalid Credentials')
     return render(request, 'home/update_area.html', {"cities": cities, "area": area})
 
 
 def delete_area(request, id):
-    area = Area.objects.get(id=id)
-    area.delete()
-    return redirect('list_areas')
-
+    try:
+        area = Area.objects.get(id=id)
+        area.delete()
+        messages.error(request, 'Area deleted successfully.')
+        return redirect('list_areas')
+    except:
+        messages.error(request, 'Invalid Credentials')
+        return redirect('list_areas')
 
 def get_cities(request):
     state_id = request.GET.get('state_id')
@@ -374,7 +398,7 @@ def add_client(request):
             last_name = request.POST.get('last_name')
             email = request.POST.get('email')
             password = request.POST.get('password')
-            profile_image = request.FILES.get('root_image')
+            profile_image = request.FILES.get('profile_image')
             contact_no = request.POST.get('contact_no')
             area_id = request.POST.get('area')  # Retrieve the selected area value
 
@@ -394,6 +418,7 @@ def add_client(request):
                 contact_no=contact_no,
                 status='active'
             )
+            messages.success(request, 'Client added successfully.')
             return redirect('list_clients')  
         
         if 'state_id' in request.GET:
@@ -403,12 +428,11 @@ def add_client(request):
         if 'city_id' in request.GET:
             city_id = request.GET.get('city_id')
             areas = Area.objects.filter(city_id=city_id)
-
         return render(request, 'home/add_client.html', {'segment': 'index', 'states': states, 'cities': cities, 'areas': areas})
 
     except Exception as e:
         print(e)
-
+        messages.error(request, 'Invalid Credentials')
     return render(request, 'home/add_client.html', {'segment': 'index', 'states': states, 'cities': cities, 'areas': areas})
 
 
@@ -472,7 +496,7 @@ def update_client(request, id):
                 client.profile_image = profile_image
 
             client.save()
-
+            messages.success(request, 'Client updated successfully.')
             return redirect('list_clients') 
         else:
             
@@ -487,7 +511,7 @@ def update_client(request, id):
                 })
     except Exception as e:
         print(e)
-
+        messages.error(request, 'Invalid Credentials')
     return render(request, 'home/update_client.html',
                     {'client':client,
                         'segment':'index',
@@ -499,9 +523,14 @@ def update_client(request, id):
 
 
 def delete_client(request, id):
-    cli = Client.objects.get(id=id)
-    cli.delete()
-    return redirect('list_clients')
+    try:
+        cli = Client.objects.get(id=id)
+        cli.delete()
+        messages.success(request, 'Client deleted successfully.')
+        return redirect('list_clients')
+    except:
+        messages.error(request, 'Invalid Credentials')
+        return redirect('list_clients')
 
 
 #Customer
@@ -519,7 +548,7 @@ def add_customer(request):
             last_name = request.POST.get('last_name')
             email = request.POST.get('email')
             password = request.POST.get('password')
-            profile_image = request.FILES.get('root_image')
+            profile_image = request.FILES.get('profile_image')
             contact_no = request.POST.get('contact_no')
             area_id = request.POST.get('area')  
 
@@ -539,6 +568,7 @@ def add_customer(request):
                 contact_no=contact_no,
                 status='active'
             )
+            messages.success(request, 'User added successfully.')
 
             return redirect('list_customers')  
 
@@ -555,7 +585,7 @@ def add_customer(request):
 
     except Exception as e:
         print(e)
-
+        messages.error(request, 'Invalid Credentials')
     return render(request, 'home/add_customer.html', {'segment': 'index', 'states': states, 'cities': cities, 'areas': areas})
 
 
@@ -619,6 +649,7 @@ def update_customer(request, id):
             customer.profile_image = profile_image
 
         customer.save()
+        messages.success(request, 'User updated successfully.')
 
         return redirect('list_customers') 
     return render(request, 'home/update_customer.html', {'customer':customer, 'segment':'customer','states': states,
@@ -626,9 +657,15 @@ def update_customer(request, id):
                     'areas': areas, })
 
 def delete_customer(request, id):
-    customer = Customer.objects.get(id=id)
-    customer.delete()
-    return redirect('list_customers')
+    try:
+        customer = Customer.objects.get(id=id)
+        customer.delete()  
+        messages.error(request, 'User deleted successfully.')
+        return redirect('list_customers')
+    except:
+        messages.error(request, 'Invalid Credentials')
+        return redirect('list_customers')
+
 
 
 #Property
@@ -686,7 +723,7 @@ def add_property(request):
                     print("Error")
             except Exception as e:
                 print(e)
-
+            messages.success(request, 'Property added successfully.')
             return redirect('list_properties')
 
         if 'state_id' in request.GET:
@@ -701,7 +738,7 @@ def add_property(request):
 
     except Exception as e:
         print(e)
-
+        messages.error(request, 'Invalid Credentials')
     return render(request, 'home/add_property.html', {'clients': clients, 'states': states, 'cities': cities, 'areas': areas, 'segment': 'property', 'form': form})
 
 
@@ -811,7 +848,7 @@ def update_property(request, id):
                     print("Error")
             except Exception as e:
                 print(e)
-
+            messages.success(request, 'Property updated successfully.')
             return redirect('list_properties')
         else:
             form = PropertyTermsForm(instance=property_terms)
@@ -835,7 +872,7 @@ def update_property(request, id):
             )
     except Exception as e:
         print(e)
-
+        messages.error(request, 'Invalid Credentials')
     return render(request, 'home/update_property.html',
                   {'property': property_obj,
                    'property_images': property_images,
@@ -850,33 +887,46 @@ def update_property(request, id):
 
 
 def delete_property(request, id):
-    property = Properties.objects.get(id=id)
-    property.delete()
-    msg = (request, "Property deleted successfully")
-    return redirect('list_properties')
+    try:
+        property = Properties.objects.get(id=id)
+        property.delete()
+        messages.success(request, 'Property deleted successfully.')
+        return redirect('list_properties')
+    except:
+        messages.error(request, 'Invalid Credentials')
+        return redirect('list_properties')
+
+        
 
 
 def add_commission(request):
-    clients = Client.objects.all()
-    if request.method == 'POST':
-        client_id = request.POST.get('client')
-        commission_percent = request.POST.get('commission_percent')
-        client = Client.objects.get(id=client_id)
-        
-        # Check if a commission already exists for the client
-        existing_commission = Commission.objects.filter(client=client).exists()
+    try:
+        clients = Client.objects.all()
+        if request.method == 'POST':
+            client_id = request.POST.get('client')
+            commission_percent = request.POST.get('commission_percent')
+            client = Client.objects.get(id=client_id)
+            
+            # Check if a commission already exists for the client
+            existing_commission = Commission.objects.filter(client=client).exists()
 
-        if existing_commission:
-            commission = Commission.objects.get(client=client)
-            commission.commission_percent = commission_percent
-            commission.save()
-        else:
-            commission = Commission(client=client, commission_percent=commission_percent)
-            commission.save()
+            if existing_commission:
+                commission = Commission.objects.get(client=client)
+                commission.commission_percent = commission_percent
+                commission.save()
+                
 
-        return redirect('list_commission')
+            else:
+                commission = Commission(client=client, commission_percent=commission_percent)
+                commission.save()
+            messages.success(request, 'Commission added successfully.')
+
+            return redirect('list_commission')
+    except Exception as e:
+        messages.error(request, 'Invalid Credentials')
     
     return render(request, 'home/add_commission.html', {'clients': clients, 'segment': 'commission'})
+
 
 def list_commission(request):
     commissions = Commission.objects.all()
@@ -915,7 +965,7 @@ def list_commission(request):
         'selected_city_id': city_id,
         'selected_area_id': area_id,
     }
-
+    
     return render(request, 'home/list_commission.html', context)
 
 def update_commission(request, id):
@@ -927,15 +977,25 @@ def update_commission(request, id):
             commission_percent = request.POST.get('commission_percent')
             commission.commission_percent = commission_percent
             commission.save()
+            messages.success(request, 'Commission updated successfully.')
+
             return redirect('list_commission')
 
     except Commission.DoesNotExist:
+        messages.error(request, 'Invalid Credentials')
+
         return redirect('list_commission')
 
     return render(request, 'home/update_commission.html', {'commission': commission, 'clients': clients})
 
 def delete_commission(request, id):
-    commission = Commission.objects.get(id=id)
-    commission.delete()
-    msg = (request, "Commission deleted successfully")
-    return redirect('list_commission')
+    try:
+        commission = Commission.objects.get(id=id)
+        commission.delete()
+        messages.error = (request, "Commission deleted successfully")
+        return redirect('list_commission')
+    except:
+        messages.error(request, 'Invalid Credentials')
+        return redirect('list_commission')
+
+

@@ -6,17 +6,15 @@
     integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 <script>
    $(document).ready(function () {
-      $('#dtBasicExample').DataTable({
-         "lengthChange": true,
-         "searching": true,
-         "columnDefs": [
-         { "searchable": true, "targets": 0 }
-         ],
-         "order":[[ 0,"desc" ]],
-         // "columnDefs" : [{"targets":, "type":"date-eu"}], 
-
-
-      });
+    $('#dtBasicExample').DataTable({
+      lengthChange: true,
+      searching: true,
+      paging: true,
+      columnDefs: [
+          { searchable: false, targets: 0 }
+      ],
+      order: [[0, "desc"]],
+  });
       function getQueryStringValue(key) {
         var urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(key);
@@ -28,7 +26,36 @@
 {% block title %} City Management {% endblock title %}
 
 {% block content %}
+<style>
+.messages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 
+.messages li {
+  display: block;
+  margin: 10px 0;
+  padding: 15px;
+  border-radius: 3px;
+}
+
+/* Message types */
+.messages li.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.messages li.warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.messages li.error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+</style>
 <div class="header bg-primary pb-6">
     <div class="container-fluid">
       <div class="header-body">
@@ -75,11 +102,11 @@
       </table>
       
       {% if messages %}
-        <ul class="messages">
+      <ul class="messages">
           {% for message in messages %}
-            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+              <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
           {% endfor %}
-        </ul>
+      </ul>
       {% endif %}
       
       <div class="list-products">
@@ -173,14 +200,7 @@
     // Set the selected state in the dropdown
     $('#state-select').val(selectedState);
 
-    $('#dtBasicExample').DataTable({
-      "lengthChange": true,
-      "searching": true,
-      "columnDefs": [
-        { "searchable": true, "targets": 0 }
-      ],
-      "order":[[ 0, "desc" ]],
-    });
+    
 
     // Handle state filter
     $('#state-select').on('change', function () {

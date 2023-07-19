@@ -558,7 +558,7 @@ class BookPropertyApi(generics.GenericAPIView):
             query = request.GET.get('query') 
 
 
-            bookings = BookProperty.objects.filter(property__owner=user)
+            bookings = BookProperty.objects.filter(property__owner=user, book_status=True)
             if query:
                 bookings = bookings.filter(
                     Q(property__name__icontains=query) |

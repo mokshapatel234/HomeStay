@@ -1,5 +1,10 @@
 {% extends 'layouts/base.html' %}
 
+{% block head %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+{% endblock head %}
+
+
 {% block title %} Profile {% endblock title %}
 
 {% block content %}
@@ -47,8 +52,13 @@
                   <div class="col-lg-6">
                     <div class="form-group">
                       <label class="form-control-label">Profile Image</label>
-                      <input type="file" class="form-control" placeholder="Profile Image" name="profile_image" value="{{customer.profile_image}}">
+                      <input type="file" id="root-input-image" class="form-control" placeholder="Root Images" name="profile_image" required accept=".jpg, .jpeg, .png, .webp">
+                      <!-- Display the root image preview -->
+                      <img id="root-image" class="img-thumbnail" style="max-width: 200px; margin-right: 10px;">
                     </div>
+                    {% if customer.profile_image %} 
+                      <img style="height: 150px; width: 200px;" src="{{ customer.profile_image.url }}" alt="Root Image">
+                      {% endif %}
                   </div>
                   <div class="col-lg-6">
                     <div class="form-group">
@@ -120,4 +130,27 @@
 {% endblock content %}
 
 <!-- Specific JS goes HERE --> 
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function() {
+    // Function to read and display root image file
+    function readRootImage(input) {
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+
+        reader.onload = function(e) {
+          $('#root-image').attr('src', e.target.result);
+        }
+
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    // Handle root image file change event
+    $('#root-input-image').on('change', function() {
+      readRootImage(this);
+    });
+  });
+</script>
+{% endblock javascripts %}
