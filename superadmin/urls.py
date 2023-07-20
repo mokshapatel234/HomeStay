@@ -49,6 +49,7 @@ urlpatterns = [
     path('deleteCustomer/<uuid:id>/', delete_customer, name='delete_customer'),
 
     path('listBookings', list_bookings, name='list_bookings'),
+    path('bookingDetail/<uuid:id>', booking_detail, name='booking_detail'),
 
 
     path('addTermsPolicy/', add_terms_policy, name="add_terms_policy"),

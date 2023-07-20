@@ -1,0 +1,172 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Dashboard {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <!-- Header -->
+    <div class="header bg-primary pb-6">
+      <div class="container-fluid">
+        <div class="header-body">
+          <div class="row align-items-center py-4">
+            <div class="col-lg-6 col-7">
+              
+            </div>
+           
+          </div>
+          <!-- Card stats -->
+          
+        </div>
+      </div>
+    </div>
+    <br>
+
+    <div class="col-xl-12 col-lg-12">
+        <div class="card shadow mb-4">
+             <!-- Card Header - Dropdown -->
+            <div class="card-header border-0">
+                <h3 class="mb-0">Property Detail</h3>
+              </div>
+             <!-- Card Body -->
+            <div class="card-body">
+                <div class="chart-area">
+                    <div class="row">                                  
+                        <div class="col-md-4">
+                            <div class="text-center">
+                            <img src={{booking.property.root_image.url}} width='150px' height='150px' class="rounded"/>
+                            </div>
+                        </div>                             
+                        <div class="col-md-4 mt-2">                                
+                            <div class="form-group">
+                            <label class="form-control-label">Property Name:</label>
+                            
+                                {{booking.property.name}}
+                            </div>
+                            <div class="form-group">
+                                <label class="form-control-label">Property Owner:</label>
+                            
+                                {{booking.property.owner.first_name}} {{booking.property.owner.last_name}}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mt-2">                                
+                            <div class="form-group">
+                            <label class="form-control-label">Property Address:</label>
+                            
+                                {{booking.property.area_id.name}}, {{booking.property.area_id.city.name}}, {{booking.property.area_id.city.state.name}}
+                            </div>
+                                                
+                            <div class="form-group">
+                            <label class="form-control-label">Property Price:</label>
+                            
+                                {{booking.property.price}} 
+                            </div>
+                        </div>
+                                
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+
+    <div class="col-xl-12 col-lg-12">
+        <div class="card shadow mb-4">
+             <!-- Card Header - Dropdown -->
+            <div class="card-header border-0">
+                <h3 class="mb-0">Customer Detail</h3>
+              </div>
+             <!-- Card Body -->
+            <div class="card-body">
+                <div class="chart-area">
+                    <div class="row">                                  
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                {% if booking.customer.profile_image %}
+                                <img src={{booking.customer.profile_image.url}} width='150px' height='150px' class="rounded"/>
+                                {% else %} 
+                                <img class="avatar avatar-sm rounded-circle" src="/static/assets/img/theme/persons.png" alt="{{ booking.customer.first_name }}">
+                                {% endif %}
+                            </div>
+                        </div>                             
+                        <div class="col-md-4 mt-2">                                
+                            <div class="form-group">
+                            <label class="form-control-label">Customer Name:</label>
+                            
+                                {{booking.customer.first_name}} {{booking.customer.last_name}}
+                            </div>
+                            <div class="form-group">
+                                <label class="form-control-label">Contact No:</label>
+                            
+                                {{booking.customer.contact_no}}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mt-2">                                
+                            <div class="form-group">
+                            <label class="form-control-label">Email:</label>
+                            
+                                {{booking.customer.email}}
+                            </div>
+                                                
+                            <div class="form-group">
+                            <label class="form-control-label">Customer Addrress:</label>
+                            
+                                {{booking.customer.area.name}}, {{booking.customer.area.city.name}}, {{booking.customer.area.city.state.name}}   
+                            </div>
+                        </div>
+                                
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    <div class="col-xl-12 col-lg-12">
+        <div class="card shadow mb-4">
+             <!-- Card Header - Dropdown -->
+            <div class="card-header border-0">
+                <h3 class="mb-0">Booking Detail</h3>
+              </div>
+             <!-- Card Body -->
+            <div class="card-body">
+                <div class="chart-area">
+                    <div class="row">                                  
+                                                  
+                        <div class="col-md-4 mt-2">                                
+                            <div class="form-group">
+                            <label class="form-control-label">Start Date:</label>
+                            
+                                {{booking.start_date}}
+                            </div>
+                            <div class="form-group">
+                                <label class="form-control-label">End Date:</label>
+                            
+                                {{booking.end_date}}
+                            </div>
+                            <div class="form-group">
+                                <label class="form-control-label">Total Amount:</label>
+                                
+                                    {{booking.amount}}
+                                </div>
+                        </div>
+                             
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+    
+    
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
+
+  <script src="/static/assets/vendor/chart.js/dist/Chart.min.js"></script>
+  <script src="/static/assets/vendor/chart.js/dist/Chart.extension.js"></script>
+
+{% endblock javascripts %}

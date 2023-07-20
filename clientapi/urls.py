@@ -15,6 +15,7 @@ urlpatterns = [
     path('propertyBooking/', BookPropertyApi.as_view(), name="client_booked_property"),
     path('bookingDetail/<id>', BookingDetailApi.as_view(), name="client_booked_detail"),
     path('termsPolicy/', TermsAndPolicyApi.as_view(), name='terms_and_policy'),
+    path('calender/', CalenderApi.as_view(), name='calender'),
     path('dashboard/', DashboardApi.as_view(), name='dashboard'),
     # path('bankDetail/', ClientBankingApi.as_view(), name='client_bank_detail'),
     # path('accounts/<str:account_id>/products', CreateProductApi.as_view(), name='create-product'),

@@ -142,60 +142,61 @@
     if (input.files && input.files[0]) {
       const previewContainer = document.getElementById("img-preview-container");
       previewContainer.innerHTML = ""; // Clear previous preview
-  
+
       const file = input.files[0];
       const reader = new FileReader();
       reader.onload = function (e) {
         const imagePreviewItem = document.createElement("div");
         const fileId = generateUniqueId(); // Generate unique ID for the file
-  
+
         imagePreviewItem.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
         imagePreviewItem.classList.add("image-preview-item");
-  
+
         const imagePreview = document.createElement("img");
         imagePreview.src = e.target.result;
         imagePreview.classList.add("m-1", "img-thumbnail");
         imagePreview.style.maxWidth = "200px";
         imagePreview.style.maxHeight = "200px";
-  
+
         const viewButton = document.createElement("button");
         viewButton.setAttribute("type", "button"); // Set the button type to "button"
         viewButton.classList.add("btn", "btn-sm", "btn-primary", "view-image-btn");
-        viewButton.textContent = "View";
+        viewButton.innerHTML = '<i class="fas fa-eye"></i>';
         viewButton.addEventListener("click", function () {
           const win = window.open("", "_blank");
           win.document.write(
             `<img src="${e.target.result}" style="width: 500px; height: 900px; object-fit: contain; position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;">`
-
           );
         });
-  
+
         const deleteButton = document.createElement("button");
         deleteButton.classList.add("btn", "btn-sm", "btn-danger", "delete-image-btn");
-        deleteButton.textContent = "Delete";
+        deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
         deleteButton.addEventListener("click", function () {
           const imageContainer = document.querySelector(`[data-file-id="${fileId}"]`);
           imageContainer.remove();
           // Clear the file field by resetting the input value
           input.value = null;
         });
-  
+
+        // Append elements to the imagePreviewItem div
         imagePreviewItem.appendChild(imagePreview);
+        imagePreviewItem.appendChild(document.createElement("br")); // Add a line break
         imagePreviewItem.appendChild(viewButton);
         imagePreviewItem.appendChild(deleteButton);
-  
+
+        // Append the imagePreviewItem div to the preview container
         previewContainer.appendChild(imagePreviewItem);
       };
-  
+
       reader.readAsDataURL(file);
     }
   }
-  
+
   // Generate a unique ID
   function generateUniqueId() {
     return Math.random().toString(36).substr(2, 9);
-  }
-  
+  }  
 </script>
 
 

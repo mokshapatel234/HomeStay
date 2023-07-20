@@ -27,7 +27,8 @@ from rest_framework.parsers import MultiPartParser
 from .paginator import ClientPagination
 from django.db.models import Q
 import razorpay
-import base64
+from datetime import datetime
+from django.utils import timezone
 from .models import ClientBanking, Product
 from rest_framework.views import APIView
 
@@ -516,8 +517,7 @@ class DashboardApi(generics.GenericAPIView):
             user = request.user
 
             properties = user.properties.order_by('-created_at')[:10]
-            bookings = BookProperty.objects.filter(property__owner=user).order_by('-created_at')[:10]
-
+            bookings = BookProperty.objects.filter(property__owner=user,  book_status__in=[True]).order_by('-created_at')[:10]
             property_serializer = PropertiesListSerializer(properties, many=True)
             booking_serializer = BookPropertySerializer(bookings, many=True)
             
@@ -545,13 +545,85 @@ class DashboardApi(generics.GenericAPIView):
                 "message":"Error in getting data"
             }, status=status.HTTP_400_BAD_REQUEST)
 
+class CalenderApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get(self, request):
+        try:
+            user = request.user
+            current_date = timezone.now()
+
+            requested_month = request.query_params.get('month', None)
+            requested_year = request.query_params.get('year', None)
+            
+            if requested_year:
+                try:
+                    requested_year = int(requested_year)
+                    if requested_year < 1:
+                        raise ValueError("Invalid year value")
+                except ValueError:
+                    return Response({"error": "Invalid year value. Year must be a positive integer."},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            else:
+                requested_year = current_date.year
+
+            if requested_month:
+                try:
+                    requested_month = int(requested_month)
+                    if requested_month < 1 or requested_month > 12:
+                        raise ValueError("Invalid month value")
+                except ValueError:
+                    return Response({"error": "Invalid month value. Month must be an integer between 1 and 12."},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+                start_date = timezone.datetime(requested_year, requested_month, 1)
+                next_month = requested_month + 1 if requested_month < 12 else 1
+                next_year = requested_year + 1 if requested_month == 12 else requested_year
+                end_date = timezone.datetime(next_year, next_month, 1)
+
+
+                bookings = BookProperty.objects.filter(
+                    Q(start_date__gte=start_date, start_date__lt=end_date, property__owner=user, book_status__in=[True]) |
+                    Q(end_date__gte=start_date, end_date__lt=end_date, property__owner=user, book_status__in=[True]) 
+                ).order_by('start_date')
+            else:
+                current_date = timezone.now()
+                start_date = timezone.datetime(current_date.year, current_date.month, 1)
+                next_month = current_date.month + 1 if current_date.month < 12 else 1
+                next_year = current_date.year + 1 if current_date.month == 12 else current_date.year
+                end_date = timezone.datetime(next_year, next_month, 1)
+
+                bookings = BookProperty.objects.filter(
+                    Q(start_date__gte=start_date, start_date__lt=end_date, property__owner=user, book_status__in=[True]) |
+                    Q(end_date__gte=start_date, end_date__lt=end_date, property__owner=user, book_status__in=[True]) 
+                ).order_by('start_date')
+
+           
+            serializer = BookPropertySerializer(bookings, many=True)
+            if not serializer.data:  
+                return Response({
+                    'result': False,
+                    'data': [],
+                    'message': 'No bookings found for the specified month and year.'
+                }, status=status.HTTP_200_OK)
+            return Response({
+                    'result': True,
+                    'data': serializer.data,
+                    'message': 'Booking history'
+                }, status=status.HTTP_200_OK)
+
+            
+        except Exception as e:
+            print(e)
+            return Response({"error": "An error occurred while processing the request."},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class BookPropertyApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
     pagination_class = ClientPagination
   
-
-
     def get(self, request):
         try:
             user = request.user

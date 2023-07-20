@@ -1025,7 +1025,6 @@ def delete_commission(request, id):
 
 
 def list_bookings(request):
-    try:
         bookings = BookProperty.objects.all()
         states = State.objects.all()
         cities = City.objects.all()
@@ -1039,8 +1038,7 @@ def list_bookings(request):
 
         owner_id = request.GET.get('owner')
 
-        if owner_id:
-            bookings = bookings.filter(property__owner=owner_id)
+        
         selected_state = None
         selected_city = None
 
@@ -1050,12 +1048,16 @@ def list_bookings(request):
             selected_state = State.objects.get(id=state_id).name
 
         if city_id:
-            commissions = commissions.filter(property__area_id__city=city_id)
+            bookings = bookings.filter(property__area_id__city=city_id)
             areas = areas.filter(city_id=city_id)
             selected_city = City.objects.get(id=city_id).name
 
         if area_id:
-            commissions = commissions.filter(property__area_id=area_id)
+            clients = clients.filter(area_id=area_id)
+            bookings = bookings.filter(property__area_id=area_id)
+        if owner_id:
+            bookings = bookings.filter(property__owner=owner_id)
+            
         context = {
         'bookings': bookings,
         'states': states,
@@ -1070,7 +1072,9 @@ def list_bookings(request):
         'selected_area_id': area_id,
     }
         return render(request, 'home/list_bookings.html', context)
-    except Exception as e:
-        print(e)
+    
                       
 
+def booking_detail(request, id):
+    booking = BookProperty.objects.get(id=id)
+    return render(request, 'home/booking_detail.html', {'booking':booking})
