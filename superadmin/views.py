@@ -124,7 +124,13 @@ class Index(View):
       num_customer = customers.count()
       properties = Properties.objects.all()
       num_property = properties.count()
-      return render(request,'home/index.html', {"num_client":num_client, "num_customer":num_customer, "num_property":num_property})
+      bookings = BookProperty.objects.filter(book_status__in=[True])
+      num_booking = bookings.count()
+      return render(request,'home/index.html', {
+          "num_client":num_client, 
+          "num_customer":num_customer,
+          "num_property":num_property,
+          "num_booking":num_booking})
     
 # State
 
@@ -1025,7 +1031,7 @@ def delete_commission(request, id):
 
 
 def list_bookings(request):
-        bookings = BookProperty.objects.all()
+        bookings = BookProperty.objects.filter(book_status__in=[True])
         states = State.objects.all()
         cities = City.objects.all()
         areas = Area.objects.all()
@@ -1045,11 +1051,13 @@ def list_bookings(request):
         if state_id:
             bookings = bookings.filter(property__area_id__city__state=state_id)
             cities = cities.filter(state_id=state_id)
+            clients = clients.filter(area__city__state_id=state_id)
             selected_state = State.objects.get(id=state_id).name
 
         if city_id:
             bookings = bookings.filter(property__area_id__city=city_id)
             areas = areas.filter(city_id=city_id)
+            clients = clients.filter(area__city_id=city_id)
             selected_city = City.objects.get(id=city_id).name
 
         if area_id:
