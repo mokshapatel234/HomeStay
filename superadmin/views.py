@@ -4,6 +4,7 @@ from .forms import LoginForm, AdminTermsAndpolicyForm, PropertyTermsForm
 from django.urls import reverse
 from django.contrib.auth.models import User
 from .models import *
+from userapi.models import BookProperty
 from django.contrib.auth import login
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
@@ -784,6 +785,27 @@ def list_properties(request):
 
     return render(request, 'home/list_properties.html', context)
 
+def delete_image(request, image_id):
+    try:
+        image = PropertyImage.objects.get(id=image_id)
+        image.delete()
+        return JsonResponse({'status': 'success'})
+    except PropertyImage.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Image not found'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
+
+
+def delete_video(request, video_id):
+    try:
+        video = PropertyVideo.objects.get(id=video_id)
+        video.delete()
+        return JsonResponse({'status': 'success'})
+    except PropertyVideo.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Video not found'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
+
 def update_property(request, id):
     try:
         property_obj = Properties.objects.get(id=id)
@@ -834,14 +856,12 @@ def update_property(request, id):
             # Update property images
             if 'images' in request.FILES:
                 images = request.FILES.getlist('images')
-                PropertyImage.objects.filter(property=property_obj).delete()
                 for image in images:
                     PropertyImage.objects.create(property=property_obj, image=image)
 
             # Update property videos
             if 'videos' in request.FILES:
                 videos = request.FILES.getlist('videos')
-                PropertyVideo.objects.filter(property=property_obj).delete()
                 for video in videos:
                     PropertyVideo.objects.create(property=property_obj, video=video)
 
@@ -1003,4 +1023,12 @@ def delete_commission(request, id):
         messages.error(request, 'Invalid Credentials')
         return redirect('list_commission')
 
+
+def list_bookings(request):
+    try:
+        bookings = BookProperty.objects.all()
+        return render(request, 'home/list_bookings.html', {'bookings': bookings})
+    except Exception as e:
+        print(e)
+                      
 

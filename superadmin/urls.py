@@ -16,8 +16,6 @@ urlpatterns = [
     path('updateCommission/<uuid:id>/', update_commission, name='update_commission'),
     path('deleteCommission/<uuid:id>/', delete_commission, name='delete_commission'),
 
-
-
     path('addState', add_state, name='add_state'),
     path('listState', list_state, name='list_state'),
     path('updateState/<uuid:id>/', update_state, name='update_state'),
@@ -25,6 +23,9 @@ urlpatterns = [
 
     path('get_cities/', get_cities, name='get-cities'),
     path('get_areas/', get_areas, name='get-areas'),
+
+    path('delete_video/<int:video_id>/', delete_video, name='delete_video'),
+    path('delete_image/<int:image_id>/', delete_image, name='delete_image'),
 
 
     path('addCity', add_city, name='add_city'),
@@ -46,6 +47,9 @@ urlpatterns = [
     path('listCustomers', list_customers, name='list_customers'),
     path('updateCustomer/<uuid:id>/', update_customer, name='update_customer'),
     path('deleteCustomer/<uuid:id>/', delete_customer, name='delete_customer'),
+
+    path('listBookings', list_bookings, name='list_bookings'),
+
 
     path('addTermsPolicy/', add_terms_policy, name="add_terms_policy"),
 

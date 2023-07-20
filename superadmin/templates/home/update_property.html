@@ -1,5 +1,9 @@
 {% extends 'layouts/base.html' %}
 
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  {% endblock head %}
+
 {% block title %} Profile {% endblock title %}
 
 {% block content %}
@@ -45,8 +49,11 @@
                       <p>1 image stored</p>
                       {% if property.root_image %}
                       <div style="position: relative; display: inline-block;">
-                        <img style="height: 150px; width: 200px;" src="{{ property.root_image.url }}" alt="Root Image">
-                        <button class="btn btn-sm btn-primary view-image-btn" onclick="viewImage('{{ property.root_image.url }}')">View</button>
+                        <img style="height: 150px; width: 200px; margin-bottom: 8px;" src="{{ property.root_image.url }}" alt="Root Image">
+                        <br>
+                        <button class="btn btn-sm btn-primary view-image-btn" onclick="viewImage('{{ property.root_image.url }}')">
+                          <i class="fas fa-eye"></i>
+                        </button>
                       </div>
                       {% else %}
                       <p>No root image found.</p>
@@ -62,9 +69,14 @@
                     </div>
                   
                     {% for image in property_images %}
-                    <div id="collapseFour" style="position: relative; display: inline-block;">
-                      <img style="height: 150px; width: 200px;" src="{{ image.image.url }}" alt="Image">
-                      <button class="btn btn-sm btn-primary view-image-btn" onclick="viewImage('{{ image.image.url }}')">View</button>
+                    <div class="image-item" data-image-id="{{ image.id }}">
+                      <img style="height: 150px; width: 200px; margin-bottom: 8px;" src="{{ image.image.url }}" alt="Image">
+                      <br>
+                      <button style="margin-bottom: 8px;" class="btn btn-sm btn-primary view-image-btn" onclick="viewImage('{{ image.image.url }}')">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button style="margin-bottom: 8px;"class="btn btn-sm btn-danger delete-video-btn" onclick="deleteImage({{ image.id }})">
+                        <i class="fas fa-trash-alt"></i></button>
                     </div>
                     {% endfor %}
                   </div>
@@ -79,11 +91,16 @@
                 
                   
                     {% for video in property_videos %}
-                    <div id="collapseFive">
-                      <video controls style="height: 150px; width: 200px;">
+                    <div class="video-item" data-video-id="{{ video.id }}">
+                      <video controls style="height: 130px; width: 200px;">
                         <source src="{{ video.video.url }}" type="video/mp4">
-                      </video>
-                      <button class="btn btn-sm btn-primary view-image-btn" onclick="viewVideo('{{ video.video.url }}')">View</button>
+                      </video><br>
+                      <button class="btn btn-sm btn-primary view-image-btn" onclick="viewVideo('{{ video.video.url }}')">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button class="btn btn-sm btn-danger delete-video-btn" onclick="deleteVideo({{ video.id }})">
+                        <i class="fas fa-trash-alt"></i></button>
+
                     </div>
                     {% endfor %}
                   </div>
@@ -204,6 +221,81 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
+  // JavaScript code for deleting videos and handling form submission
+  function deleteImage(imageId) {
+    // Send an AJAX request to delete the video
+    fetch(`/delete_image/${imageId}/`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'), // Use the appropriate way to get the CSRF token
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          // If the deletion was successful, remove the video item from the HTML
+          const imageItem = document.querySelector(`[data-image-id="${imageId}"]`);
+          if (imageItem) {
+            imageItem.remove();
+          }
+        } else {
+          console.error(data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting video:', error);
+      });
+  }
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+  
+  </script>
+  
+
+<script>
+// JavaScript code for deleting videos and handling form submission
+function deleteVideo(videoId) {
+  // Send an AJAX request to delete the video
+  fetch(`/delete_video/${videoId}/`, {
+    method: 'DELETE',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'), // Use the appropriate way to get the CSRF token
+      'Content-Type': 'application/json',
+    },
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        // If the deletion was successful, remove the video item from the HTML
+        const videoItem = document.querySelector(`[data-video-id="${videoId}"]`);
+        if (videoItem) {
+          videoItem.remove();
+        }
+      } else {
+        console.error(data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error deleting video:', error);
+    });
+}
+
+// Function to get CSRF token from cookies (use the appropriate way for your setup)
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+
+</script>
+
+
+<script>
   function viewImage(imageUrl) {
     window.open(imageUrl);
   }
@@ -221,62 +313,63 @@
     if (input.files && input.files[0]) {
       const previewContainer = document.getElementById("img-preview-container");
       previewContainer.innerHTML = ""; // Clear previous preview
-  
+
       const file = input.files[0];
       const reader = new FileReader();
       reader.onload = function (e) {
         const imagePreviewItem = document.createElement("div");
         const fileId = generateUniqueId(); // Generate unique ID for the file
-  
+
         imagePreviewItem.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
         imagePreviewItem.classList.add("image-preview-item");
-  
+
         const imagePreview = document.createElement("img");
         imagePreview.src = e.target.result;
         imagePreview.classList.add("m-1", "img-thumbnail");
         imagePreview.style.maxWidth = "200px";
         imagePreview.style.maxHeight = "200px";
-  
+
         const viewButton = document.createElement("button");
         viewButton.setAttribute("type", "button"); // Set the button type to "button"
         viewButton.classList.add("btn", "btn-sm", "btn-primary", "view-image-btn");
-        viewButton.textContent = "View";
+        viewButton.innerHTML = '<i class="fas fa-eye"></i>';
         viewButton.addEventListener("click", function () {
           const win = window.open("", "_blank");
           win.document.write(
             `<img src="${e.target.result}" style="width: 500px; height: 900px; object-fit: contain; position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;">`
-
           );
         });
-  
+
         const deleteButton = document.createElement("button");
         deleteButton.classList.add("btn", "btn-sm", "btn-danger", "delete-image-btn");
-        deleteButton.textContent = "Delete";
+        deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
         deleteButton.addEventListener("click", function () {
           const imageContainer = document.querySelector(`[data-file-id="${fileId}"]`);
           imageContainer.remove();
           // Clear the file field by resetting the input value
           input.value = null;
         });
-  
+
+        // Append elements to the imagePreviewItem div
         imagePreviewItem.appendChild(imagePreview);
+        imagePreviewItem.appendChild(document.createElement("br")); // Add a line break
         imagePreviewItem.appendChild(viewButton);
         imagePreviewItem.appendChild(deleteButton);
-  
+
+        // Append the imagePreviewItem div to the preview container
         previewContainer.appendChild(imagePreviewItem);
       };
-  
+
       reader.readAsDataURL(file);
     }
   }
-  
+
   // Generate a unique ID
   function generateUniqueId() {
     return Math.random().toString(36).substr(2, 9);
   }
   
 </script>
-
 
 <script>
   function previewImages(input) {
@@ -290,11 +383,11 @@
       newFiles.forEach(file => {
         const reader = new FileReader();
         reader.onload = function (e) {
-          const imagePreviewItem = document.createElement("div");
+          const imageContainer = document.createElement("div"); // Container for image and buttons
           const fileId = generateUniqueId(); // Generate unique ID for the file
   
-          imagePreviewItem.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
-          imagePreviewItem.classList.add("image-preview-item");
+          imageContainer.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
+          imageContainer.classList.add("image-preview-container");
   
           const imagePreview = document.createElement("img");
           imagePreview.src = e.target.result;
@@ -305,17 +398,17 @@
           const viewButton = document.createElement("button");
           viewButton.setAttribute("type", "button"); // Set the button type to "button"
           viewButton.classList.add("btn", "btn-sm", "btn-primary", "view-image-btn");
-          viewButton.textContent = "View";
+          viewButton.innerHTML = '<i class="fas fa-eye"></i>';
           viewButton.addEventListener("click", function () {
             const win = window.open("", "_blank");
             win.document.write(
               `<img src="${e.target.result}" style="width: 500px; height: 900px; object-fit: contain; position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;">`
-              );
+            );
           });
   
           const deleteButton = document.createElement("button");
           deleteButton.classList.add("btn", "btn-sm", "btn-danger", "delete-image-btn");
-          deleteButton.textContent = "Delete";
+          deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
           deleteButton.addEventListener("click", function () {
             const imageContainer = document.querySelector(`[data-file-id="${fileId}"]`);
             imageContainer.remove();
@@ -335,11 +428,16 @@
             }
           });
   
-          imagePreviewItem.appendChild(imagePreview);
-          imagePreviewItem.appendChild(viewButton);
-          imagePreviewItem.appendChild(deleteButton);
+          imageContainer.appendChild(imagePreview);
   
-          previewContainer.appendChild(imagePreviewItem);
+          const buttonsContainer = document.createElement("div");
+          buttonsContainer.classList.add("buttons-container");
+          buttonsContainer.appendChild(viewButton);
+          buttonsContainer.appendChild(deleteButton);
+  
+          imageContainer.appendChild(buttonsContainer);
+  
+          previewContainer.appendChild(imageContainer);
         };
   
         reader.readAsDataURL(file);
@@ -364,7 +462,6 @@
 </script>
 
 <script>
-
   function previewVideos(input) {
     if (input.files && input.files.length > 0) {
       const previewContainer = document.getElementById("video-preview-container");
@@ -376,11 +473,11 @@
       newFiles.forEach(file => {
         const reader = new FileReader();
         reader.onload = function (e) {
-          const videoPreviewItem = document.createElement("div");
+          const videoContainer = document.createElement("div"); // Container for video and buttons
           const fileId = generateUniqueId(); // Generate unique ID for the file
   
-          videoPreviewItem.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
-          videoPreviewItem.classList.add("video-preview-item");
+          videoContainer.setAttribute("data-file-id", fileId); // Set data attribute for the file ID
+          videoContainer.classList.add("video-preview-container");
   
           const videoPreview = document.createElement("video");
           videoPreview.src = e.target.result;
@@ -392,18 +489,18 @@
           const viewButton = document.createElement("button");
           viewButton.setAttribute("type", "button"); // Set the button type to "button"
           viewButton.classList.add("btn", "btn-sm", "btn-primary", "view-video-btn");
-          viewButton.textContent = "View";
+          viewButton.innerHTML = '<i class="fas fa-eye"></i>';
           viewButton.addEventListener("click", function () {
             const win = window.open("", "_blank");
             win.document.write(
               `<video src="${e.target.result}" style="width: 900px; height: 900px; object-fit: contain; position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;" controls></video>`
-              );
+            );
           });
   
           const deleteButton = document.createElement("button");
           deleteButton.classList.add("btn", "btn-sm", "btn-danger", "delete-video-btn");
-          deleteButton.textContent = "Delete";
-          deleteButton.addEventListener("click", function () {
+          deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            deleteButton.addEventListener("click", function () {
             const videoContainer = document.querySelector(`[data-file-id="${fileId}"]`);
             videoContainer.remove();
             // Remove the file from the newFiles array
@@ -422,17 +519,23 @@
             }
           });
   
-          videoPreviewItem.appendChild(videoPreview);
-          videoPreviewItem.appendChild(viewButton);
-          videoPreviewItem.appendChild(deleteButton);
+          videoContainer.appendChild(videoPreview);
   
-          previewContainer.appendChild(videoPreviewItem);
+          const buttonsContainer = document.createElement("div");
+          buttonsContainer.classList.add("buttons-container");
+          buttonsContainer.appendChild(viewButton);
+          buttonsContainer.appendChild(deleteButton);
+  
+          videoContainer.appendChild(buttonsContainer);
+  
+          previewContainer.appendChild(videoContainer);
         };
   
         reader.readAsDataURL(file);
       });
     }
   }
+  
   
   // Custom wrapper for FileList object
   function FileListWrapper(files) {
@@ -450,6 +553,8 @@
   
 
 </script>
+
+
 <script>
   $(document).ready(function() {
     // Disable city and area dropdowns initially
