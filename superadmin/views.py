@@ -1027,7 +1027,49 @@ def delete_commission(request, id):
 def list_bookings(request):
     try:
         bookings = BookProperty.objects.all()
-        return render(request, 'home/list_bookings.html', {'bookings': bookings})
+        states = State.objects.all()
+        cities = City.objects.all()
+        areas = Area.objects.all()
+        clients = Client.objects.all()
+
+
+        state_id = request.GET.get('state')
+        city_id = request.GET.get('city')
+        area_id = request.GET.get('area')
+
+        owner_id = request.GET.get('owner')
+
+        if owner_id:
+            bookings = bookings.filter(property__owner=owner_id)
+        selected_state = None
+        selected_city = None
+
+        if state_id:
+            bookings = bookings.filter(property__area_id__city__state=state_id)
+            cities = cities.filter(state_id=state_id)
+            selected_state = State.objects.get(id=state_id).name
+
+        if city_id:
+            commissions = commissions.filter(property__area_id__city=city_id)
+            areas = areas.filter(city_id=city_id)
+            selected_city = City.objects.get(id=city_id).name
+
+        if area_id:
+            commissions = commissions.filter(property__area_id=area_id)
+        context = {
+        'bookings': bookings,
+        'states': states,
+        'cities': cities,
+        'areas': areas,
+        'clients':clients,
+        'selected_owner':owner_id,
+        'selected_state': selected_state,
+        'selected_city': selected_city,
+        'selected_state_id': state_id,
+        'selected_city_id': city_id,
+        'selected_area_id': area_id,
+    }
+        return render(request, 'home/list_bookings.html', context)
     except Exception as e:
         print(e)
                       

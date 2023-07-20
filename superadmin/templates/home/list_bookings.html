@@ -80,9 +80,7 @@
               
             </nav>
           </div>
-          <div class="col-lg-6 col-5 text-right">
-            <a href="{% url 'add_commission' %}" class="btn btn-sm btn-neutral">Add Commission</a>
-          </div>
+          
         </div>
       </div>
     </div>
@@ -99,7 +97,7 @@
     
    <section class="container-fluid mt-3">
       <div class="container page-header">
-        <h3 class="mb-0">Commission Management</h3><br>
+        <h3 class="mb-0">Booking History</h3><br>
       </div>
       <table cellpadding="15px">
         <tr>
@@ -141,6 +139,19 @@
               </div>
             </div>
           </th>
+          <th scope="row">
+            <div class="col-lg-12">
+              <div class="form-group">
+                <label for="area-select">Owner*</label>
+                <select name="owner" id="owner-select" class="form-control" style="height: 3rem;">
+                  <option value="">All Owners</option>
+                  {% for client in clients %}
+                    <option value="{{ client.id }}" {% if client.id|stringformat:"client" == selected_owner %}selected{% endif %}>{{ client.first_name }} {{ client.last_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </th>
         </tr>
       </table>
       {% if messages %}
@@ -160,6 +171,14 @@
                     <th scope="col"class="sort" data-sort="status">Address</th>
                     <th scope="col"class="sort" data-sort="status">Owner</th>
                     <th scope="col"class="sort" data-sort="status">User</th>
+                    <th scope="col"class="sort" data-sort="status">Price</th>
+                    <th scope="col"class="sort" data-sort="status">Start-date</th>
+                    <th scope="col"class="sort" data-sort="status">End-date</th>
+                    <th scope="col"class="sort" data-sort="status">Info</th>
+
+
+
+
                   </tr>
                 </thead>
            
@@ -199,6 +218,34 @@
                         <div class="media align-items-center">
                           <div class="media-body">
                             <span class="name mb-0 text-sm">{{booking.customer.first_name}} {{booking.customer.last_name}}</span>
+                          </div>
+                        </div>
+                      </th>
+                      <th scope="row">
+                        <div class="media align-items-center">
+                          <div class="media-body">
+                            <span class="name mb-0 text-sm">{{booking.amount}}</span>
+                          </div>
+                        </div>
+                      </th>
+                      <th scope="row">
+                        <div class="media align-items-center">
+                          <div class="media-body">
+                            <span class="name mb-0 text-sm">{{booking.start_date}} </span>
+                          </div>
+                        </div>
+                      </th>
+                      <th scope="row">
+                        <div class="media align-items-center">
+                          <div class="media-body">
+                            <span class="name mb-0 text-sm">{{booking.end_date}}</span>
+                          </div>
+                        </div>
+                      </th>
+                      <th scope="row">
+                        <div class="media align-items-center">
+                          <div class="media-body">
+                            <span class="name mb-0 text-sm"><i class="fas fa-info-circle"></i></span>
                           </div>
                         </div>
                       </th>
