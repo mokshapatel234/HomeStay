@@ -51,7 +51,7 @@
                       <div style="position: relative; display: inline-block;">
                         <img style="height: 150px; width: 200px; margin-bottom: 8px;" src="{{ property.root_image.url }}" alt="Root Image">
                         <br>
-                        <button class="btn btn-sm btn-primary view-image-btn" onclick="viewImage('{{ property.root_image.url }}')">
+                        <button class="btn btn-sm btn-primary view-image-btn"  type="button" onclick="viewImage('{{ property.root_image.url }}')">
                           <i class="fas fa-eye"></i>
                         </button>
                       </div>
@@ -67,15 +67,15 @@
                       <input type="file" multiple id="image-input" accept="image/*" onchange="previewImages(this)" class="form-control" placeholder="Images" name="images"  >
                       <div id="image-preview-container"></div>
                     </div>
-                  
+                    <p>{{num_images}} images stored</p>
                     {% for image in property_images %}
-                    <div class="image-item" data-image-id="{{ image.id }}">
+                    <div class="img-thumbnail m-1" data-image-id="{{ image.id }}">
                       <img style="height: 150px; width: 200px; margin-bottom: 8px;" src="{{ image.image.url }}" alt="Image">
                       <br>
-                      <button style="margin-bottom: 8px;" class="btn btn-sm btn-primary view-image-btn" onclick="viewImage('{{ image.image.url }}')">
+                      <button style="margin-bottom: 8px;" class="btn btn-sm btn-primary view-image-btn" type="button" onclick="viewImage('{{ image.image.url }}')">
                         <i class="fas fa-eye"></i>
                       </button>
-                      <button style="margin-bottom: 8px;"class="btn btn-sm btn-danger delete-video-btn" onclick="deleteImage({{ image.id }})">
+                      <button style="margin-bottom: 8px;"class="btn btn-sm btn-danger delete-video-btn" type="button" onclick="deleteImage({{ image.id }})">
                         <i class="fas fa-trash-alt"></i></button>
                     </div>
                     {% endfor %}
@@ -89,16 +89,16 @@
                       <div id="video-preview-container"></div>
                     </div>
                 
-                  
+                    <p>{{num_videos}} videos stored</p>
                     {% for video in property_videos %}
                     <div class="video-item" data-video-id="{{ video.id }}">
                       <video controls style="height: 130px; width: 200px;">
                         <source src="{{ video.video.url }}" type="video/mp4">
                       </video><br>
-                      <button class="btn btn-sm btn-primary view-image-btn" onclick="viewVideo('{{ video.video.url }}')">
+                      <button class="btn btn-sm btn-primary view-image-btn"  type="button" onclick="viewVideo('{{ video.video.url }}')">
                         <i class="fas fa-eye"></i>
                       </button>
-                      <button class="btn btn-sm btn-danger delete-video-btn" onclick="deleteVideo({{ video.id }})">
+                      <button class="btn btn-sm btn-danger delete-video-btn" type="button"  onclick="deleteVideo({{ video.id }})">
                         <i class="fas fa-trash-alt"></i></button>
 
                     </div>
@@ -481,7 +481,7 @@ function getCookie(name) {
   
           const videoPreview = document.createElement("video");
           videoPreview.src = e.target.result;
-          videoPreview.classList.add("m-1", "video-thumbnail");
+          videoPreview.classList.add("m-1", "img-thumbnail");
           videoPreview.style.maxWidth = "200px";
           videoPreview.style.maxHeight = "200px";
           videoPreview.controls = true;

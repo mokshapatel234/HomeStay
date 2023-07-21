@@ -261,105 +261,105 @@ class ChangePasswordApi(generics.GenericAPIView):
         
 
 
-class DashboardPropertyApi(generics.GenericAPIView):
-    authentication_classes = (JWTAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = CustomerPagination
-    
-
-    def get(self, request):
-        try:
-            query = request.GET.get('query')  # Get the search query from the request
-            properties = Properties.objects.all()
-            if query:
-                # Apply search filter using Q objects
-                properties = properties.filter(
-                    Q(name__icontains=query) |
-                    Q(price__icontains=query) |
-                    Q(status__icontains=query)
-                )
-
-            state = request.query_params.get('state', None)
-            city = request.query_params.get('city', None)
-            area = request.query_params.get('area', None)
-
-            if area:
-                try:
-                    area_obj = Area.objects.get(id=area)
-                    properties = properties.filter(area_id=area_obj)
-                except Area.DoesNotExist:
-                    return Response({"result": False, "message": "No area found"}, status=status.HTTP_404_NOT_FOUND)
-            elif city:
-                try:
-                    city_obj = City.objects.get(id=city)
-                    properties = properties.filter(area_id__city=city_obj)
-                except City.DoesNotExist:
-                    return Response({"result": False, "message": "No city found"}, status=status.HTTP_404_NOT_FOUND)
-            elif state:
-                try:
-                    state_obj = State.objects.get(id=state)
-                    properties = properties.filter(area_id__city__state=state_obj)
-                except State.DoesNotExist:
-                    return Response({"result": False, "message": "No state found"}, status=status.HTTP_404_NOT_FOUND)
-
-            # Use the filtered queryset for serialization and pagination
-            paginator = self.pagination_class()
-            paginated_properties = paginator.paginate_queryset(properties,request)
-            serializer = DashboardPropertiesSerializer(paginated_properties, many=True)
-            return paginator.get_paginated_response(serializer.data)
-
-
-        except Exception as e:
-            return Response({"result": False, "message": str(e)}, status=status.HTTP_404_NOT_FOUND)
-
-
-
 # class DashboardPropertyApi(generics.GenericAPIView):
 #     authentication_classes = (JWTAuthentication,)
 #     permission_classes = (permissions.IsAuthenticated,)
+#     pagination_class = CustomerPagination
+    
+
 #     def get(self, request):
 #         try:
+#             query = request.GET.get('query')  # Get the search query from the request
+#             properties = Properties.objects.all()
+#             if query:
+#                 # Apply search filter using Q objects
+#                 properties = properties.filter(
+#                     Q(name__icontains=query) |
+#                     Q(price__icontains=query) |
+#                     Q(status__icontains=query)
+#                 )
+
 #             state = request.query_params.get('state', None)
 #             city = request.query_params.get('city', None)
 #             area = request.query_params.get('area', None)
-            
+
 #             if area:
 #                 try:
 #                     area_obj = Area.objects.get(id=area)
-#                     properties = Properties.objects.filter(area_id=area_obj)
+#                     properties = properties.filter(area_id=area_obj)
 #                 except Area.DoesNotExist:
-#                     return Response({"result": False,
-#                                      "message": "No area found"},
-#                                     status=status.HTTP_404_NOT_FOUND)
-            
+#                     return Response({"result": False, "message": "No area found"}, status=status.HTTP_404_NOT_FOUND)
 #             elif city:
 #                 try:
 #                     city_obj = City.objects.get(id=city)
-#                     properties = Properties.objects.filter(area_id__city=city_obj)
+#                     properties = properties.filter(area_id__city=city_obj)
 #                 except City.DoesNotExist:
-#                     return Response({"result": False,
-#                                      "message": "No city found"},
-#                                     status=status.HTTP_404_NOT_FOUND)
-
+#                     return Response({"result": False, "message": "No city found"}, status=status.HTTP_404_NOT_FOUND)
 #             elif state:
 #                 try:
 #                     state_obj = State.objects.get(id=state)
-#                     properties = Properties.objects.filter(area_id__city__state=state_obj)
+#                     properties = properties.filter(area_id__city__state=state_obj)
 #                 except State.DoesNotExist:
-#                     return Response({"result": False,
-#                                      "message": "No state found"},
-#                                     status=status.HTTP_404_NOT_FOUND)
-#             else:
-#                 properties = Properties.objects.all()
+#                     return Response({"result": False, "message": "No state found"}, status=status.HTTP_404_NOT_FOUND)
+
+#             # Use the filtered queryset for serialization and pagination
+#             paginator = self.pagination_class()
+#             paginated_properties = paginator.paginate_queryset(properties,request)
+#             serializer = DashboardPropertiesSerializer(paginated_properties, many=True)
+#             return paginator.get_paginated_response(serializer.data)
+
+
+#         except Exception as e:
+#             return Response({"result": False, "message": str(e)}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+class DashboardPropertyApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+    def get(self, request):
+        try:
+            state = request.query_params.get('state', None)
+            city = request.query_params.get('city', None)
+            area = request.query_params.get('area', None)
             
-#             serializer = DashboardPropertiesSerializer(properties, many=True)
-#             return Response({"result":True,
-#                             "data":serializer.data,
-#                             "message":"Property found successfully"}, status=status.HTTP_200_OK)
+            if area:
+                try:
+                    area_obj = Area.objects.get(id=area)
+                    properties = Properties.objects.filter(area_id=area_obj, status="active")
+                except Area.DoesNotExist:
+                    return Response({"result": False,
+                                     "message": "No area found"},
+                                    status=status.HTTP_404_NOT_FOUND)
+            
+            elif city:
+                try:
+                    city_obj = City.objects.get(id=city)
+                    properties = Properties.objects.filter(area_id__city=city_obj, status="active")
+                except City.DoesNotExist:
+                    return Response({"result": False,
+                                     "message": "No city found"},
+                                    status=status.HTTP_404_NOT_FOUND)
+
+            elif state:
+                try:
+                    state_obj = State.objects.get(id=state)
+                    properties = Properties.objects.filter(area_id__city__state=state_obj, status="active")
+                except State.DoesNotExist:
+                    return Response({"result": False,
+                                     "message": "No state found"},
+                                    status=status.HTTP_404_NOT_FOUND)
+            else:
+                properties = Properties.objects.filter(status="active")
+            
+            serializer = DashboardPropertiesSerializer(properties, many=True)
+            return Response({"result":True,
+                            "data":serializer.data,
+                            "message":"Property found successfully"}, status=status.HTTP_200_OK)
         
-#         except:
-#             return Response({"result":False,
-#                             "message": "Error in getting data"}, status=status.HTTP_404_NOT_FOUND)
+        except:
+            return Response({"result":False,
+                            "message": "Error in getting data"}, status=status.HTTP_404_NOT_FOUND)
 
 
 
@@ -509,78 +509,78 @@ class wishlistApi(generics.GenericAPIView):
                         'message': 'Error in property remove'},
                         status=status.HTTP_400_BAD_REQUEST)
 
-# class BookPropertyApi(generics.GenericAPIView):
-#     authentication_classes = (JWTAuthentication, )
-#     permission_classes = (permissions.IsAuthenticated, )
-
-#     def get(self, request):
-#         try:
-#             user = request.user
-#             bookings = BookProperty.objects.filter(customer=user, book_status__in=[True])  
-#             serializer = BookPropertyListSerializer(bookings, many=True)
-
-#             data = []
-#             for booking in bookings:
-#                 property_id = booking.property_id
-#                 property_name = Properties.objects.get(id=property_id).name
-#                 property_image = Properties.objects.get(id=property_id).root_image.url
-#                 payment_status = 'Paid'  
-
-#                 item = {
-#                     'property_name': property_name,
-#                     'root_image': property_image,
-#                     'payment_status': payment_status,
-#                     'start_date': booking.start_date,
-#                     'end_date': booking.end_date,
-#                     'amount': booking.amount,
-#                     'book_status':booking.book_status
-#                 }
-#                 data.append(item)
-
-#             return Response({
-#                 'result': True,
-#                 'data': data,
-#                 'message': 'Booking history'
-#             }, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response({
-#                 'result': False,
-#                 'message': str(e)
-#             }, status=status.HTTP_400_BAD_REQUEST)
-
-
-
 class BookPropertyApi(generics.GenericAPIView):
-    authentication_classes = (JWTAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = CustomerPagination
- 
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
+
     def get(self, request):
         try:
-            user = request.user      
-            properties = BookProperty.objects.filter(book_status__in=[True], customer=user)
-              
-            query = request.GET.get('query')
+            user = request.user
+            bookings = BookProperty.objects.filter(customer=user, book_status__in=[True])  
+            serializer = BookPropertyListSerializer(bookings, many=True)
 
-            if query:
-                properties = properties.filter(
-                    Q(property__name__icontains=query) |
-                    Q(order_id__icontains=query)
-                )
-            else:
-                print('error')
-            paginator = self.pagination_class()
-            paginated_properties = paginator.paginate_queryset(properties,request)
-            serializer = BookPropertyListSerializer(paginated_properties, many=True)
-           
-            
-            return paginator.get_paginated_response(serializer.data)
-        
+            data = []
+            for booking in bookings:
+                property_id = booking.property_id
+                property_name = Properties.objects.get(id=property_id).name
+                property_image = Properties.objects.get(id=property_id).root_image.url
+                payment_status = 'Paid'  
+
+                item = {
+                    'property_name': property_name,
+                    'root_image': property_image,
+                    'payment_status': payment_status,
+                    'start_date': booking.start_date,
+                    'end_date': booking.end_date,
+                    'amount': booking.amount,
+                    'book_status':booking.book_status
+                }
+                data.append(item)
+
+            return Response({
+                'result': True,
+                'data': data,
+                'message': 'Booking history'
+            }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({
                 'result': False,
                 'message': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+# class BookPropertyApi(generics.GenericAPIView):
+#     authentication_classes = (JWTAuthentication,)
+#     permission_classes = (permissions.IsAuthenticated,)
+#     pagination_class = CustomerPagination
+ 
+#     def get(self, request):
+#         try:
+#             user = request.user      
+#             properties = BookProperty.objects.filter(book_status__in=[True], customer=user)
+              
+#             query = request.GET.get('query')
+
+#             if query:
+#                 properties = properties.filter(
+#                     Q(property__name__icontains=query) |
+#                     Q(order_id__icontains=query)
+#                 )
+#             else:
+#                 print('error')
+#             paginator = self.pagination_class()
+#             paginated_properties = paginator.paginate_queryset(properties,request)
+#             serializer = BookPropertyListSerializer(paginated_properties, many=True)
+           
+            
+#             return paginator.get_paginated_response(serializer.data)
+        
+#         except Exception as e:
+#             return Response({
+#                 'result': False,
+#                 'message': str(e)
+#             }, status=status.HTTP_400_BAD_REQUEST)
 
 
 
