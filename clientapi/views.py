@@ -610,13 +610,13 @@ class CalenderApi(generics.GenericAPIView):
             return Response({
                     'result': True,
                     'data': serializer.data,
-                    'message': 'Booking history'
+                    'message': "Data found successfully"
                 }, status=status.HTTP_200_OK)
 
             
         except Exception as e:
             print(e)
-            return Response({"error": "An error occurred while processing the request."},
+            return Response({"error": "An error in data foundation"},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class BookPropertyApi(generics.GenericAPIView):

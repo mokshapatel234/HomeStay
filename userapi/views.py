@@ -270,7 +270,7 @@ class ChangePasswordApi(generics.GenericAPIView):
 #     def get(self, request):
 #         try:
 #             query = request.GET.get('query')  # Get the search query from the request
-#             properties = Properties.objects.all()
+#             properties = Properties.objects.filter(status="active")
 #             if query:
 #                 # Apply search filter using Q objects
 #                 properties = properties.filter(
@@ -286,19 +286,19 @@ class ChangePasswordApi(generics.GenericAPIView):
 #             if area:
 #                 try:
 #                     area_obj = Area.objects.get(id=area)
-#                     properties = properties.filter(area_id=area_obj)
+#                     properties = properties.filter(area_id=area_obj, status="active")
 #                 except Area.DoesNotExist:
 #                     return Response({"result": False, "message": "No area found"}, status=status.HTTP_404_NOT_FOUND)
 #             elif city:
 #                 try:
 #                     city_obj = City.objects.get(id=city)
-#                     properties = properties.filter(area_id__city=city_obj)
+#                     properties = properties.filter(area_id__city=city_obj, status="active")
 #                 except City.DoesNotExist:
 #                     return Response({"result": False, "message": "No city found"}, status=status.HTTP_404_NOT_FOUND)
 #             elif state:
 #                 try:
 #                     state_obj = State.objects.get(id=state)
-#                     properties = properties.filter(area_id__city__state=state_obj)
+#                     properties = properties.filter(area_id__city__state=state_obj, status="active")
 #                 except State.DoesNotExist:
 #                     return Response({"result": False, "message": "No state found"}, status=status.HTTP_404_NOT_FOUND)
 
