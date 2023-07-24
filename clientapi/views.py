@@ -456,7 +456,7 @@ class PropertyApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 "result": False,
-                "message": 'Error in property updation'
+                "message": str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -518,7 +518,7 @@ class DashboardApi(generics.GenericAPIView):
 
             properties = user.properties.order_by('-created_at')[:10]
             bookings = BookProperty.objects.filter(property__owner=user,  book_status__in=[True]).order_by('-created_at')[:10]
-            property_serializer = PropertiesListSerializer(properties, many=True)
+            property_serializer = PropertiesSerializer(properties, many=True, fields = ['id', 'root_image', 'name', 'price','address', 'status'] )
             booking_serializer = BookPropertySerializer(bookings, many=True)
             
             data = {
@@ -542,7 +542,7 @@ class DashboardApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 "result": False,
-                "message":"Error in getting data"
+                "message":str(e) 
             }, status=status.HTTP_400_BAD_REQUEST)
 
 class CalenderApi(generics.GenericAPIView):

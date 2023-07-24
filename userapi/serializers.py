@@ -88,9 +88,6 @@ class ResetPasswordSerializer(serializers.Serializer):
     confirm_password = serializers.CharField(required=True)
 
 
-
-
-
 class CustomerProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -199,6 +196,7 @@ class WishlistSerializer(serializers.ModelSerializer):
     price = serializers.FloatField(source='property.price', read_only=True)
     status = serializers.CharField(source='property.status', read_only=True)
     images = PropertyImageSerializer(source='property.images', many=True, read_only=True)
+    
 
 
     class Meta:

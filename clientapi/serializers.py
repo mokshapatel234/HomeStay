@@ -101,6 +101,21 @@ class ResetPasswordSerializer(serializers.Serializer):
     confirm_password = serializers.CharField(required=True)
 
 
+class DynamicFieldsModelSerializer(serializers.ModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super().__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+
+
 
 
 class PropertyImageSerializer(serializers.ModelSerializer):
@@ -118,7 +133,7 @@ class PropertyTermsSerializer(serializers.ModelSerializer):
         model = PropertyTerms
         fields = ['id', 'terms']
 
-class PropertiesSerializer(serializers.ModelSerializer):
+class PropertiesSerializer(DynamicFieldsModelSerializer):
     images = serializers.SerializerMethodField()
     videos = serializers.SerializerMethodField()
     terms = serializers.SerializerMethodField()
