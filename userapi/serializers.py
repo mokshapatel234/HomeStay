@@ -104,17 +104,17 @@ class PropertyImageSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = PropertyImage
-        fields = ['id', 'image']
+        fields = ['image']
 
 class PropertyVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyVideo
-        fields = ['id', 'video']
+        fields = ['video']
 
 class PropertyTermsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyTerms
-        fields = ['id', 'terms'] 
+        fields = ['terms'] 
 
 class DashboardPropertiesSerializer(serializers.ModelSerializer):
     images = PropertyImageSerializer(many=True)
@@ -131,7 +131,7 @@ class DashboardPropertiesSerializer(serializers.ModelSerializer):
         
         if root_image:
             root_image_data = {
-                'id': instance.id,
+         
                 'image': root_image.url  
             }
             data['images'].insert(0, root_image_data)
@@ -163,7 +163,7 @@ class PropertiesDetailSerializer(serializers.ModelSerializer):
         
         if root_image:
             root_image_data = {
-                'id': instance.id,
+               
                 'image': root_image.url  
             }
             data['images'].insert(0, root_image_data)
@@ -214,7 +214,7 @@ class WishlistSerializer(serializers.ModelSerializer):
         # If a root image exists, add it to the images list
         if property_root_image:
             root_image_data = {
-                'id': instance.property.id,
+               
                 'image': property_root_image.url  # Assuming 'url' is the attribute for the image URL
             }
             data['images'].insert(0, root_image_data)
