@@ -104,39 +104,39 @@ class PropertyImageSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = PropertyImage
-        fields = ['image']
+        fields = ['id', 'image']
 
 class PropertyVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyVideo
-        fields = ['video']
+        fields = ['id', 'video']
 
 class PropertyTermsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyTerms
-        fields = ['terms'] 
+        fields = ['id', 'terms'] 
 
 class DashboardPropertiesSerializer(serializers.ModelSerializer):
     images = PropertyImageSerializer(many=True)
 
     class Meta:
         model = Properties
-        fields = ['id', 'name',  'price', 'status', 'images']
+        fields = ['id','name',  'price', 'status', 'root_image', 'images']
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
+    # def to_representation(self, instance):
+    #     data = super().to_representation(instance)
 
-        root_image = instance.root_image
+    #     root_image = instance.root_image
 
         
-        if root_image:
-            root_image_data = {
-         
-                'image': root_image.url  
-            }
-            data['images'].insert(0, root_image_data)
+    #     if root_image:
+    #         root_image_data = {
+    #             'id': instance.id,
+    #             'image': root_image.url  
+    #         }
+    #         data['images'].insert(0, root_image_data)
 
-        return data
+    #     return data
 
 
 class ClientSerializer(serializers.ModelSerializer):
@@ -153,22 +153,22 @@ class PropertiesDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Properties
-        fields = ['name', 'root_image', 'price', 'status', 'description', 'area_id', 'address', 'images', 'videos', 'terms', 'owner']
+        fields = ['name', 'price', 'status', 'description', 'area_id', 'address', 'root_image', 'images', 'videos', 'terms', 'owner']
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
+    # def to_representation(self, instance):
+    #     data = super().to_representation(instance)
 
-        root_image = instance.root_image
+    #     root_image = instance.root_image
 
         
-        if root_image:
-            root_image_data = {
-               
-                'image': root_image.url  
-            }
-            data['images'].insert(0, root_image_data)
+    #     if root_image:
+    #         root_image_data = {
+    #             'id': instance.id,
+    #             'image': root_image.url  
+    #         }
+    #         data['images'].insert(0, root_image_data)
 
-        return data
+    #     return data
 
 
 class BookPropertyListSerializer(serializers.ModelSerializer):
@@ -195,6 +195,7 @@ class TermsAndPolicySerializer(serializers.ModelSerializer):
 
 class WishlistSerializer(serializers.ModelSerializer):
     property_name = serializers.CharField(source='property.name', read_only=True)
+    root_image = serializers.ImageField(source='property.root_image', read_only=True)
     price = serializers.FloatField(source='property.price', read_only=True)
     status = serializers.CharField(source='property.status', read_only=True)
     images = PropertyImageSerializer(source='property.images', many=True, read_only=True)
@@ -202,24 +203,24 @@ class WishlistSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wishlist
-        fields = ['id', 'property', 'property_name', 'customer', 'price', 'status', 'images']
+        fields = ['id', 'property', 'property_name', 'customer', 'price', 'status',  'root_image', 'images']
 
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
+    # def to_representation(self, instance):
+    #     data = super().to_representation(instance)
 
-        # Get the root image of the property related to the wishlist
-        property_root_image = instance.property.root_image
+    #     # Get the root image of the property related to the wishlist
+    #     property_root_image = instance.property.root_image
 
-        # If a root image exists, add it to the images list
-        if property_root_image:
-            root_image_data = {
-               
-                'image': property_root_image.url  # Assuming 'url' is the attribute for the image URL
-            }
-            data['images'].insert(0, root_image_data)
+    #     # If a root image exists, add it to the images list
+    #     if property_root_image:
+    #         root_image_data = {
+    #             'id': instance.property.id,
+    #             'image': property_root_image.url  # Assuming 'url' is the attribute for the image URL
+    #         }
+    #         data['images'].insert(0, root_image_data)
 
-        return data
+    #     return data
     
 
 
