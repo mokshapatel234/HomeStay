@@ -468,16 +468,26 @@ class wishlistApi(generics.GenericAPIView):
             property_id = request.data.get('property_id')
             property = Properties.objects.get(id=property_id)
             user = request.user
+
+            # Check if the wishlist entry already exists for the property and user
+            wishlist_exists = Wishlist.objects.filter(property=property, customer=user).exists()
+
+            if wishlist_exists:
+                return Response({'result': False,
+                                'message': 'Property is already wishlisted'},
+                                status=status.HTTP_200_OK)
+
             data = {
                 'property': property.id,
                 'customer': user.id
             }
+
             serializer = WishlistSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
                 return Response({'result': True,
                                 'data': serializer.data,
-                                'message': 'Property is now favorite'},
+                                'message': 'Property is now favorited'},
                                 status=status.HTTP_200_OK)
             else:
                 return Response({'result': False,
@@ -493,7 +503,8 @@ class wishlistApi(generics.GenericAPIView):
             return Response({'result': False,
                             'message': 'Error in property wishlist',
                             'error': str(e)},
-                        status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
