@@ -48,7 +48,7 @@
                     
                       <p>1 image stored</p>
                       {% if property.root_image %}
-                      <div style="position: relative; display: inline-block;">
+                      <div class="img-thumbnail" style="display: inline-block;">
                         <img style="height: 150px; width: 200px; margin-bottom: 8px;" src="{{ property.root_image.url }}" alt="Root Image">
                         <br>
                         <button class="btn btn-sm btn-primary view-image-btn"  type="button" onclick="viewImage('{{ property.root_image.url }}')">
@@ -68,8 +68,9 @@
                       <div id="image-preview-container"></div>
                     </div>
                     <p>{{num_images}} images stored</p>
+
                     {% for image in property_images %}
-                    <div class="img-thumbnail m-1" data-image-id="{{ image.id }}">
+                    <div class="img-thumbnail" style="display: inline-block;" data-image-id="{{ image.id }}">
                       <img style="height: 150px; width: 200px; margin-bottom: 8px;" src="{{ image.image.url }}" alt="Image">
                       <br>
                       <button style="margin-bottom: 8px;" class="btn btn-sm btn-primary view-image-btn" type="button" onclick="viewImage('{{ image.image.url }}')">
@@ -91,8 +92,8 @@
                 
                     <p>{{num_videos}} videos stored</p>
                     {% for video in property_videos %}
-                    <div class="video-item" data-video-id="{{ video.id }}">
-                      <video controls style="height: 130px; width: 200px;">
+                    <div class="img-thumbnail" style="display: inline-block;" data-video-id="{{ video.id }}">
+                      <video controls style="height: 150px; width: 200px; margin-bottom: 8px">
                         <source src="{{ video.video.url }}" type="video/mp4">
                       </video><br>
                       <button class="btn btn-sm btn-primary view-image-btn"  type="button" onclick="viewVideo('{{ video.video.url }}')">

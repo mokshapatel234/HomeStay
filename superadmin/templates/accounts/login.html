@@ -6,7 +6,38 @@
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
-
+<style>
+ 
+  .messages {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .messages li {
+    display: block;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 3px;
+  }
+  
+  /* Message types */
+  .messages li.success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .messages li.warning {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .messages li.error {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  </style>
     <!-- Page content -->
     <div class="container mt--8 pb-5">
       <div class="row justify-content-center">
@@ -19,10 +50,13 @@
             <div class="card-body px-lg-5 py-lg-5">
               <div class="text-center text-muted mb-4">
                   
-                {% if msg %}
-                <p class="text-danger"> *{{msg}} </p>
-              {% endif %}
-
+                {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
               </div>
 
               <form method="POST">
@@ -48,15 +82,11 @@
                 <div class="text-center">
                   <button type="submit" class="btn btn-primary my-4">Sign in</button>
                 </div>
-                {% comment %} <div class="text-c">
-                  {% if header == 'User' %}
-                    <a href="{% url 'user_forgot_password' %}"><small>Forgot Your Password?</small></a><br>
-                    <a href="{% url 'registeration' %}"><small>Do Not Have An Account? </small></a>
-                    {% else %}
-                   <a href="{% url 'admin_password_reset' %}"><small>Forgot your password?</small></a>
-                  {% endif %}
-                 
-                 </div> {% endcomment %}
+              <div class="text-c">
+                  
+                    <a href="#"><small>Forgot Your Password?</small></a><br>
+                                    
+                 </div> 
 
               </form>
             </div>

@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from .models import *
 from userapi.models import BookProperty
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
 from django.db.models.query_utils import Q
@@ -19,7 +19,8 @@ from django.contrib import messages
 import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 # Create your views here.
 
@@ -73,23 +74,6 @@ def is_authenticate(request):
 
 
 
-def add_terms_policy(request):
-    try:
-        admin_user = TermsandPolicy.objects.get(user=request.user)
-    except TermsandPolicy.DoesNotExist:
-        admin_user = None
-
-    if request.method == 'POST':
-        form = AdminTermsAndpolicyForm(request.POST, instance=admin_user)
-        if form.is_valid():
-            terms_policy = form.save(commit=False)
-            terms_policy.user = request.user  # Assign the current user
-            terms_policy.save()
-            return redirect('index')
-    else:
-        form = AdminTermsAndpolicyForm(instance=admin_user)
-    
-    return render(request, 'home/add_terms_policy.html', {'form': form})
 
 
 class LoginView(View):
@@ -116,6 +100,14 @@ class LoginView(View):
             return render(request, 'accounts/login.html', {'form': form})
 
 
+class Logout(View):
+   def get(self,request):
+      logout(request)
+      messages.success(request, 'Logged out!.')
+      return redirect(reverse('login'))
+   
+
+@method_decorator(login_required, name='dispatch')
 class Index(View):
     def get(self,request):
       client = Client.objects.all()
@@ -132,8 +124,27 @@ class Index(View):
           "num_property":num_property,
           "num_booking":num_booking})
     
-# State
+@login_required
+def add_terms_policy(request):
+    try:
+        admin_user = TermsandPolicy.objects.get(user=request.user)
+    except TermsandPolicy.DoesNotExist:
+        admin_user = None
 
+    if request.method == 'POST':
+        form = AdminTermsAndpolicyForm(request.POST, instance=admin_user)
+        if form.is_valid():
+            terms_policy = form.save(commit=False)
+            terms_policy.user = request.user  # Assign the current user
+            terms_policy.save()
+            return redirect('index')
+    else:
+        form = AdminTermsAndpolicyForm(instance=admin_user)
+    
+    return render(request, 'home/add_terms_policy.html', {'form': form})
+
+# State
+@login_required
 def add_state(request):
     try:
 
@@ -157,12 +168,12 @@ def add_state(request):
 
         
 
-
+@login_required
 def list_state(request):
     states  = State.objects.all()
     return render(request, 'home/list_state.html', {'states':states})
 
-
+@login_required
 def update_state(request, id):
     try:
         state = State.objects.get(id=id)
@@ -186,7 +197,7 @@ def update_state(request, id):
     except Exception as e:
         print(e)
         return render(request, 'home/update_state.html', {'msg': 'Invalid Credentials'})
-
+@login_required
 def delete_state(request, id):
     try:
         state = State.objects.get(id=id)
@@ -199,7 +210,7 @@ def delete_state(request, id):
         return render(request, 'home/list_state.html')
 
 #City
-
+@login_required
 def add_city(request):
     try:
         states = State.objects.all()
@@ -231,7 +242,7 @@ def add_city(request):
  
         
 
-
+@login_required
 def list_cities(request):
     cities = City.objects.all()
     states = State.objects.all()
@@ -251,6 +262,8 @@ def list_cities(request):
 
     return render(request, 'home/list_cities.html', context)
 
+
+@login_required
 def update_city(request, id):
     try:
         city = City.objects.get(id=id)
@@ -271,7 +284,7 @@ def update_city(request, id):
         messages.error(request, 'Invalid Credentials')
     return render(request, 'home/update_city.html', {"states": states, "city": city})
 
-
+@login_required
 def delete_city(request, id):
     try:
         city = City.objects.get(id=id)
@@ -284,7 +297,7 @@ def delete_city(request, id):
     
 
 # Area
-
+@login_required
 def add_area(request):
     try:
         cities = City.objects.all()
@@ -306,7 +319,7 @@ def add_area(request):
         messages.error(request, 'Invalid Credentials')
 
     return render(request, 'home/add_area.html', {'cities':cities})
-
+@login_required
 def list_areas(request):
     areas = Area.objects.all()
     states = State.objects.all()
@@ -337,7 +350,7 @@ def list_areas(request):
 
     return render(request, 'home/list_areas.html', context)
 
-
+@login_required
 def update_area(request, id):
     try:
         area = Area.objects.get(id=id)
@@ -358,7 +371,7 @@ def update_area(request, id):
         messages.error(request, 'Invalid Credentials')
     return render(request, 'home/update_area.html', {"cities": cities, "area": area})
 
-
+@login_required
 def delete_area(request, id):
     try:
         area = Area.objects.get(id=id)
@@ -368,7 +381,7 @@ def delete_area(request, id):
     except:
         messages.error(request, 'Invalid Credentials')
         return redirect('list_areas')
-
+@login_required
 def get_cities(request):
     state_id = request.GET.get('state_id')
     if state_id:
@@ -377,7 +390,7 @@ def get_cities(request):
     else:
         return JsonResponse([], safe=False)
 
-
+@login_required
 def get_areas(request):
     city_id = request.GET.get('city_id')
     if city_id:
@@ -391,7 +404,7 @@ def get_areas(request):
 
 # Client 
 
-
+@login_required
 def add_client(request):
     try:
         states = State.objects.all()
@@ -442,7 +455,7 @@ def add_client(request):
         messages.error(request, 'Invalid Credentials')
     return render(request, 'home/add_client.html', {'segment': 'index', 'states': states, 'cities': cities, 'areas': areas})
 
-
+@login_required
 def list_clients(request):
     clients = Client.objects.all()
     states = State.objects.all()
@@ -482,7 +495,7 @@ def list_clients(request):
     }
 
     return render(request, 'home/list_clients.html', context)
-
+@login_required
 def update_client(request, id):
     try:
         client = Client.objects.get(id=id)
@@ -528,7 +541,7 @@ def update_client(request, id):
                         
                 })   
 
-
+@login_required
 def delete_client(request, id):
     try:
         cli = Client.objects.get(id=id)
@@ -542,7 +555,7 @@ def delete_client(request, id):
 
 #Customer
  
-     
+@login_required     
 def add_customer(request):
     try:
         states = State.objects.all()
@@ -595,7 +608,7 @@ def add_customer(request):
         messages.error(request, 'Invalid Credentials')
     return render(request, 'home/add_customer.html', {'segment': 'add_customer', 'states': states, 'cities': cities, 'areas': areas})
 
-
+@login_required
 def list_customers(request):
     customers = Customer.objects.all()
     states = State.objects.all()
@@ -638,7 +651,7 @@ def list_customers(request):
 
     return render(request, 'home/list_customers.html', context)
 
-
+@login_required
 def update_customer(request, id):
     customer = Customer.objects.get(id=id)
     states = State.objects.all()
@@ -663,7 +676,7 @@ def update_customer(request, id):
     return render(request, 'home/update_customer.html', {'customer':customer, 'segment':'customer','states': states,
                     'cities': cities,
                     'areas': areas, })
-
+@login_required
 def delete_customer(request, id):
     try:
         customer = Customer.objects.get(id=id)
@@ -677,7 +690,7 @@ def delete_customer(request, id):
 
 
 #Property
-
+@login_required
 def add_property(request):
     try:
         form = PropertyTermsForm(request.POST)
@@ -749,7 +762,7 @@ def add_property(request):
         messages.error(request, 'Invalid Credentials')
     return render(request, 'home/add_property.html', {'clients': clients, 'states': states, 'cities': cities, 'areas': areas, 'segment': 'property', 'form': form})
 
-
+@login_required
 def list_properties(request):
     properties = Properties.objects.all()
     states = State.objects.all()
@@ -790,7 +803,7 @@ def list_properties(request):
     }
 
     return render(request, 'home/list_properties.html', context)
-
+@login_required
 def delete_image(request, image_id):
     try:
         image = PropertyImage.objects.get(id=image_id)
@@ -801,7 +814,7 @@ def delete_image(request, image_id):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)})
 
-
+@login_required
 def delete_video(request, video_id):
     try:
         video = PropertyVideo.objects.get(id=video_id)
@@ -811,7 +824,7 @@ def delete_video(request, video_id):
         return JsonResponse({'status': 'error', 'message': 'Video not found'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)})
-
+@login_required
 def update_property(request, id):
     try:
         property_obj = Properties.objects.get(id=id)
@@ -829,13 +842,7 @@ def update_property(request, id):
             form = PropertyTermsForm(request.POST, instance=property_terms)
             selected_state_id = property_obj.area_id.city.state.id
             selected_city_id = property_obj.area_id.city.id
-            owner_id = request.POST.get('owner')
-            owner = None
-            try:
-                owner = Client.objects.get(id=owner_id)
-            except Client.DoesNotExist:
-                print('Client Not found')
-
+            
 
             # Update property fields
             if 'property_name' in request.POST:
@@ -846,8 +853,7 @@ def update_property(request, id):
                 property_obj.root_image = request.FILES.get('root_image')
             if 'description' in request.POST:
                 property_obj.description = request.POST.get('description')
-            if 'owner' in request.POST:
-                property_obj.owner = owner
+            
             if 'address' in request.POST:
                 property_obj.address = request.POST.get('address')
             if 'status' in request.POST:
@@ -916,7 +922,7 @@ def update_property(request, id):
                    "states": states, 'cities': cities, 'areas': areas,
                    })
 
-
+@login_required
 def delete_property(request, id):
     try:
         property = Properties.objects.get(id=id)
@@ -928,8 +934,7 @@ def delete_property(request, id):
         return redirect('list_properties')
 
         
-
-
+@login_required
 def add_commission(request):
     try:
         clients = Client.objects.all()
@@ -958,7 +963,7 @@ def add_commission(request):
     
     return render(request, 'home/add_commission.html', {'clients': clients, 'segment': 'commission'})
 
-
+@login_required
 def list_commission(request):
     commissions = Commission.objects.all()
     states = State.objects.all()
@@ -998,7 +1003,7 @@ def list_commission(request):
     }
     
     return render(request, 'home/list_commission.html', context)
-
+@login_required
 def update_commission(request, id):
     try:
         commission = Commission.objects.get(id=id)
@@ -1018,7 +1023,7 @@ def update_commission(request, id):
         return redirect('list_commission')
 
     return render(request, 'home/update_commission.html', {'commission': commission, 'clients': clients})
-
+@login_required
 def delete_commission(request, id):
     try:
         commission = Commission.objects.get(id=id)
@@ -1029,7 +1034,7 @@ def delete_commission(request, id):
         messages.error(request, 'Invalid Credentials')
         return redirect('list_commission')
 
-
+@login_required
 def list_bookings(request):
         bookings = BookProperty.objects.filter(book_status__in=[True])
         states = State.objects.all()
@@ -1082,7 +1087,7 @@ def list_bookings(request):
         return render(request, 'home/list_bookings.html', context)
     
                       
-
+@login_required
 def booking_detail(request, id):
     booking = BookProperty.objects.get(id=id)
     return render(request, 'home/booking_detail.html', {'booking':booking})
