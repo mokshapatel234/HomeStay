@@ -90,14 +90,6 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 
 
-class DashboardPropertiesSerializer(serializers.ModelSerializer):
-   
-
-    class Meta:
-        model = Properties
-        fields = ['id', 'name', 'root_image', 'price', 'status']
-
-
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
 
@@ -109,6 +101,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
 
 
 class PropertyImageSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = PropertyImage
         fields = ['id', 'image']
@@ -122,6 +115,29 @@ class PropertyTermsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyTerms
         fields = ['id', 'terms'] 
+
+class DashboardPropertiesSerializer(serializers.ModelSerializer):
+    images = PropertyImageSerializer(many=True)
+
+    class Meta:
+        model = Properties
+        fields = ['id', 'name',  'price', 'status', 'images']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        root_image = instance.root_image
+
+        
+        if root_image:
+            root_image_data = {
+                'id': instance.id,
+                'image': root_image.url  
+            }
+            data['images'].insert(0, root_image_data)
+
+        return data
+
 
 class ClientSerializer(serializers.ModelSerializer):
 
@@ -139,6 +155,20 @@ class PropertiesDetailSerializer(serializers.ModelSerializer):
         model = Properties
         fields = ['name', 'root_image', 'price', 'status', 'description', 'area_id', 'address', 'images', 'videos', 'terms', 'owner']
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        root_image = instance.root_image
+
+        
+        if root_image:
+            root_image_data = {
+                'id': instance.id,
+                'image': root_image.url  
+            }
+            data['images'].insert(0, root_image_data)
+
+        return data
 
 
 class BookPropertyListSerializer(serializers.ModelSerializer):
@@ -173,7 +203,7 @@ class WishlistSerializer(serializers.ModelSerializer):
         model = Wishlist
         fields = ['id', 'property', 'property_name', 'customer',  'root_image', 'price', 'status']
 
-
+    
 
 
 
