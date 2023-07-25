@@ -97,7 +97,7 @@ class Client(models.Model):
     objects = ParanoidModelManager() 
   
     def __str__(self):
-        return f"{self.username}({self.password})"
+        return f"{self.email}({self.password})"
     
     def delete(self, hard=False, **kwargs):
         if hard:
@@ -274,5 +274,3 @@ class Wishlist(models.Model):
 
 
 
-class Otp(models.Model):
-    otp = models.CharField(max_length=4)

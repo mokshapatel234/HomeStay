@@ -54,3 +54,7 @@ class Product(models.Model):
     product_id = models.CharField(max_length=20)
 
 
+class Otp(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='otp')
+    otp = models.CharField(max_length=4)
+    is_verified = models.BooleanField(default=False)

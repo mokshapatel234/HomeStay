@@ -29,7 +29,7 @@ from django.db.models import Q
 import razorpay
 from datetime import datetime
 from django.utils import timezone
-from .models import ClientBanking, Product
+from .models import ClientBanking, Product, Otp
 from rest_framework.views import APIView
 
 
@@ -188,7 +188,7 @@ class ForgotPasswordApi(generics.GenericAPIView):
             otp_string = str(generated_otp)
             # otp_verification_link = request.build_absolute_uri(reverse('otpverify'))
             request.session['client'] = str(client_obj.id)
-            otp_instance = Otp.objects.create(otp=otp_string)
+            otp_instance = Otp.objects.create(client=client_obj, otp=otp_string)
             print(type(otp_string))
             subject = 'Acount Recovery'
 
@@ -220,7 +220,8 @@ class OtpVerificationApi(generics.GenericAPIView):
             print(otp)
             try:
                 if otp:
-                    otp.delete()  # Delete the OTP object from the database
+                    otp.is_verified = True
+                    otp.save()
 
                     return Response({'result': True, 'message': 'Otp Verified'}, status=status.HTTP_200_OK)
                     
@@ -243,17 +244,26 @@ class ResetPasswordApi(generics.GenericAPIView):
 
     def post(self, request):
         try:
-            if not request.session.get('otp'):
+            email = request.data['email']
+            client_obj = Client.objects.get(email=email)
+            print(client_obj)
+            try:
+                otp = Otp.objects.get(client=client_obj.id)
+            except Otp.DoesNotExist:
+                return Response({'result': False, 'message': 'No OTP found for the client'}, status=status.HTTP_404_NOT_FOUND)
+            if otp.is_verified:
                 serializer = self.serializer_class(data=request.data)
                 serializer.is_valid(raise_exception=True)
 
                 new_password = serializer.validated_data['new_password']
                 confirm_password = serializer.validated_data['confirm_password']
                 if new_password == confirm_password:
-                    client_obj = Client.objects.get(id = str(request.session.get('client')))
+                    client_obj = Client.objects.get(id=client_obj.id)
                     client_obj.password = new_password
                     client_obj.save()
+                    otp.delete()
                     del request.session['client']
+
                     return Response({'result':True,
                                     'message':'Password Changed Successfully'},status=status.HTTP_200_OK)
                 else:
@@ -262,10 +272,10 @@ class ResetPasswordApi(generics.GenericAPIView):
             else:
                 return Response({'result':False,
                                 'message':'Cannot Change Password Without otp verification '},status=status.HTTP_400_BAD_REQUEST)
-        except:
+        except Exception as e:
 
             return Response({'result':False,
-                            'message':'Cannot Change Password Without otp verification'},status=status.HTTP_404_NOT_FOUND)
+                            'message':str(e)},status=status.HTTP_404_NOT_FOUND)
 
 
 # Clinet's property management
