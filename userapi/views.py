@@ -17,7 +17,7 @@ from userapi.serializers import BookPropertyListSerializer, RegisterSerializer, 
       DashboardPropertiesSerializer,\
           CustomerProfileSerializer, PropertiesDetailSerializer, BookPropertySerializer,\
               TermsAndPolicySerializer, WishlistSerializer
-from .utils import generate_token,get_transfers
+from .utils import generate_token,get_transfers, is_booking_overlapping
 from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication
 from rest_framework.parsers import MultiPartParser
@@ -603,8 +603,17 @@ class BookPropertyApi(generics.GenericAPIView):
                 validated_data = serializer.validated_data
 
                 validated_data['property'] = property
+                start_date = validated_data['start_date']
+                end_date = validated_data['end_date']
                 validated_data['customer'] = request.user
                 validated_data['currency'] = 'INR'
+
+                if is_booking_overlapping(property, start_date, end_date):
+                    return Response({
+                    'result': False,
+                    'message': 'Property is already booked for this period',
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
 
                 instance = serializer.save()
 
