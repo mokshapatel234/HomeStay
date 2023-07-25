@@ -36,3 +36,7 @@ class BookProperty(models.Model):
             self.save()
 
 
+class Otp(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='customer_otp')
+    otp = models.CharField(max_length=4)
+    is_verified = models.BooleanField(default=False)
