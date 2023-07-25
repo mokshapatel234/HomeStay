@@ -188,7 +188,7 @@ class ForgotPasswordApi(generics.GenericAPIView):
             otp_string = str(generated_otp)
             # otp_verification_link = request.build_absolute_uri(reverse('otpverify'))
             request.session['client'] = str(client_obj.id)
-            request.session['otp'] = otp_string
+            otp_instance = Otp.objects.create(otp=otp_string)
             print(type(otp_string))
             subject = 'Acount Recovery'
 
@@ -203,9 +203,9 @@ class ForgotPasswordApi(generics.GenericAPIView):
             email.send()
             return Response({'result':True,
                              'message': 'Email sent successfully'}, status=status.HTTP_200_OK)
-        except:
+        except Exception as e:
             return Response({'result':False,
-                            'message':'Please provide valid email address'},status=status.HTTP_400_BAD_REQUEST)
+                            'message':str(e)},status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -216,21 +216,22 @@ class OtpVerificationApi(generics.GenericAPIView):
     def post(self,request):
         try:
             client_otp = request.data['otp']
+            otp = Otp.objects.filter(otp=client_otp).first()
+            print(otp)
             try:
-                if client_otp == str(request.session.get('otp')):
-                    del request.session['otp']
+                if otp:
+                    otp.delete()  # Delete the OTP object from the database
 
-                    return Response({'result':True,
-                                    'message':'Otp Verified'},status=status.HTTP_200_OK)
+                    return Response({'result': True, 'message': 'Otp Verified'}, status=status.HTTP_200_OK)
+                    
                 else:
-                    return Response({'result':False,
-                                    'message':'Wrong Otp'},status=status.HTTP_400_BAD_REQUEST)
-            except:
+                    return Response({'result': False, 'message': 'No Otp Found'}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
                 return Response({'result':False,
-                                "message": 'Error To Verify Otp'}, status=status.HTTP_400_BAD_REQUEST)
-        except:
+                                "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
             return Response({'result':False,
-                            'message':'Please provide valid Otp'},status=status.HTTP_404_NOT_FOUND)
+                            'message':str(e)},status=status.HTTP_404_NOT_FOUND)
      
 
 

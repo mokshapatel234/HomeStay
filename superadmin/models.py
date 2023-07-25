@@ -271,3 +271,8 @@ class Wishlist(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     property = models.ForeignKey(Properties, on_delete=models.CASCADE, related_name='property_wishlist')
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='customer_wishlist')
+
+
+
+class Otp(models.Model):
+    otp = models.CharField(max_length=4)

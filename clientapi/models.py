@@ -52,3 +52,5 @@ class ClientBanking(models.Model):
 
 class Product(models.Model):
     product_id = models.CharField(max_length=20)
+
+
