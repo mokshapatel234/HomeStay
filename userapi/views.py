@@ -209,7 +209,6 @@ class ResetPasswordApi(generics.GenericAPIView):
                     customer_obj.password = new_password
                     customer_obj.save()
                     otp.delete()
-                    del request.session['customer']
                     return Response({'result':True,
                                     'message':'Password Changed Successfully'},status=status.HTTP_200_OK)
                 else:
