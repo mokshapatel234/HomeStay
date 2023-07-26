@@ -182,7 +182,7 @@ class Customer(models.Model):
     area = models.ForeignKey(Area, on_delete=models.CASCADE, related_name='user_area')
     otp_verified = models.BooleanField(default=False)
     CHOICES = (('inactive','inactive'),('active','active'))
-    fcm_token = models.CharField(max_length=50)
+    fcm_token = models.CharField(max_length=50, blank=True, null=True)
     status = models.CharField(("status"),choices=CHOICES, max_length=50,default='active')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

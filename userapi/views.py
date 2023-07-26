@@ -218,10 +218,10 @@ class ResetPasswordApi(generics.GenericAPIView):
             else:
                 return Response({'result':False,
                                 'message':'Cannot Change Password Without otp verification '},status=status.HTTP_400_BAD_REQUEST)
-        except:
+        except Exception as e:
 
             return Response({'result':False,
-                            'message':'Cannot Change Password Without otp verification'},status=status.HTTP_404_NOT_FOUND)
+                            'message':str(e)},status=status.HTTP_404_NOT_FOUND)
 
 
 class ChangePasswordApi(generics.GenericAPIView):
@@ -426,10 +426,10 @@ class CustomerProfileApi(generics.GenericAPIView):
                 return Response({"result":True,
                                 "data":serializer.data,
                                 'message':'Profile Updated'},status=status.HTTP_201_CREATED)
-            else:
-                return Response({"result":False,
-                                "message": "Error in updating profile"}, status=status.HTTP_400_BAD_REQUEST)
-       
+            errors = [str(error[0]) for error in serializer.errors.values()]
+            response = Response({"result":False,
+                                "message":", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
+            return response
         except:
             return Response({"result":False,
                             "message": "Error in updating profile"}, status=status.HTTP_400_BAD_REQUEST)

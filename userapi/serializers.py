@@ -94,6 +94,11 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
         model = Customer
         fields = ['first_name', 'last_name', 'password', 'email','profile_image', 'area','contact_no']
 
+    def validate(self, attrs):
+        email = attrs.get('email')
+
+        if Customer.objects.filter(email=email).exists():
+            raise serializers.ValidationError("Email already exists.")
 
 
 

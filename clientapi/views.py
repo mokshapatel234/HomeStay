@@ -40,7 +40,31 @@ class TermsAndPolicyApi(generics.GenericAPIView):
         terms_and_policy = TermsandPolicy.objects.first()  
         serializer = TermsAndPolicySerializer(terms_and_policy) 
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
+
+class FirebaseApi(APIView):
+     def post(self, request):
+        try:
+            email = request.data['email']
+            if email:
+                print(email)
+            else:
+                print("error")
+            client_obj = Client.objects.get(email=email)
+            otp_verified = request.data.get('otp_verified', None)
+            if otp_verified is not None: 
+                client_id = client_obj.id 
+                try:
+                    client = Client.objects.get(id=client_id)
+                    client.otp_verified = bool(otp_verified) 
+                    client.save()
+                    return Response({'message': 'OTP verified status updated successfully.'}, status=status.HTTP_200_OK)
+                except Client.DoesNotExist:
+                    return Response({'message': 'Client not found.'}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({'message': 'No value provided for otp_verified.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'message': 'An error occurred.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # Register Client
 class RegisterApi(generics.GenericAPIView):
