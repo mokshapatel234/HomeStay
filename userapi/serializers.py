@@ -22,6 +22,7 @@ class RegisterSerializer(serializers.Serializer):
     area = serializers.PrimaryKeyRelatedField(queryset=Area.objects.all())
     contact_no = serializers.CharField(validators=[RegexValidator(regex=r"^\+?1?\d{10}$")])
     token = serializers.CharField(max_length=255, read_only=True)
+    fcm_token = serializers.CharField(max_length=50)
     
     def validate(self, attrs):
         email = attrs.get('email')
@@ -45,7 +46,8 @@ class RegisterSerializer(serializers.Serializer):
             email=validated_data['email'],
             password=validated_data['password'],
             area=validated_data['area'],
-            contact_no=validated_data['contact_no']
+            contact_no=validated_data['contact_no'],
+            fcm_token=validated_data['fcm_token']
         )
         token = generate_token(str(user.id))
         user.token = token.decode("utf-8")
@@ -57,10 +59,12 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(
         style={'input_type': 'password'}, trim_whitespace=False)
+    fcm_token = serializers.CharField()
 
     def validate(self, attrs):
         email = attrs.get('email')
         password = attrs.get('password')
+        fcm_token=attrs.get('fcm_token')
         customer = None
 
         if email and password:
@@ -78,6 +82,15 @@ class LoginSerializer(serializers.Serializer):
         else:
             message = 'Must include "email" and "password".'
             raise serializers.ValidationError(message, code='authorization')
+        
+        if fcm_token:
+            # Check if there is an existing FCM token associated with the customer
+            existing_fcm_token = customer.fcm_token
+            if existing_fcm_token and existing_fcm_token != fcm_token:
+                # Update the FCM token in the database
+                customer.fcm_token = fcm_token
+                customer.save()
+
 
         attrs['customer'] = customer
         return attrs
@@ -228,43 +241,6 @@ class WishlistSerializer(serializers.ModelSerializer):
 
 
 
-class RegisterSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    first_name = serializers.CharField(max_length=255)
-    last_name = serializers.CharField(max_length=255)
-    email = serializers.EmailField()
-    password = serializers.CharField(max_length=128)
-    area = serializers.PrimaryKeyRelatedField(queryset=Area.objects.all())
-    contact_no = serializers.CharField(validators=[RegexValidator(regex=r"^\+?1?\d{10}$")])
-    token = serializers.CharField(max_length=255, read_only=True)
-    
-    def validate(self, attrs):
-        email = attrs.get('email')
-        contact_no = attrs.get('contact_no')
-
-        if Customer.objects.filter(email=email).exists() and Customer.objects.filter(contact_no=contact_no).exists():
-            raise serializers.ValidationError("Email and Contact number already exist.")
-
-        if Customer.objects.filter(email=email).exists():
-            raise serializers.ValidationError("Email already exists.")
-
-        if Customer.objects.filter(contact_no=contact_no).exists():
-            raise serializers.ValidationError("Contact number already exists.")
-
-        return attrs
-
-    def create(self, validated_data):
-        user = Customer.objects.create(
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
-            email=validated_data['email'],
-            password=validated_data['password'],
-            area=validated_data['area'],
-            contact_no=validated_data['contact_no']
-        )
-        token = generate_token(str(user.id))
-        user.token = token.decode("utf-8")
-        return user
 
 
 

@@ -182,7 +182,7 @@ class Customer(models.Model):
     area = models.ForeignKey(Area, on_delete=models.CASCADE, related_name='user_area')
     otp_verified = models.BooleanField(default=False)
     CHOICES = (('inactive','inactive'),('active','active'))
-    fcm_token = models.CharField(max_length=50, blank=True, null=True)
+    fcm_token = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(("status"),choices=CHOICES, max_length=50,default='active')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -227,44 +227,6 @@ class Bookings(models.Model):
             self.deleted_at = now()
             self.save()
 
-
-    
-class Notification(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=20)
-    message = models.TextField(max_length=70)
-    SENT_CHOICES = [
-        ('clients', 'Send to Clients'),
-        ('users', 'Send to Customer'),
-        ('both', 'Send to Both'),
-    ]
-    send_to = models.CharField(max_length=10, choices=SENT_CHOICES)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def send_notification(self):
-        if self.send_to == 'clients' or self.send_to == 'both':
-            # Send notification to all clients
-            clients = Client.objects.all()
-            for client in clients:
-                send_mail(
-                    self.title,
-                    self.message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [client.email],
-                    fail_silently=False
-                )
-
-        if self.send_to == 'customers' or self.send_to == 'both':
-            # Send notification to all users
-            customers = Customer.objects.all()
-            for customer in customers:
-                send_mail(
-                    self.title,
-                    self.message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [customer.email],
-                    fail_silently=False
-                )
 
 
 class Wishlist(models.Model):

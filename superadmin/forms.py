@@ -41,3 +41,4 @@ class PropertyTermsForm(forms.ModelForm):
         widgets = {
             'terms': forms.Textarea(attrs={'class': 'ckeditor'}),
         }
+

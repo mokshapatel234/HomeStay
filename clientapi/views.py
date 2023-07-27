@@ -19,7 +19,7 @@ from django.core.mail import send_mail
 from clientapi.serializers import PatchRequestSerializer, RegisterSerializer, LoginSerializer,\
       ResetPasswordSerializer, ClientProfileSerializer,PropertiesListSerializer, PropertiesSerializer,\
       BookPropertySerializer, TermsAndPolicySerializer, BookingDetailSerializer, CustomerSerializer, \
-      ClientBankingSerializer, PropertiesUpdateSerializer, PropertiesDetailSerializer
+      ClientBankingSerializer, PropertiesUpdateSerializer, PropertiesDetailSerializer, ClientNotificationSerializer
 from .utils import generate_token
 from django.views.decorators.csrf import csrf_exempt
 from .authentication import JWTAuthentication, IsClientVerified
@@ -29,7 +29,7 @@ from django.db.models import Q
 import razorpay
 from datetime import datetime
 from django.utils import timezone
-from .models import ClientBanking, Product, Otp
+from .models import ClientBanking, Product, Otp, ClientNotification
 from rest_framework.views import APIView
 
 
@@ -229,7 +229,7 @@ class ForgotPasswordApi(generics.GenericAPIView):
                              'message': 'Email sent successfully'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'result':False,
-                            'message':str(e)},status=status.HTTP_400_BAD_REQUEST)
+                            'message':"Something went wrong"},status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -253,10 +253,10 @@ class OtpVerificationApi(generics.GenericAPIView):
                     return Response({'result': False, 'message': 'No Otp Found'}, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 return Response({'result':False,
-                                "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                                "message":"Something went wrong"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'result':False,
-                            'message':str(e)},status=status.HTTP_404_NOT_FOUND)
+                            'message':"Something went wrong"},status=status.HTTP_404_NOT_FOUND)
      
 
 
@@ -299,7 +299,7 @@ class ResetPasswordApi(generics.GenericAPIView):
         except Exception as e:
 
             return Response({'result':False,
-                            'message':str(e)},status=status.HTTP_404_NOT_FOUND)
+                            'message':"Something went wrong"},status=status.HTTP_404_NOT_FOUND)
 
 
 # Clinet's property management
@@ -327,6 +327,14 @@ class ClientProfileApi(generics.GenericAPIView):
             serializer = ClientProfileSerializer(request.user, data=request.data, context={'request': request}, partial=True)
             if serializer.is_valid():
                 serializer.save()
+                client_instance = get_object_or_404(Client, id=request.user.id)
+                noti_data = {
+                    'client': client_instance,
+                    'title': "About profile updation",
+                    'message': "Profile updated successfully"
+                }
+                client_noti_obj = ClientNotification(**noti_data)
+                client_noti_obj.save()
                 return Response({"result":True,
                                 "data":serializer.data,
                                 'message':'Profile Updated'},status=status.HTTP_201_CREATED)
@@ -334,9 +342,9 @@ class ClientProfileApi(generics.GenericAPIView):
                 return Response({"result":False,
                                 "message": "Error in updating profile"}, status=status.HTTP_400_BAD_REQUEST)
        
-        except:
+        except Exception as e:
             return Response({"result":False,
-                            "message": "Error in updating profile"}, status=status.HTTP_400_BAD_REQUEST)
+                            "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
  
 # Property Management
 
@@ -414,7 +422,14 @@ class PropertyApi(generics.GenericAPIView):
                     PropertyVideo.objects.create(property=property_instance, video=video)
 
                 PropertyTerms.objects.create(property=property_instance, terms=terms)
-
+                client_instance = get_object_or_404(Client, id=request.user.id)
+                noti_data = {
+                    'client': client_instance,
+                    'title' : "About Property",
+                    'message': "Property added successfully"
+                }
+                client_noti_obj = ClientNotification(**noti_data)
+                client_noti_obj.save()
                 return Response({"result":True,
                                 "data":serializer.data,
                                 'message':'Property added successfully'},status=status.HTTP_201_CREATED)
@@ -476,6 +491,15 @@ class PropertyApi(generics.GenericAPIView):
                 'state_id':state.id,
             }
 
+                client_instance = get_object_or_404(Client, id=request.user.id)
+                noti_data = {
+                    'client': client_instance,
+                    'title' : "About Property",
+                    'message': "Property updated successfully"
+                }
+                client_noti_obj = ClientNotification(**noti_data)
+                client_noti_obj.save()
+
 
                 return Response({
                     "result": True,
@@ -491,7 +515,7 @@ class PropertyApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 "result": False,
-                "message": str(e)
+                "message": "Something went wrong"
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -577,7 +601,7 @@ class DashboardApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 "result": False,
-                "message":str(e) 
+                "message":"Something went wrong"
             }, status=status.HTTP_400_BAD_REQUEST)
 
 class CalenderApi(generics.GenericAPIView):
@@ -686,7 +710,7 @@ class BookPropertyApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 'result': False,
-                'message': str(e)
+                'message': "Something went wrong" 
             }, status=status.HTTP_400_BAD_REQUEST)
 
        
@@ -798,11 +822,19 @@ class BankingAndProductApi(generics.GenericAPIView):
                         user = request.user
                         user.borded = True
                         user.save()
-
+                        client_instance = get_object_or_404(Client, id=request.user.id)
+                        noti_data = {
+                            'client': client_instance,
+                            'title' : "About Banking Detail",
+                            'message': "Your banking detail added successfully."
+                        }
+                        client_noti_obj = ClientNotification(**noti_data)
+                        client_noti_obj.save()
                         return Response({
                             "result": True,
                             "data": updated_product_data,
                             "borded":user.borded,
+                            "otp_verified":user.otp_verified,
                             "message": "Product and bank details updated successfully",
                         }, status=status.HTTP_200_OK)
 
@@ -827,5 +859,28 @@ class BankingAndProductApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 "result": False,
-                "message": str(e)
+                "message": "Something went wrong"
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ClientNotificationApi(generics.GenericAPIView):
+    authentication_classes = (JWTAuthentication, )
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get(self, request):
+        try:
+            notifications = ClientNotification.objects.filter(client=request.user)
+            
+
+            notification_serializer = ClientNotificationSerializer(notifications, many=True)
+            
+
+            
+            return Response({'result':True,
+                            'data':notification_serializer.data,
+                            "message":"Notifications found successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'result': False,
+                'message': str(e) },status=status.HTTP_400_BAD_REQUEST)  
+    

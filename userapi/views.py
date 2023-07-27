@@ -25,7 +25,7 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth import update_session_auth_hash
 import razorpay
 from .models import BookProperty, Otp
-from clientapi.models import ClientBanking
+from clientapi.models import ClientBanking, ClientNotification
 from .paginator import CustomerPagination
 from rest_framework import filters
 
@@ -220,7 +220,7 @@ class ResetPasswordApi(generics.GenericAPIView):
         except Exception as e:
 
             return Response({'result':False,
-                            'message':str(e)},status=status.HTTP_404_NOT_FOUND)
+                            'message':"Something went wrong"},status=status.HTTP_404_NOT_FOUND)
 
 
 class ChangePasswordApi(generics.GenericAPIView):
@@ -266,7 +266,7 @@ class ChangePasswordApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 "result": False,
-                "message": str(e)
+                "message": "Something went wrong"
             }, status=status.HTTP_400_BAD_REQUEST)
         
 
@@ -320,7 +320,7 @@ class DashboardPropertyApi(generics.GenericAPIView):
 
 
         except Exception as e:
-            return Response({"result": False, "message": str(e)}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"result": False, "message": "Something went wrong"}, status=status.HTTP_404_NOT_FOUND)
 
 
 
@@ -469,7 +469,7 @@ class wishlistApi(generics.GenericAPIView):
         except Exception as e:
             return Response({'result': False,
                             'message': 'Error in property wishlist',
-                         'error': str(e)},
+                         'error': "Something went wrong"},
                         status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -512,7 +512,7 @@ class wishlistApi(generics.GenericAPIView):
         except Exception as e:
             return Response({'result': False,
                             'message': 'Error in property wishlist',
-                            'error': str(e)},
+                            'error': "Something went wrong"},
                             status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -566,7 +566,7 @@ class wishlistApi(generics.GenericAPIView):
 #         except Exception as e:
 #             return Response({
 #                 'result': False,
-#                 'message': str(e)
+#                 'message': "Something went wrong"
 #             }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -600,7 +600,7 @@ class BookPropertyApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 'result': False,
-                'message': str(e)
+                'message': "Something went wrong"
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -641,7 +641,7 @@ class BookPropertyApi(generics.GenericAPIView):
                 # Update the order_id in the serializer
                 instance.order_id = order['id']
                 instance.save()
-    
+               
                 # print(serializer.data,"dataa")
                 response_data = {
                     'result': True,
@@ -659,7 +659,7 @@ class BookPropertyApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 'result': False,
-                'message': str(e)
+                'message': "Something went wrong"
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -673,7 +673,10 @@ class VerifyApi(generics.GenericAPIView):
         try:
             order_id = request.data.get('order_id')
             status_value = request.data.get('status')
-
+            cust = request.user
+            customer_fname = cust.first_name 
+            customer_lname = cust.last_name
+            customer = customer_fname + ' '+ customer_lname
             if not order_id or status_value is None:
                 return Response({
                     'result': False,
@@ -684,10 +687,17 @@ class VerifyApi(generics.GenericAPIView):
             booking.book_status = status_value
             booking.save()
 
-
+            client_instance = get_object_or_404(Client, id=booking.property.owner.id)
+            noti_data = {
+                    'client': client_instance,
+                    'title': "About Book Property",
+                    'message': f"Your Property is booked by {customer} successfully"
+                }
+            client_noti_obj = ClientNotification(**noti_data)
+            client_noti_obj.save()
             return Response({
                 'result': True,
-                'message': f"Order {order_id} status {status_value}updated successfully"
+                'message': f"Order {order_id} status updated successfully"
             }, status=status.HTTP_200_OK)
         except BookProperty.DoesNotExist:
             return Response({
@@ -697,5 +707,5 @@ class VerifyApi(generics.GenericAPIView):
         except Exception as e:
             return Response({
                 'result': False,
-                'message': str(e)
+                'message': "Something went wrong"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

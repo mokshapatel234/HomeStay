@@ -58,3 +58,13 @@ class Otp(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='otp')
     otp = models.CharField(max_length=4)
     is_verified = models.BooleanField(default=False)
+
+
+class ClientNotification(models.Model):
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='client_notification')
+    title = models.CharField(max_length=255)
+    message = models.CharField(max_length=255)
+    viewed = models.BooleanField(default=False)
+    send_by = models.CharField(default=False, max_length=15)
+    created_at = models.DateTimeField(auto_now_add=True)

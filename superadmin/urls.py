@@ -55,6 +55,9 @@ urlpatterns = [
 
     path('addTermsPolicy/', add_terms_policy, name="add_terms_policy"),
 
+    path('addNotification/', add_notification, name="add_notification_client"),
+    # path('addNotificationClient/', add_notification_client, name="add_notification_client"),
+    # path('listNotification/', list_notification, name="list_notification")
     # path("password_reset",password_reset_request.as_view(), name="admin_password_reset"),
 
 

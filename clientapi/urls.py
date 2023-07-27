@@ -5,6 +5,7 @@ from .views import *
 urlpatterns = [
     path('register/', RegisterApi.as_view(), name="registerclient"),
     path('login/', LoginApi.as_view(), name="login_client"),
+    path('firebaseOtp/', FirebaseApi.as_view(), name='firebase_otp'),
     path('forgotPassword/', ForgotPasswordApi.as_view(), name="forgot_password"),
     path('otpVerify/', OtpVerificationApi.as_view(), name="otp_verify"),
     path('resetPassword/', ResetPasswordApi.as_view(), name="reset_password"),
@@ -20,10 +21,8 @@ urlpatterns = [
     # path('bankDetail/', ClientBankingApi.as_view(), name='client_bank_detail'),
     # path('accounts/<str:account_id>/products', CreateProductApi.as_view(), name='create-product'),
     # path('accounts/<str:account_id>/products/<str:product_id>/', CreateProductApi.as_view(), name='add_bank_detail'),
-    path('bankDetail/',BankingAndProductApi.as_view(), name='client_bank_detail')
-
-
-
+    path('bankDetail/',BankingAndProductApi.as_view(), name='client_bank_detail'),
+    path('clientNotifications/', ClientNotificationApi.as_view(), name="client_notify")
 
 
 ]

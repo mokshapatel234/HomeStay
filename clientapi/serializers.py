@@ -3,7 +3,7 @@ from superadmin.models import Client, Properties, PropertyImage, PropertyVideo,\
       Area, PropertyTerms, Bookings, TermsandPolicy, Customer
 from django.core.validators import RegexValidator
 from .utils import generate_token
-from .models import ClientBanking
+from .models import ClientBanking, ClientNotification
 from django.conf import settings
 import razorpay
 from userapi.models import BookProperty
@@ -277,3 +277,9 @@ class SettlementSerializer(serializers.Serializer):
 class PatchRequestSerializer(serializers.Serializer):
     settlements = SettlementSerializer()
     tnc_accepted = serializers.BooleanField()
+
+
+class ClientNotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientNotification
+        fields = ['message']

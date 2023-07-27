@@ -1,0 +1,96 @@
+{% extends 'layouts/base.html' %}
+
+{% block head %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+{% endblock head %}
+
+{% block title %} Profile {% endblock title %}
+
+{% block content %}
+<!-- Page content -->
+<div class="col-xl-12">
+  <div class="card">
+    <div class="card-header">
+      <div class="row align-items-center">
+        <div class="col-8">
+          <h3 class="mb-0">Notification Management</h3>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h6 class="heading-small text-muted mb-4">Add notification</h6>
+        <div class="pl-lg-4">
+          <div class="row">
+ 
+           
+              <div class="col-lg-6">
+                <div class="form-group">
+                  <label class="form-control-label">Client*</label>
+                  <select name="client" class="form-control select2" style="height: 3rem;" multiple>
+                    <option value=""></option>
+                    {% for client in clients %}
+                      <option value="{{ client.id }}">{{ client.first_name }}{{ client.last_name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+            
+            <div class="col-lg-6">
+              <div class="form-group">
+                <label class="form-control-label">Customer*</label>
+                <select name="customer" class="form-control select2" style="height: 3rem;">
+                  <option value=""></option>
+                  {% for customer in customers %}
+                    <option value="{{ customer.id }}">{{ customer.first_name }}{{ customer.last_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+        
+          <div class="col-lg-6">
+            <div class="form-group">
+              <label class="form-control-label" for="input-first-name">Title*</label>
+              <input type="text" id="input-first-name" class="form-control" placeholder="Notification Title"
+                name="title" required>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="form-group">
+              <label class="form-control-label" for="input-first-name">Message*</label>
+              <textarea class="form-control" name="message" rows="4" cols="40" required></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary my-4">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<!-- Specific JS goes HERE -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('select[name="client"]').select2({
+      placeholder: "Search and select a client",
+      allowClear: true,
+      minimumResultsForSearch: 1
+    });
+  });
+  $(document).ready(function() {
+    $('select[name="customer"]').select2({
+      placeholder: "Search and select a user",
+      allowClear: true,
+      minimumResultsForSearch: 1
+    });
+  });
+</script>
+{% endblock javascripts %}

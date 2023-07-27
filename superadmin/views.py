@@ -21,6 +21,10 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from clientapi.models import ClientNotification
+from userapi.models import CustomerNotification
+from .helper import send_push_notification
+
 
 # Create your views here.
 
@@ -812,7 +816,7 @@ def delete_image(request, image_id):
     except PropertyImage.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Image not found'})
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)})
+        return JsonResponse({'status': 'error', 'message': "Something went wrong"})
 
 @login_required
 def delete_video(request, video_id):
@@ -823,7 +827,7 @@ def delete_video(request, video_id):
     except PropertyVideo.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Video not found'})
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)})
+        return JsonResponse({'status': 'error', 'message': "Something went wrong"})
 @login_required
 def update_property(request, id):
     try:
@@ -1091,3 +1095,62 @@ def list_bookings(request):
 def booking_detail(request, id):
     booking = BookProperty.objects.get(id=id)
     return render(request, 'home/booking_detail.html', {'booking':booking})
+
+
+def add_notification(request):
+
+    if request.method == 'POST':
+        title = request.POST.get('title')
+
+        message = request.POST.get('message')
+
+        # Extract the client and customer IDs based on the recipient_type
+        selected_clients = request.POST.getlist('client') 
+        selected_customers = request.POST.getlist('customer')
+
+        if title and message and selected_clients:
+            # Loop through the selected clients and create ClientNotification instances for each
+            for client_id in selected_clients:
+                try:
+                    client_notification = ClientNotification.objects.create(
+                        client_id=client_id,
+                        title=title,
+                        message=message,
+                    )
+                except Exception as e:
+                    print(f"Error creating ClientNotification: {e}")
+
+            customers = Customer.objects.filter(id__in=selected_customers)
+            receivers = [customer.fcm_token for customer in customers if customer.fcm_token]
+            if receivers:
+                send_push_notification(receivers, message, title) 
+                print(receivers)
+
+                for customer_id in selected_customers:
+                    try:
+                        customer_notification = CustomerNotification.objects.create(
+                            customer_id=customer_id,
+                            title=title,
+                            message=message,
+                        )
+                    except Exception as e:
+                        print(f"Error creating ClientNotification: {e}")
+                
+                
+            return redirect('list_bookings') 
+
+        return redirect('list_bookings')  
+
+    context = {
+        'clients': Client.objects.all(),
+        'customers': Customer.objects.all(),
+
+    }
+        
+    return render(request, "home/add_notification.html", context)
+
+
+
+# def list_notification(request):
+#     notifications = Notification.objects.all()
+#     return render(request, 'home/list_notification.html', {'notifications':notifications})
