@@ -65,6 +65,7 @@ class LoginSerializer(serializers.Serializer):
         email = attrs.get('email')
         password = attrs.get('password')
         fcm_token=attrs.get('fcm_token')
+        print(fcm_token)
         customer = None
 
         if email and password:
@@ -84,13 +85,18 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(message, code='authorization')
         
         if fcm_token:
-            # Check if there is an existing FCM token associated with the customer
-            existing_fcm_token = customer.fcm_token
-            if existing_fcm_token and existing_fcm_token != fcm_token:
-                # Update the FCM token in the database
-                customer.fcm_token = fcm_token
-                customer.save()
-
+            try:
+                print(customer.fcm_token,"ahdh")
+                customer = Customer.objects.get(email=email)
+                # Check if there is an existing FCM token associated with the customer
+                existing_fcm_token = customer.fcm_token
+                print("mmmm")
+                
+                if existing_fcm_token:
+                    customer.fcm_token = fcm_token
+                    customer.save()
+            except Exception as e:
+                print(str(e))
 
         attrs['customer'] = customer
         return attrs
@@ -107,11 +113,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
         model = Customer
         fields = ['first_name', 'last_name', 'password', 'email','profile_image', 'area','contact_no']
 
-    def validate(self, attrs):
-        email = attrs.get('email')
-
-        if Customer.objects.filter(email=email).exists():
-            raise serializers.ValidationError("Email already exists.")
+ 
 
 
 

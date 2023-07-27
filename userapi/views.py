@@ -419,7 +419,7 @@ class CustomerProfileApi(generics.GenericAPIView):
 
     def put(self, request):
         try: 
-            serializer = CustomerProfileSerializer(request.user, data=request.data, partial=True)
+            serializer = CustomerProfileSerializer(request.user, data=request.data, context={'request': request}, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response({"result":True,
@@ -429,9 +429,9 @@ class CustomerProfileApi(generics.GenericAPIView):
             response = Response({"result":False,
                                 "message":", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
             return response
-        except:
+        except Exception as e:
             return Response({"result":False,
-                            "message": "Error in updating profile"}, status=status.HTTP_400_BAD_REQUEST)
+                            "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
  
 
 class PropertyDetailApi(generics.GenericAPIView):
