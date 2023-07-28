@@ -68,3 +68,4 @@ class ClientNotification(models.Model):
     viewed = models.BooleanField(default=False)
     send_by = models.CharField(default=False, max_length=15)
     created_at = models.DateTimeField(auto_now_add=True)
+    

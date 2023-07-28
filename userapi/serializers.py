@@ -22,7 +22,7 @@ class RegisterSerializer(serializers.Serializer):
     area = serializers.PrimaryKeyRelatedField(queryset=Area.objects.all())
     contact_no = serializers.CharField(validators=[RegexValidator(regex=r"^\+?1?\d{10}$")])
     token = serializers.CharField(max_length=255, read_only=True)
-    fcm_token = serializers.CharField(max_length=50)
+    fcm_token = serializers.CharField(max_length=255)
     
     def validate(self, attrs):
         email = attrs.get('email')
@@ -112,8 +112,6 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = ['first_name', 'last_name', 'password', 'email','profile_image', 'area','contact_no']
-
- 
 
 
 

@@ -53,17 +53,19 @@
                         </div>
                         
                         <div class="col-md-4 mt-2">                                
-                            <div class="form-group">
-                            <label class="form-control-label">Property Address:</label>
-                            
-                                {{booking.property.area_id.name}}, {{booking.property.area_id.city.name}}, {{booking.property.area_id.city.state.name}}
-                            </div>
-                                                
+             
                             <div class="form-group">
                             <label class="form-control-label">Property Price:</label>
                             
                                 {{booking.property.price}} 
                             </div>
+
+                            <div class="form-group">
+                                <label class="form-control-label">Property Address:</label>
+                                
+                                    {{booking.property.area_id.name}}, {{booking.property.area_id.city.name}}, {{booking.property.area_id.city.state.name}}
+                            </div>
+                            
                         </div>
                                 
                     </div>
