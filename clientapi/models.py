@@ -58,7 +58,7 @@ class Otp(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='otp')
     otp = models.CharField(max_length=4)
     is_verified = models.BooleanField(default=False)
-
+    
 
 class ClientNotification(models.Model):
 

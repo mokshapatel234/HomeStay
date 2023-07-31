@@ -312,8 +312,8 @@ class DashboardPropertyApi(generics.GenericAPIView):
                 except State.DoesNotExist:
                     return Response({"result": False, "message": "No state found"}, status=status.HTTP_404_NOT_FOUND)
 
-            # Use the filtered queryset for serialization and pagination
-            paginator = self.pagination_class()
+            per_page = int(request.GET.get('per_page', 5))
+            paginator = self.pagination_class(per_page=per_page)
             paginated_properties = paginator.paginate_queryset(properties,request)
             serializer = DashboardPropertiesSerializer(paginated_properties, many=True)
             return paginator.get_paginated_response(serializer.data)
@@ -590,7 +590,8 @@ class BookPropertyApi(generics.GenericAPIView):
                 )
             else:
                 print('error')
-            paginator = self.pagination_class()
+            per_page = int(request.GET.get('per_page', 5))
+            paginator = self.pagination_class(per_page=per_page)
             paginated_properties = paginator.paginate_queryset(properties,request)
             serializer = BookPropertyListSerializer(paginated_properties, many=True)
            
