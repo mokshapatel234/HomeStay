@@ -688,7 +688,6 @@ class BookPropertyApi(generics.GenericAPIView):
             user = request.user
             query = request.GET.get('query') 
 
-            per_page = int(request.GET.get('per_page', 5))
 
             bookings = BookProperty.objects.filter(property__owner=user, book_status__in=[True])
             if query:
@@ -696,7 +695,6 @@ class BookPropertyApi(generics.GenericAPIView):
                     Q(property__name__icontains=query) |
                     Q(customer__first_name__icontains=query) 
                   )
-            paginator = self.pagination_class(per_page=per_page)
             page = self.paginate_queryset(bookings) 
 
             if page:
