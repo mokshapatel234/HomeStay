@@ -403,7 +403,7 @@ class CustomerProfileApi(generics.GenericAPIView):
             if user.profile_image:
                 user_data['profile_image'] = user.profile_image.url
             else:
-                user_data['profile_image'] = 'null'
+                user_data['profile_image'] = None
 
             return Response({
                 "result": True,

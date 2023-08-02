@@ -65,7 +65,7 @@ class LoginSerializer(serializers.Serializer):
         email = attrs.get('email')
         password = attrs.get('password')
         fcm_token=attrs.get('fcm_token')
-        print(fcm_token)
+       
         customer = None
 
         if email and password:
@@ -86,11 +86,11 @@ class LoginSerializer(serializers.Serializer):
         
         if fcm_token:
             try:
-                print(customer.fcm_token,"ahdh")
+                
                 customer = Customer.objects.get(email=email)
                 # Check if there is an existing FCM token associated with the customer
                 existing_fcm_token = customer.fcm_token
-                print("mmmm")
+               
                 
                 if existing_fcm_token:
                     customer.fcm_token = fcm_token
@@ -132,11 +132,11 @@ class PropertyTermsSerializer(serializers.ModelSerializer):
         fields = ['id', 'terms'] 
 
 class DashboardPropertiesSerializer(serializers.ModelSerializer):
-    images = PropertyImageSerializer(many=True)
+    
 
     class Meta:
         model = Properties
-        fields = ['id','name',  'price', 'status', 'root_image', 'images']
+        fields = ['id','name',  'price', 'status', 'root_image']
 
     # def to_representation(self, instance):
     #     data = super().to_representation(instance)
@@ -213,13 +213,13 @@ class WishlistSerializer(serializers.ModelSerializer):
     root_image = serializers.ImageField(source='property.root_image', read_only=True)
     price = serializers.FloatField(source='property.price', read_only=True)
     status = serializers.CharField(source='property.status', read_only=True)
-    images = PropertyImageSerializer(source='property.images', many=True, read_only=True)
+  
     
 
 
     class Meta:
         model = Wishlist
-        fields = ['id', 'property', 'property_name', 'customer', 'price', 'status',  'root_image', 'images']
+        fields = ['id', 'property', 'property_name', 'customer', 'price', 'status',  'root_image']
 
 
     # def to_representation(self, instance):

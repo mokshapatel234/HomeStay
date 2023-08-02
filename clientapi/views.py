@@ -698,6 +698,7 @@ class BookPropertyApi(generics.GenericAPIView):
             page = self.paginate_queryset(bookings) 
 
             if page:
+
                 serializer = BookPropertySerializer(page, many=True)
                 return self.get_paginated_response(serializer.data)  
             else:
