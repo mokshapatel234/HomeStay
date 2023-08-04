@@ -514,7 +514,9 @@ def update_client(request, id):
             client.last_name = request.POST.get('last_name')
             client.email = request.POST.get('email')
             client.contact_no = request.POST.get('contact_no')
-
+            area_id = request.POST.get('area')
+            area = Area.objects.get(id=area_id)
+            client.area = area
             profile_image = request.FILES.get('profile_image')
             if profile_image:
                 client.profile_image = profile_image
@@ -667,11 +669,13 @@ def update_customer(request, id):
         customer.first_name = request.POST.get('first_name')
         customer.last_name = request.POST.get('last_name')
         customer.email = request.POST.get('email')
-        customer.contact_no = request.POST.get('contact_no')
-
-        profile_image = request.FILES.get('profile_image')
-        if profile_image:
-            customer.profile_image = profile_image
+        customer.contact_no = request.POST.get('contact_no') 
+        area_id = request.POST.get('area')
+        area = Area.objects.get(id=area_id)
+        customer.area = area
+        if 'profile_image' in request.FILES:
+            customer.profile_image = request.FILES.get('profile_image')
+        
 
         customer.save()
         messages.success(request, 'User updated successfully.')

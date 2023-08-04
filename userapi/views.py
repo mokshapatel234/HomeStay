@@ -278,9 +278,10 @@ class DashboardPropertyApi(generics.GenericAPIView):
     
 
     def get(self, request):
+        user = request.user
         try:
             query = request.GET.get('query')  # Get the search query from the request
-            properties = Properties.objects.filter(status="active")
+            properties = Properties.objects.filter(status="active", area_id__city__state=user.area.city.state)
             if query:
                 # Apply search filter using Q objects
                 properties = properties.filter(
@@ -320,7 +321,7 @@ class DashboardPropertyApi(generics.GenericAPIView):
 
 
         except Exception as e:
-            return Response({"result": False, "message": "Something went wrong"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"result": False, "message": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
 
 
@@ -425,9 +426,9 @@ class CustomerProfileApi(generics.GenericAPIView):
                 return Response({"result":True,
                                 "data":serializer.data,
                                 'message':'Profile Updated'},status=status.HTTP_201_CREATED)
-            errors = [str(error[0]) for error in serializer.errors.values()]
-            response = Response({"result":False,
-                                "message":", ".join(errors)}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"result":False,
+                                 "message":"Error in updation"})
             return response
         except Exception as e:
             return Response({"result":False,
