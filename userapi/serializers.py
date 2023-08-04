@@ -132,11 +132,20 @@ class PropertyTermsSerializer(serializers.ModelSerializer):
         fields = ['id', 'terms'] 
 
 class DashboardPropertiesSerializer(serializers.ModelSerializer):
-    
+    area = serializers.SerializerMethodField()
+    city = serializers.SerializerMethodField()
+    state = serializers.SerializerMethodField()
+
+    def get_area(self, obj):
+        return obj.area_id.name if obj.area_id else None
+    def get_city(self, obj):
+        return obj.area_id.city.name if obj.area_id.city else None
+    def get_state(self, obj):
+        return obj.area_id.city.state.name if obj.area_id.city.state else None
 
     class Meta:
         model = Properties
-        fields = ['id','name',  'price', 'status', 'root_image']
+        fields = ['id','name',  'price', 'status', 'root_image', 'area', 'city', 'state']
 
     # def to_representation(self, instance):
     #     data = super().to_representation(instance)

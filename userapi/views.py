@@ -321,7 +321,7 @@ class DashboardPropertyApi(generics.GenericAPIView):
 
 
         except Exception as e:
-            return Response({"result": False, "message": str(e)}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"result": False, "message": "Something went wrong"}, status=status.HTTP_404_NOT_FOUND)
 
 
 
