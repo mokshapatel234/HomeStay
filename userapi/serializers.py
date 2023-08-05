@@ -135,6 +135,7 @@ class DashboardPropertiesSerializer(serializers.ModelSerializer):
     area = serializers.SerializerMethodField()
     city = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
+    is_favourite = serializers.SerializerMethodField()
 
     def get_area(self, obj):
         return obj.area_id.name if obj.area_id else None
@@ -142,10 +143,12 @@ class DashboardPropertiesSerializer(serializers.ModelSerializer):
         return obj.area_id.city.name if obj.area_id.city else None
     def get_state(self, obj):
         return obj.area_id.city.state.name if obj.area_id.city.state else None
-
+    
+    def get_is_favourite(self, instance):
+        return self.context['is_favourite'].get(instance.id, False)
     class Meta:
         model = Properties
-        fields = ['id','name',  'price', 'status', 'root_image', 'area', 'city', 'state']
+        fields = ['id','name',  'price', 'status', 'root_image', 'area', 'city', 'state', 'is_favourite']
 
     # def to_representation(self, instance):
     #     data = super().to_representation(instance)

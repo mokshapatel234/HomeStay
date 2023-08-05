@@ -142,6 +142,7 @@ class Properties(models.Model):
     address = models.TextField()
     CHOICES = (('inactive','inactive'),('active','active'))
     status = models.CharField(("status"),choices=CHOICES, max_length=50,default='active')
+    # is_favourite = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(blank=True,null=True ,default=None)

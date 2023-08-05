@@ -282,6 +282,11 @@ class DashboardPropertyApi(generics.GenericAPIView):
         try:
             query = request.GET.get('query')  # Get the search query from the request
             properties = Properties.objects.filter(status="active", area_id__city__state=user.area.city.state)
+            wishlist = Wishlist.objects.filter(customer=user)
+            is_favourite = {}
+            wishlist_property_ids = set(wishlist.values_list('property__id', flat=True))
+            for property in properties:
+                is_favourite[property.id] = property.id in wishlist_property_ids
             if query:
                 # Apply search filter using Q objects
                 properties = properties.filter(
@@ -312,16 +317,16 @@ class DashboardPropertyApi(generics.GenericAPIView):
                     properties = properties.filter(area_id__city__state=state_obj, status="active")
                 except State.DoesNotExist:
                     return Response({"result": False, "message": "No state found"}, status=status.HTTP_404_NOT_FOUND)
-
+        
             per_page = int(request.GET.get('per_page', 5))
             paginator = self.pagination_class(per_page=per_page)
             paginated_properties = paginator.paginate_queryset(properties,request)
-            serializer = DashboardPropertiesSerializer(paginated_properties, many=True)
+            serializer = DashboardPropertiesSerializer(paginated_properties, many=True, context={'is_favourite': is_favourite})
             return paginator.get_paginated_response(serializer.data)
 
 
         except Exception as e:
-            return Response({"result": False, "message": "Something went wrong"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"result": False, "message": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
 
 
@@ -496,6 +501,8 @@ class wishlistApi(generics.GenericAPIView):
             serializer = WishlistSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
+                
+                
                 return Response({'result': True,
                                 'data': serializer.data,
                                 'message': 'Property is now favorited'},
