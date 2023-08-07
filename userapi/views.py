@@ -411,7 +411,7 @@ class PropertyDetailApi(generics.GenericAPIView):
 class wishlistApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
-    pagination_class = CustomerPagination
+    
     def get(self, request):
         try:
             user = request.user
@@ -483,8 +483,8 @@ class wishlistApi(generics.GenericAPIView):
 
     def delete(self, request, id):
         try:
-            property_id = Properties.objects.get(id=id)
-            wishlist = Wishlist.objects.get(property= property_id, customer=request.user)
+            wishlist = Wishlist.objects.get(id=id)
+            # wishlist = Wishlist.objects.get(property= property_id, customer=request.user)
             wishlist.delete()
             return Response({'result': True,
                         'message': 'removed from wishlist'},
