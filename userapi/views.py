@@ -326,58 +326,7 @@ class DashboardPropertyApi(generics.GenericAPIView):
 
 
         except Exception as e:
-            return Response({"result": False, "message": str(e)}, status=status.HTTP_404_NOT_FOUND)
-
-
-
-# class DashboardPropertyApi(generics.GenericAPIView):
-#     authentication_classes = (JWTAuthentication,)
-#     permission_classes = (permissions.IsAuthenticated,)
-#     def get(self, request):
-#         try:
-#             state = request.query_params.get('state', None)
-#             city = request.query_params.get('city', None)
-#             area = request.query_params.get('area', None)
-            
-#             if area:
-#                 try:
-#                     area_obj = Area.objects.get(id=area)
-#                     properties = Properties.objects.filter(area_id=area_obj, status="active")
-#                 except Area.DoesNotExist:
-#                     return Response({"result": False,
-#                                      "message": "No area found"},
-#                                     status=status.HTTP_404_NOT_FOUND)
-            
-#             elif city:
-#                 try:
-#                     city_obj = City.objects.get(id=city)
-#                     properties = Properties.objects.filter(area_id__city=city_obj, status="active")
-#                 except City.DoesNotExist:
-#                     return Response({"result": False,
-#                                      "message": "No city found"},
-#                                     status=status.HTTP_404_NOT_FOUND)
-
-#             elif state:
-#                 try:
-#                     state_obj = State.objects.get(id=state)
-#                     properties = Properties.objects.filter(area_id__city__state=state_obj, status="active")
-#                 except State.DoesNotExist:
-#                     return Response({"result": False,
-#                                      "message": "No state found"},
-#                                     status=status.HTTP_404_NOT_FOUND)
-#             else:
-#                 properties = Properties.objects.filter(status="active")
-            
-#             serializer = DashboardPropertiesSerializer(properties, many=True)
-#             return Response({"result":True,
-#                             "data":serializer.data,
-#                             "message":"Property found successfully"}, status=status.HTTP_200_OK)
-        
-#         except:
-#             return Response({"result":False,
-#                             "message": "Error in getting data"}, status=status.HTTP_404_NOT_FOUND)
-
-
+            return Response({"result": False, "message": "Something went wrong"}, status=status.HTTP_404_NOT_FOUND)
 
 class CustomerProfileApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication,)
@@ -437,7 +386,7 @@ class CustomerProfileApi(generics.GenericAPIView):
             return response
         except Exception as e:
             return Response({"result":False,
-                            "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                            "message": "Something went wrong"}, status=status.HTTP_400_BAD_REQUEST)
  
 
 class PropertyDetailApi(generics.GenericAPIView):
@@ -460,22 +409,22 @@ class PropertyDetailApi(generics.GenericAPIView):
 class wishlistApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
-
+    pagination_class = CustomerPagination
     def get(self, request):
         try:
             user = request.user
             wishlist = Wishlist.objects.filter(customer=user)
-            wishlist_serializer = WishlistSerializer(wishlist, many=True)
 
-
-            return Response({'result': True,
-                            'data': wishlist_serializer.data,
-                            'message': 'List of favorite properties'},
-                            status=status.HTTP_200_OK)
+            per_page = int(request.GET.get('per_page', 5))
+            paginator = self.pagination_class(per_page=per_page)
+            paginated_properties = paginator.paginate_queryset(wishlist,request)
+            serializer = WishlistSerializer(paginated_properties, many=True)
+            return paginator.get_paginated_response(serializer.data)
+                  
         except Exception as e:
             return Response({'result': False,
                             'message': 'Error in property wishlist',
-                         'error': "Something went wrong"},
+                        },
                         status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -528,54 +477,16 @@ class wishlistApi(generics.GenericAPIView):
 
     def delete(self, request, id):
         try:
-            wishlist = Wishlist.objects.get(id=id)
+            property_id = Properties.objects.get(id=id)
+            wishlist = Wishlist.objects.get(property= property_id, customer=request.user)
             wishlist.delete()
             return Response({'result': True,
                         'message': 'removed from wishlist'},
                         status=status.HTTP_400_BAD_REQUEST)
-        except:
+        except Exception as e:
             return Response({'result': False,
-                        'message': 'Error in property remove'},
+                        'message': "Something went wrong"},
                         status=status.HTTP_400_BAD_REQUEST)
-
-# class BookPropertyApi(generics.GenericAPIView):
-#     authentication_classes = (JWTAuthentication, )
-#     permission_classes = (permissions.IsAuthenticated, )
-
-#     def get(self, request):
-#         try:
-#             user = request.user
-#             bookings = BookProperty.objects.filter(customer=user, book_status__in=[True])  
-#             serializer = BookPropertyListSerializer(bookings, many=True)
-
-#             data = []
-#             for booking in bookings:
-#                 property_id = booking.property_id
-#                 property_name = Properties.objects.get(id=property_id).name
-#                 property_image = Properties.objects.get(id=property_id).root_image.url
-#                 payment_status = 'Paid'  
-
-#                 item = {
-#                     'property_name': property_name,
-#                     'root_image': property_image,
-#                     'payment_status': payment_status,
-#                     'start_date': booking.start_date,
-#                     'end_date': booking.end_date,
-#                     'amount': booking.amount,
-#                     'book_status':booking.book_status
-#                 }
-#                 data.append(item)
-
-#             return Response({
-#                 'result': True,
-#                 'data': data,
-#                 'message': 'Booking history'
-#             }, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response({
-#                 'result': False,
-#                 'message': "Something went wrong"
-#             }, status=status.HTTP_400_BAD_REQUEST)
 
 
 
