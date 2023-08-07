@@ -38,7 +38,9 @@ class TermsAndPolicyApi(generics.GenericAPIView):
     def get(self, request):
         terms_and_policy = TermsandPolicy.objects.first()  
         serializer = TermsAndPolicySerializer(terms_and_policy) 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"result":True,
+                        "data":serializer.data,
+                        "message": "Customer created successfully",}, status=status.HTTP_201_CREATED)
     
 
 class RegisterApi(generics.GenericAPIView):
@@ -415,11 +417,15 @@ class wishlistApi(generics.GenericAPIView):
             user = request.user
             wishlist = Wishlist.objects.filter(customer=user)
 
-            per_page = int(request.GET.get('per_page', 5))
-            paginator = self.pagination_class(per_page=per_page)
-            paginated_properties = paginator.paginate_queryset(wishlist,request)
-            serializer = WishlistSerializer(paginated_properties, many=True)
-            return paginator.get_paginated_response(serializer.data)
+            # per_page = int(request.GET.get('per_page', 5))
+            # paginator = self.pagination_class(per_page=per_page)
+            # paginated_properties = paginator.paginate_queryset(wishlist,request)
+            # serializer = WishlistSerializer(paginated_properties, many=True)
+            # return paginator.get_paginated_response(serializer.data)
+            serializer = WishlistSerializer(wishlist, many=True)
+            return Response({'result':True,
+                            'data':serializer.data,
+                            "message":"data found successfully"}, status=status.HTTP_200_OK)
                   
         except Exception as e:
             return Response({'result': False,
