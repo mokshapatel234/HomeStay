@@ -225,13 +225,21 @@ class WishlistSerializer(serializers.ModelSerializer):
     root_image = serializers.ImageField(source='property.root_image', read_only=True)
     price = serializers.FloatField(source='property.price', read_only=True)
     status = serializers.CharField(source='property.status', read_only=True)
-  
-    
+    area = serializers.SerializerMethodField()
+    city = serializers.SerializerMethodField()
+    state = serializers.SerializerMethodField()
+
+    def get_area(self, obj):
+        return obj.property.area_id.name if obj.property.area_id else None
+    def get_city(self, obj):
+        return obj.property.area_id.city.name if obj.property.area_id.city else None
+    def get_state(self, obj):
+        return obj.property.area_id.city.state.name if obj.property.area_id.city.state else None
 
 
     class Meta:
         model = Wishlist
-        fields = ['id', 'property', 'property_name', 'customer', 'price', 'status',  'root_image']
+        fields = ['id', 'property', 'property_name', 'customer', 'price', 'area', 'city', 'state', 'status',  'root_image']
 
 
     # def to_representation(self, instance):
