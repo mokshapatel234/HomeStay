@@ -321,7 +321,7 @@ class DashboardPropertyApi(generics.GenericAPIView):
                     return Response({"result": False, "message": "No state found"}, status=status.HTTP_404_NOT_FOUND)
             else:
                 properties = Properties.objects.filter(status="active", area_id__city__state=user.area.city.state)
-                
+
             per_page = int(request.GET.get('per_page', 5))
             paginator = self.pagination_class(per_page=per_page)
             paginated_properties = paginator.paginate_queryset(properties,request)
@@ -413,21 +413,21 @@ class PropertyDetailApi(generics.GenericAPIView):
 class wishlistApi(generics.GenericAPIView):
     authentication_classes = (JWTAuthentication, )
     permission_classes = (permissions.IsAuthenticated, )
-    
+    pagination_class = CustomerPagination
     def get(self, request):
         try:
             user = request.user
             wishlist = Wishlist.objects.filter(customer=user)
 
-            # per_page = int(request.GET.get('per_page', 5))
-            # paginator = self.pagination_class(per_page=per_page)
-            # paginated_properties = paginator.paginate_queryset(wishlist,request)
-            # serializer = WishlistSerializer(paginated_properties, many=True)
-            # return paginator.get_paginated_response(serializer.data)
-            serializer = WishlistSerializer(wishlist, many=True)
-            return Response({'result':True,
-                            'data':serializer.data,
-                            "message":"data found successfully"}, status=status.HTTP_200_OK)
+            per_page = int(request.GET.get('per_page', 5))
+            paginator = self.pagination_class(per_page=per_page)
+            paginated_properties = paginator.paginate_queryset(wishlist,request)
+            serializer = WishlistSerializer(paginated_properties, many=True)
+            return paginator.get_paginated_response(serializer.data)
+            # serializer = WishlistSerializer(wishlist, many=True)
+            # return Response({'result':True,
+            #                 'data':serializer.data,
+            #                 "message":"data found successfully"}, status=status.HTTP_200_OK)
                   
         except Exception as e:
             return Response({'result': False,
