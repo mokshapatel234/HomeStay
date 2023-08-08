@@ -283,7 +283,7 @@ class DashboardPropertyApi(generics.GenericAPIView):
         user = request.user
         try:
             query = request.GET.get('query')  # Get the search query from the request
-            properties = Properties.objects.filter(status="active", area_id__city__state=user.area.city.state)
+            properties = Properties.objects.filter(status="active")
             wishlist = Wishlist.objects.filter(customer=user)
             is_favourite = {}
             wishlist_property_ids = set(wishlist.values_list('property__id', flat=True))
@@ -319,7 +319,9 @@ class DashboardPropertyApi(generics.GenericAPIView):
                     properties = properties.filter(area_id__city__state=state_obj, status="active")
                 except State.DoesNotExist:
                     return Response({"result": False, "message": "No state found"}, status=status.HTTP_404_NOT_FOUND)
-        
+            else:
+                properties = Properties.objects.filter(status="active", area_id__city__state=user.area.city.state)
+                
             per_page = int(request.GET.get('per_page', 5))
             paginator = self.pagination_class(per_page=per_page)
             paginated_properties = paginator.paginate_queryset(properties,request)

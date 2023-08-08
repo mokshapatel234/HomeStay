@@ -5,6 +5,8 @@
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"
   integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
+  
   <script>
      $(document).ready(function () {
         // Retrieve the selected state from the URL query string
@@ -77,15 +79,16 @@
           <div class="col-lg-6 col-7">
             <h6 class="h2 text-white d-inline-block mb-0"></h6>
             <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
-              
+              <div class="col-lg-6 col-5 text-right">
+                <a href="{% url 'add_notification_customer' %}" class="btn btn-sm btn-neutral">Add User Notification</a>
+              </div>
             </nav>
+            
           </div>
           <div class="col-lg-6 col-5 text-right">
             <a href="{% url 'add_notification_client' %}" class="btn btn-sm btn-neutral">Add Client Notification</a>
           </div>
-          <div class="col-lg-6 col-5 text-right">
-            <a href="{% url 'add_notification_customer' %}" class="btn btn-sm btn-neutral">Add User Notification</a>
-          </div>
+          
         </div>
       </div>
     </div>
@@ -255,91 +258,6 @@ $(document).ready(function () {
         url += '?owner=' + selectedOwner;
       } else {
         url += '?owner=';
-      }
-      window.location.href = url;
-    });
-  
-    // Function to retrieve query string parameter value
-    function getQueryStringValue(key) {
-      var urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(key);
-    }
-  });
-  
-</script>
-
-<script>
-  $(document).ready(function () {
-    // Retrieve the selected state, city, and area from the URL query string
-    var selectedState = getQueryStringValue('state');
-    var selectedCity = getQueryStringValue('city');
-    var selectedArea = getQueryStringValue('area');
-  
-    // Set the selected state, city, and area in the dropdowns
-    $('#state-select').val(selectedState);
-    $('#city-select').val(selectedCity);
-    $('#area-select').val(selectedArea);
-  
-    // Disable city and area filters if state is not selected
-    if (!selectedState) {
-      $('#city-select').prop('disabled', true);
-      $('#area-select').prop('disabled', true);
-    } else {
-      $('#city-select').prop('disabled', false);
-    }
-  
-    // Disable area filter if city is not selected
-    if (!selectedCity) {
-      $('#area-select').prop('disabled', true);
-    } else {
-      $('#area-select').prop('disabled', false);
-    }
-  
-    // Handle state filter
-    $('#state-select').on('change', function () {
-      var selectedState = $(this).val();
-      var url = '{% url "list_bookings" %}';
-      if (selectedState) {
-        url += '?state=' + selectedState;
-        $('#city-select').prop('disabled', false);
-        $('#area-select').prop('disabled', true);
-        $('#area-select').val('');
-      } else {
-        url += '?state=';
-        $('#city-select').val('');
-        $('#city-select').prop('disabled', true);
-        $('#area-select').val('');
-        $('#area-select').prop('disabled', true);
-      }
-      window.location.href = url;
-    });
-  
-    // Handle city filter
-    $('#city-select').on('change', function () {
-      var selectedCity = $(this).val();
-      var url = '{% url "list_bookings" %}';
-      var stateParam = getQueryStringValue('state');
-      if (selectedCity) {
-        url += '?state=' + stateParam + '&city=' + selectedCity;
-        $('#area-select').prop('disabled', false);
-      } else {
-        url += '?state=' + stateParam + '&city=';
-        $('#area-select').val('');
-        $('#area-select').prop('disabled', true);
-      }
-      window.location.href = url;
-    });
-  
-    // Handle area filter
-    $('#area-select').on('change', function () {
-      var selectedArea = $(this).val();
-      var url = '{% url "list_bookings" %}';
-      var stateParam = getQueryStringValue('state');
-      var cityParam = getQueryStringValue('city');
-      if (selectedArea) {
-        url += '?state=' + stateParam + '&city=' + cityParam + '&area=' + selectedArea;
-      } else {
-        url += '?state=' + stateParam + '&city=' + cityParam + '&area=';
       }
       window.location.href = url;
     });
