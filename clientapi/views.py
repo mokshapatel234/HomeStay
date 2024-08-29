@@ -353,7 +353,7 @@ class PropertyApi(generics.GenericAPIView):
     permission_classes = (permissions.IsAuthenticated, )
     parser_classes = (MultiPartParser, )
     pagination_class = ClientPagination
-    # page_size = 5
+    # page_size = 5updateprofile
     # page = 1
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'address', 'price', 'status']  # Add the fields you want to search by

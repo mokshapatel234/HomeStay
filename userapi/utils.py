@@ -23,7 +23,7 @@ def get_transfers(data):
         commission = Commission.objects.filter(client=owner).first()
         
         if commission:
-            commission_percent = int(commission.commission_percent)  # Convert to integer
+            commission_percent = int(commission.commission_percent)
 
         banking_details = ClientBanking.objects.filter(client=owner).first()
         if banking_details:

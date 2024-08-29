@@ -3,8 +3,9 @@ from rest_framework.response import Response
 
 
 class CustomerPagination(PageNumberPagination):
-    def __init__(self, per_page=5):
-        self.page_size = per_page
+    def __init__(self, per_page=None):
+        # Access the request and get the per_page value
+        self.page_size = int(self.request.query_params.get('per_page', per_page or 5))
 
     def get_paginated_response(self, data):
         

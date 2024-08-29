@@ -585,6 +585,7 @@ class BookPropertyApi(generics.GenericAPIView):
                     'errors': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
+            print(e)
             return Response({
                 'result': False,
                 'message': "Something went wrong"
